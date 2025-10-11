@@ -1,0 +1,295 @@
+{
+  "info": {
+    "_postman_id": "c8d4e5f6-7a8b-4c9d-8e1f-2a3b4c5d6e7f",
+    "name": "Dashboard - Locations (Country, City, District)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Countries",
+      "item": [
+        {
+          "name": "List Countries",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/admin/countries?per_page=15",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "countries"],
+              "query": [{ "key": "per_page", "value": "15" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Country",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/admin/countries",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "countries"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Saudi Arabia\",\n  \"iso_code\": \"SA\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Show Country",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/admin/countries/{{country_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "countries", "{{country_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Country",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/admin/countries/{{country_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "countries", "{{country_id}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Kingdom of Saudi Arabia\",\n  \"iso_code\": \"SA\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Country",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/admin/countries/{{country_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "countries", "{{country_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Cities",
+      "item": [
+        {
+          "name": "List Cities",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/admin/cities?per_page=15&country_id={{country_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "cities"],
+              "query": [
+                { "key": "per_page", "value": "15" },
+                { "key": "country_id", "value": "{{country_id}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create City",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/admin/cities",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "cities"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ar\": {\n    \"name\": \"الرياض\"\n  },\n  \"en\": {\n    \"name\": \"Riyadh\"\n  },\n  \"country_id\": {{country_id}}\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Show City",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/admin/cities/{{city_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "cities", "{{city_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update City",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/admin/cities/{{city_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "cities", "{{city_id}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ar\": {\n    \"name\": \"الرياض الكبرى\"\n  },\n  \"en\": {\n    \"name\": \"Greater Riyadh\"\n  }\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete City",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/admin/cities/{{city_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "cities", "{{city_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Districts",
+      "item": [
+        {
+          "name": "List Districts",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/admin/districts?per_page=15&city_id={{city_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "districts"],
+              "query": [
+                { "key": "per_page", "value": "15" },
+                { "key": "city_id", "value": "{{city_id}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create District",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/admin/districts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "districts"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ar\": {\n    \"name\": \"الملز\"\n  },\n  \"en\": {\n    \"name\": \"Al Malaz\"\n  },\n  \"city_id\": {{city_id}}\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Show District",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/admin/districts/{{district_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "districts", "{{district_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update District",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/admin/districts/{{district_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "districts", "{{district_id}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ar\": {\n    \"name\": \"حي الملز\"\n  },\n  \"en\": {\n    \"name\": \"Al Malaz District\"\n  }\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete District",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/admin/districts/{{district_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "districts", "{{district_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "token", "value": "" },
+    { "key": "country_id", "value": "1" },
+    { "key": "city_id", "value": "1" },
+    { "key": "district_id", "value": "1" }
+  ]
+}

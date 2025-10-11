@@ -1,0 +1,155 @@
+{
+  "info": {
+    "_postman_id": "c7d5e2b1-0b3e-4b52-9b8b-0a0b5a0d1234",
+    "name": "Dashboard - Brands",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password\"\n}"
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Brands",
+      "item": [
+        {
+          "name": "List Brands",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/brands?per_page=15",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "brands"],
+              "query": [{ "key": "per_page", "value": "15" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Brand",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/brands",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "brands"]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "ar[name]", "value": "شركة", "type": "text" },
+                { "key": "en[name]", "value": "Brand Co", "type": "text" },
+                { "key": "image", "type": "file", "src": "" },
+                { "key": "active", "value": "true", "type": "text" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Show Brand",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/brands/{{brand_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "brands", "{{brand_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Brand",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/brands/{{brand_id}}?_method=PUT",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "brands", "{{brand_id}}"],
+              "query": [{ "key": "_method", "value": "PUT" }]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "ar[name]", "value": "شركة محدّثة", "type": "text" },
+                { "key": "en[name]", "value": "Brand Co Updated", "type": "text" },
+                { "key": "image", "type": "file", "src": "" },
+                { "key": "active", "value": "true", "type": "text" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Toggle Active",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/brands/{{brand_id}}/toggle-active",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "brands", "{{brand_id}}", "toggle-active"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Brand",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/brands/{{brand_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "brands", "{{brand_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "token", "value": "" },
+    { "key": "brand_id", "value": "1" }
+  ]
+}
+
+

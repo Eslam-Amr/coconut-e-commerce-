@@ -1,0 +1,784 @@
+{
+  "info": {
+    "_postman_id": "d4e5f6g7-8h9i-0j1k-2l3m-n4o5p6q7r8s9",
+    "name": "Dashboard - Products Extended",
+    "description": "Extended API collection for Product management with variants and attributes",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+             "url": {
+               "raw": "{{base_url}}/api/admin/login",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "login"]
+             },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password\"\n}"
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "List Products",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+             "url": {
+               "raw": "{{base_url}}/api/admin/products?per_page=15&search=&category_id=&brand_id=&active=&has_variants=&has_attributes=",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "products"],
+              "query": [
+                { "key": "per_page", "value": "15", "description": "Number of items per page" },
+                { "key": "search", "value": "", "description": "Search by product name" },
+                { "key": "category_id", "value": "", "description": "Filter by category ID" },
+                { "key": "brand_id", "value": "", "description": "Filter by brand ID" },
+                { "key": "active", "value": "", "description": "Filter by active status (true/false)" },
+                { "key": "has_variants", "value": "", "description": "Filter products with/without variants (true/false)" },
+                { "key": "has_attributes", "value": "", "description": "Filter products with/without attributes (true/false)" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/products",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "products"]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { 
+                  "key": "name", 
+                  "value": "Sample Product", 
+                  "type": "text",
+                  "description": "Product name (required)"
+                },
+                { 
+                  "key": "description", 
+                  "value": "{\"en\": \"Product description in English\", \"ar\": \"وصف المنتج بالعربية\"}", 
+                  "type": "text",
+                  "description": "Product description as JSON object"
+                },
+                { 
+                  "key": "category_id", 
+                  "value": "1", 
+                  "type": "text",
+                  "description": "Category ID (required)"
+                },
+                { 
+                  "key": "brand_id", 
+                  "value": "1", 
+                  "type": "text",
+                  "description": "Brand ID (optional)"
+                },
+                { 
+                  "key": "total_quantity", 
+                  "value": "100", 
+                  "type": "text",
+                  "description": "Total quantity available"
+                },
+                { 
+                  "key": "base_price", 
+                  "value": "99.99", 
+                  "type": "text",
+                  "description": "Base price (required)"
+                },
+                { 
+                  "key": "active", 
+                  "value": "true", 
+                  "type": "text",
+                  "description": "Product active status"
+                },
+                { 
+                  "key": "image", 
+                  "type": "file", 
+                  "src": "",
+                  "description": "Product image (jpeg, png, jpg, gif, webp, max 5MB)"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Show Product",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/products/{{product_id}}",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "products", "{{product_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/products/{{product_id}}?_method=PUT",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "products", "{{product_id}}"],
+              "query": [{ "key": "_method", "value": "PUT" }]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { 
+                  "key": "name", 
+                  "value": "Updated Product Name", 
+                  "type": "text",
+                  "description": "Product name"
+                },
+                { 
+                  "key": "description", 
+                  "value": "{\"en\": \"Updated product description\", \"ar\": \"وصف منتج محدث\"}", 
+                  "type": "text",
+                  "description": "Product description as JSON object"
+                },
+                { 
+                  "key": "category_id", 
+                  "value": "2", 
+                  "type": "text",
+                  "description": "Category ID"
+                },
+                { 
+                  "key": "brand_id", 
+                  "value": "2", 
+                  "type": "text",
+                  "description": "Brand ID"
+                },
+                { 
+                  "key": "total_quantity", 
+                  "value": "150", 
+                  "type": "text",
+                  "description": "Total quantity available"
+                },
+                { 
+                  "key": "base_price", 
+                  "value": "129.99", 
+                  "type": "text",
+                  "description": "Base price"
+                },
+                { 
+                  "key": "active", 
+                  "value": "true", 
+                  "type": "text",
+                  "description": "Product active status"
+                },
+                { 
+                  "key": "image", 
+                  "type": "file", 
+                  "src": "",
+                  "description": "Product image (will replace existing image)"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Toggle Active",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/products/{{product_id}}/toggle-active",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "products", "{{product_id}}", "toggle-active"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Product",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/products/{{product_id}}",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "products", "{{product_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Product Variants",
+      "item": [
+        {
+          "name": "List Product Variants",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+             "url": {
+               "raw": "{{base_url}}/api/admin/product-variants?per_page=15&search=&product_id=&active=&stock_filter=",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "product-variants"],
+              "query": [
+                { "key": "per_page", "value": "15", "description": "Number of items per page" },
+                { "key": "search", "value": "", "description": "Search by SKU or product name" },
+                { "key": "product_id", "value": "", "description": "Filter by product ID" },
+                { "key": "active", "value": "", "description": "Filter by active status (true/false)" },
+                { "key": "stock_filter", "value": "", "description": "Filter by stock level (in_stock/out_of_stock/low_stock)" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Product Variant",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/product-variants",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "product-variants"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": {{product_id}},\n  \"sku\": \"SHIRT-RED-SMALL-001\",\n  \"price\": 29.99,\n  \"minimum_stock\": 10,\n  \"stock\": 100,\n  \"active\": true,\n  \"attribute_value_ids\": [1, 5, 8]\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Show Product Variant",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/product-variants/{{variant_id}}",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "product-variants", "{{variant_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Product Variant",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/product-variants/{{variant_id}}",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "product-variants", "{{variant_id}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": {{product_id}},\n  \"sku\": \"SHIRT-RED-SMALL-001-UPDATED\",\n  \"price\": 34.99,\n  \"minimum_stock\": 15,\n  \"stock\": 150,\n  \"active\": true,\n  \"attribute_value_ids\": [1, 5, 8]\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Toggle Variant Active",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/product-variants/{{variant_id}}/toggle-active",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "product-variants", "{{variant_id}}", "toggle-active"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Product Variant",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/product-variants/{{variant_id}}",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "product-variants", "{{variant_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Product Attributes",
+      "item": [
+        {
+          "name": "List Product Attributes",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+             "url": {
+               "raw": "{{base_url}}/api/admin/product-attributes?per_page=15&search=&product_id=&attribute_id=",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "product-attributes"],
+              "query": [
+                { "key": "per_page", "value": "15", "description": "Number of items per page" },
+                { "key": "search", "value": "", "description": "Search by product name, attribute name, or attribute value" },
+                { "key": "product_id", "value": "", "description": "Filter by product ID" },
+                { "key": "attribute_id", "value": "", "description": "Filter by attribute ID" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Product Attribute",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/product-attributes",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "product-attributes"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": {{product_id}},\n  \"attribute_id\": 1,\n  \"attribute_value_id\": 1\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Show Product Attribute",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/product-attributes/{{product_attribute_id}}",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "product-attributes", "{{product_attribute_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Product Attribute",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/product-attributes/{{product_attribute_id}}",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "product-attributes", "{{product_attribute_id}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": {{product_id}},\n  \"attribute_id\": 1,\n  \"attribute_value_id\": 2\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Product Attribute",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/product-attributes/{{product_attribute_id}}",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "product-attributes", "{{product_attribute_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Product-Specific Operations",
+      "item": [
+        {
+          "name": "Get Product Attributes",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/products/{{product_id}}/attributes",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "products", "{{product_id}}", "attributes"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bulk Assign Attributes to Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/products/{{product_id}}/attributes/bulk-assign",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "products", "{{product_id}}", "attributes", "bulk-assign"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"attributes\": [\n    {\n      \"attribute_id\": 1,\n      \"attribute_value_id\": 1\n    },\n    {\n      \"attribute_id\": 2,\n      \"attribute_value_id\": 5\n    },\n    {\n      \"attribute_id\": 3,\n      \"attribute_value_id\": 8\n    }\n  ]\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove All Attributes from Product",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/products/{{product_id}}/attributes/remove-all",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "products", "{{product_id}}", "attributes", "remove-all"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Available Attributes for Product",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/products/{{product_id}}/available-attributes",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "products", "{{product_id}}", "available-attributes"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Variant Attribute Management",
+      "item": [
+        {
+          "name": "Assign Attributes to Variant",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/product-variants/{{variant_id}}/assign-attributes",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "product-variants", "{{variant_id}}", "assign-attributes"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"attribute_value_ids\": [2, 6, 9]\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Attributes from Variant",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/product-variants/{{variant_id}}/remove-attributes",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "product-variants", "{{variant_id}}", "remove-attributes"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"attribute_value_ids\": [2, 6]\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Variant with Attributes",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/product-variants/{{variant_id}}/with-attributes",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "product-variants", "{{variant_id}}", "with-attributes"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Advanced Variant Management",
+      "item": [
+        {
+          "name": "Generate Variant Combinations",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/products/{{product_id}}/variant-combinations",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "products", "{{product_id}}", "variant-combinations"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Variants for All Combinations",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/products/{{product_id}}/create-variants",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "products", "{{product_id}}", "create-variants"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"base_sku\": \"SHIRT-\",\n  \"base_price\": 25.00,\n  \"price_increment\": 5.00,\n  \"stock\": 50,\n  \"minimum_stock\": 5,\n  \"active\": true\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Validate Variant Combinations",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/products/{{product_id}}/validate-combinations",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "products", "{{product_id}}", "validate-combinations"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"combinations\": [\n    {\n      \"attribute_value_ids\": [1, 5, 8]\n    },\n    {\n      \"attribute_value_ids\": [2, 6, 9]\n    },\n    {\n      \"attribute_value_ids\": [1, 6, 8]\n    }\n  ]\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Variant Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/products/{{product_id}}/variant-summary",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "products", "{{product_id}}", "variant-summary"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Product Examples",
+      "item": [
+        {
+          "name": "Create Product - Electronics",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/products",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "products"]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "name", "value": "iPhone 15 Pro", "type": "text" },
+                { "key": "description", "value": "{\"en\": \"Latest iPhone with advanced features\", \"ar\": \"أحدث آيفون مع ميزات متقدمة\"}", "type": "text" },
+                { "key": "category_id", "value": "1", "type": "text" },
+                { "key": "brand_id", "value": "1", "type": "text" },
+                { "key": "total_quantity", "value": "50", "type": "text" },
+                { "key": "base_price", "value": "999.99", "type": "text" },
+                { "key": "active", "value": "true", "type": "text" },
+                { "key": "image", "type": "file", "src": "" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Product - Fashion",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/products",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "products"]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "name", "value": "Designer T-Shirt", "type": "text" },
+                { "key": "description", "value": "{\"en\": \"Premium cotton t-shirt\", \"ar\": \"قميص قطني فاخر\"}", "type": "text" },
+                { "key": "category_id", "value": "2", "type": "text" },
+                { "key": "brand_id", "value": "2", "type": "text" },
+                { "key": "total_quantity", "value": "200", "type": "text" },
+                { "key": "base_price", "value": "49.99", "type": "text" },
+                { "key": "active", "value": "true", "type": "text" },
+                { "key": "image", "type": "file", "src": "" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Products with Variants",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/products?has_variants=true&per_page=10",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "products"],
+              "query": [
+                { "key": "has_variants", "value": "true" },
+                { "key": "per_page", "value": "10" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Products with Attributes",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+               "raw": "{{base_url}}/api/admin/products?has_attributes=true&per_page=10",
+               "host": ["{{base_url}}"],
+               "path": ["api", "admin", "products"],
+              "query": [
+                { "key": "has_attributes", "value": "true" },
+                { "key": "per_page", "value": "10" }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+     { 
+       "key": "base_url", 
+       "value": "http://127.0.0.1:8000",
+       "description": "Base URL for the API"
+     },
+    { 
+      "key": "token", 
+      "value": "",
+      "description": "JWT authentication token"
+    },
+    { 
+      "key": "product_id", 
+      "value": "1",
+      "description": "Product ID for testing"
+    },
+    { 
+      "key": "variant_id", 
+      "value": "1",
+      "description": "Product Variant ID for testing"
+    },
+    { 
+      "key": "product_attribute_id", 
+      "value": "1",
+      "description": "Product Attribute ID for testing"
+    }
+  ]
+}

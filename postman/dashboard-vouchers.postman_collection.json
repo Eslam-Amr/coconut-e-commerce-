@@ -1,0 +1,161 @@
+{
+  "info": {
+    "_postman_id": "e6a3a3de-2f4d-4c6b-9d8f-5f5f1eaa1111",
+    "name": "Dashboard - Auth & Vouchers",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "logout"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Vouchers",
+      "item": [
+        {
+          "name": "List Vouchers",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/vouchers?per_page=15",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "vouchers"],
+              "query": [{ "key": "per_page", "value": "15" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Voucher",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/vouchers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "vouchers"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"WELCOME10\",\n  \"discount\": 10,\n  \"usage_limit\": 100,\n  \"usage_limit_per_user\": 1,\n  \"start_date\": null,\n  \"end_date\": null,\n  \"active\": true\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Show Voucher",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/vouchers/{{voucher_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "vouchers", "{{voucher_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Voucher",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/vouchers/{{voucher_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "vouchers", "{{voucher_id}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"discount\": 15,\n  \"active\": true\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Toggle Active",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/vouchers/{{voucher_id}}/toggle-active",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "vouchers", "{{voucher_id}}", "toggle-active"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Voucher",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/vouchers/{{voucher_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "vouchers", "{{voucher_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "token", "value": "" },
+    { "key": "voucher_id", "value": "1" }
+  ]
+}
+
+

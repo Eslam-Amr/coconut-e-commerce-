@@ -1,0 +1,123 @@
+{
+  "info": {
+    "_postman_id": "b91b3d71-8c52-4f9e-84f4-9d9e5a1cd222",
+    "name": "Dashboard - Flash Sales",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Flash Sales",
+      "item": [
+        {
+          "name": "List Flash Sales",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/flash-sales?per_page=15",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "flash-sales"],
+              "query": [{ "key": "per_page", "value": "15" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Flash Sale",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/flash-sales",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "flash-sales"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Mega Flash\",\n  \"flashable_id\": 1,\n  \"flashable_type\": \"App\\\\Models\\\\Product\",\n  \"discount\": 25,\n  \"max_limit\": 100,\n  \"start_date\": \"2025-10-01 10:00:00\",\n  \"end_date\": \"2025-10-10 10:00:00\",\n  \"active\": true\n}"
+            },
+            "description": "Note: Make sure a Product with ID 1 exists, or change flashable_id to an existing product/category ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Show Flash Sale",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/flash-sales/{{flash_sale_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "flash-sales", "{{flash_sale_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Flash Sale",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/flash-sales/{{flash_sale_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "flash-sales", "{{flash_sale_id}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Mega Flash Extended\",\n  \"discount\": 30,\n  \"active\": true\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Toggle Active",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/flash-sales/{{flash_sale_id}}/toggle-active",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "flash-sales", "{{flash_sale_id}}", "toggle-active"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Flash Sale",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/flash-sales/{{flash_sale_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "flash-sales", "{{flash_sale_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "token", "value": "" },
+    { "key": "flash_sale_id", "value": "1" }
+  ]
+}
+
+
