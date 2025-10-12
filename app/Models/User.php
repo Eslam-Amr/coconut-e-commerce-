@@ -55,8 +55,8 @@ class User extends Authenticatable implements JWTSubject
             'dark_mode' => 'boolean',
         ];
     }
-    
-    
+
+
     public function getJWTIdentifier()
     {
         return $this->getKey(); // usually the user id

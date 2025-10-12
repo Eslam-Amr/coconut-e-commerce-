@@ -20,10 +20,11 @@ return Application::configure(basePath: dirname(__DIR__))
         }
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->use( [
+        $middleware->use([
             \App\Http\Middleware\SetLocale::class,
         ]);
-        
+
+
         $middleware->alias([
             // 'auth' => \App\Http\Middleware\AuthenticatedMiddleware::class,
 
@@ -31,6 +32,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'client' => \App\Http\Middleware\ClientMiddleware::class,
             'authenticated' => \App\Http\Middleware\AuthenticatedMiddleware::class,
 
+            'role' => \App\Http\Middleware\CheckRole::class,
+            'permission' => \App\Http\Middleware\CheckPermission::class,
 
 
         ]);

@@ -33,7 +33,7 @@ class AdminMiddleware
                 'status' => false
             ], 403);
         }
-
+// dd($user);
         return $next($request);
     }
 }

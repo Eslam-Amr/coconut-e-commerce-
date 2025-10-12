@@ -10,8 +10,10 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class GenericCrudController extends Controller
+class GenericCrudController extends Controller implements HasMiddleware
 {
     use ApiResponseTrait;
 
@@ -19,12 +21,12 @@ class GenericCrudController extends Controller
     protected $requestClass;
     protected $modelClass;
     private MediaService $mediaService;
+
     public function __construct($service, $requestClass = null, $modelClass = null)
     {
         $this->service = $service;
-
         $this->mediaService = new MediaService();
-        // $this->requestClass = $requestClass;
+        
         // Handle both class names and instances
         if (is_object($requestClass)) {
             $this->requestClass = get_class($requestClass);
@@ -38,7 +40,50 @@ class GenericCrudController extends Controller
             $this->modelClass = $modelClass;
         }
     }
+    public static function middleware(): array
+    {
+        $permissions = static::$permissionsList ?? [];
+        $middleware = static::$middleware ?? [];
+        $middlewareList = [];
 
+        // Handle global middleware (roles)
+        // if (!empty($permissions['global'])) {
+        //     if (is_array($permissions['global'])) {
+        //         // Multiple roles: role:admin,editor
+        //         $roles = implode(',', $permissions['global']);
+        //         $middlewareList[] = new Middleware("$roles");
+        //     } else {
+        //         // Single role
+        //         $middlewareList[] = new Middleware("{$permissions['global']}");
+        //     }
+        //     unset($permissions['global']);
+        // }
+        if (!empty($middleware)) {
+            if (is_array($middleware)) {
+                // Multiple roles: role:admin,editor
+                $roles = implode(',', $middleware);
+                $middlewareList[] = new Middleware("$roles");
+            } else {
+                // Single role
+                $middlewareList[] = new Middleware("{$middleware}");
+            }
+            // unset($permissions['global']);
+        }
+
+        // Handle method-specific permissions
+        foreach ($permissions as $method => $permission) {
+            if (is_array($permission)) {
+                // Multiple permissions for one method
+                $perms = implode(',', $permission);
+                $middlewareList[] = new Middleware("permission:$perms", only: [$method]);
+            } else {
+                // Single permission for one method
+                $middlewareList[] = new Middleware("permission:$permission", only: [$method]);
+            }
+        }
+// dd($middlewareList);
+        return $middlewareList;
+    }
 
     /**
      * Display a listing of the resource.
@@ -93,8 +138,14 @@ class GenericCrudController extends Controller
     // public function store(Request $request)
     public function store()
     {
+        // $request =  app($this->requestClass);
+        // $validatedData = $this->getValidatedData($request);
         $request =  app($this->requestClass);
-        $validatedData = $this->getValidatedData($request);
+        if(method_exists($request, 'validated')){
+            $validatedData = $request->validated();
+        }else{
+            $validatedData = $this->getValidatedData($request);
+        }
         $result = $this->service->store($validatedData);
 
         // Handle image upload if present (after model creation)
@@ -119,9 +170,15 @@ class GenericCrudController extends Controller
         return $result;
     }
 
-    public function update(Request $request,  $model)
+    public function update( $model)
     {
-        $validatedData = $this->getValidatedData($request);
+        $request =  app($this->requestClass);
+        if(method_exists($request, 'validated')){
+            $validatedData = $request->validated();
+        }else{
+            $validatedData = $this->getValidatedData($request);
+        }
+        // $validatedData = $this->getValidatedData($request);
         // dd(is_string($model) , $this->modelClass);
         if (is_string($model) && $this->modelClass) {
             // dd(app($this->modelClass)->findOrFail($model));
@@ -221,4 +278,47 @@ class GenericCrudController extends Controller
             $this->mediaService->storeImage($files, $model, $collection);
         }
     }
+
+
+    /**
+     * Get the middleware that should be assigned to the controller.
+     */
+    // public static function middleware(): array
+    // {
+    //     // Get permissions from the child class static property
+    //     $permissions = static::$middlewarePermissions ?? [];
+        
+    //     if (empty($permissions)) {
+    //         return [];
+    //     }
+    //     dd($permissions['global'],static::$middlewarePermissions);
+    //     // Just return global middleware for now - method-specific middleware will be handled in routes
+    //     return $permissions['global'] ?? [];
+    // }
+    // public static function middleware(): array
+    // {
+    //     $permissions = static::$middlewarePermissions ?? [];
+    //     $middlewareList = [];
+    
+    //     // ✅ Add global middleware (if defined)
+    //     if (!empty($permissions['global'])) {
+    //         foreach ($permissions['global'] as $global) {
+    //             // If these are role names, use role middleware:
+    //             $middlewareList[] = ['middleware' => "$global"];
+    //         }
+    //         unset($permissions['global']);
+    //     }
+    
+    //     // ✅ Add method-specific permissions
+    //     foreach ($permissions as $method => $permission) {
+    //         $middlewareList[] = [
+    //             'middleware' => "permission:$permission",
+    //             'only' => [$method],
+    //         ];
+    //     }
+    // // dd($middlewareList);
+    //     return $middlewareList;
+    // }
+    
+
 }

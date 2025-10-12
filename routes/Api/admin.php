@@ -18,6 +18,9 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Api\Dashboard\Country\CountryController;
 use App\Http\Controllers\Api\Dashboard\City\CityController;
 use App\Http\Controllers\Api\Dashboard\District\DistrictController;
+use App\Http\Controllers\Api\Dashboard\Admin\AdminController;
+use App\Http\Controllers\Api\Dashboard\Role\RoleController;
+use App\Http\Controllers\Api\Dashboard\Permission\PermissionController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [LoginController::class, 'login']);
@@ -89,6 +92,25 @@ Route::put('flash-sales/{flash_sale}/toggle-active', [FlashSaleController::class
 Route::apiResource('countries', CountryController::class);
 Route::apiResource('cities', CityController::class);
 Route::apiResource('districts', DistrictController::class);
+
+// Admin Management routes
+Route::apiResource('admins', AdminController::class);
+Route::post('admins/{admin}/assign-role', [AdminController::class, 'assignRole']);
+Route::delete('admins/{admin}/remove-role', [AdminController::class, 'removeRole']);
+Route::post('admins/{admin}/grant-permission', [AdminController::class, 'grantPermission']);
+Route::delete('admins/{admin}/revoke-permission', [AdminController::class, 'revokePermission']);
+Route::delete('admins/{admin}/remove-direct-permission', [AdminController::class, 'removeDirectPermission']);
+Route::get('available-roles', [AdminController::class, 'getAvailableRoles']);
+Route::get('available-permissions', [AdminController::class, 'getAvailablePermissions']);
+
+// Role Management routes
+Route::apiResource('roles', RoleController::class);
+Route::post('roles/{role}/assign-permission', [RoleController::class, 'assignPermission']);
+Route::delete('roles/{role}/remove-permission', [RoleController::class, 'removePermission']);
+Route::get('roles/{role}/available-permissions', [RoleController::class, 'getAvailablePermissions']);
+
+// Permission Management routes
+Route::apiResource('permissions', PermissionController::class);
 // Route::post('categories/{category}/toggle-active', function($category) {
 //     try {
 //         // If we received a string (ID), resolve the model

@@ -18,18 +18,24 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
 
-        $this->call([
-            CategorySeeder::class,
-            AttributeSeeder::class,
-            AttributeValueSeeder::class,
-        ]);
+        // $this->call([
+        //     PermissionSeeder::class,
+        //     RoleSeeder::class,
+        //     CategorySeeder::class,
+        //     AttributeSeeder::class,
+        //     AttributeValueSeeder::class,
+        // ]);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-            'phone' => '+10000000001',
-        ]);
-        Admin::updateOrCreate([
+        User::updateOrCreate(
+            ['email' => 'test@example.com'], // search by email
+            [
+                'name' => 'Test User',
+                'phone' => '+10000000001',
+                'email_verified_at' => now(),
+                'password' => Hash::make('password'),
+            ]
+        );
+        $admin = Admin::updateOrCreate([
             'email' => 'admin@example.com',
         ], [
             'email' => 'admin@example.com',
@@ -38,5 +44,8 @@ class DatabaseSeeder extends Seeder
             'email_verified_at' => now(),
             'password' => Hash::make('password'),
         ]);
+
+        // Assign super_admin role to the admin user
+        $admin->assignRole('super_admin');
     }
 }

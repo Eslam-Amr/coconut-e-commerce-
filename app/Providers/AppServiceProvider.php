@@ -2,10 +2,12 @@
 
 namespace App\Providers;
 
+use App\Models\Admin;
 use App\Models\Media;
 use App\Models\User;
 use App\Notifications\Channels\EmailChannel;
 use App\Notifications\Channels\SmsChannel;
+use App\Observers\AdminObserver;
 use App\Observers\MediaObserver;
 use App\Observers\UserObserver;
 use Illuminate\Support\Facades\Notification;
@@ -29,6 +31,8 @@ class AppServiceProvider extends ServiceProvider
         // Register observers
         User::observe(UserObserver::class);
 
+        Admin::observe(AdminObserver::class);
+        
         Media::observe(MediaObserver::class);
 
         Notification::extend('email', function ($app) {
