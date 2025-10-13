@@ -25,7 +25,7 @@ class AdminMiddleware
         }
 
         $user =  Auth::guard('admin')->user();
-        
+
         // Check if user is an admin
         if (!$user || $user->user_type !== 'admin') {
             return response()->json([
@@ -33,7 +33,15 @@ class AdminMiddleware
                 'status' => false
             ], 403);
         }
-// dd($user);
+        if (!$user->active) {
+            Auth::guard('admin')->logout();
+
+            return response()->json([
+                'message' => __("messages.login.inactive_account"),
+                'status' => false
+            ], 403);
+        }
+        // dd($user);
         return $next($request);
     }
 }

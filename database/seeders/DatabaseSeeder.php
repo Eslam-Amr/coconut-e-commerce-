@@ -18,13 +18,13 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
 
-        // $this->call([
-        //     PermissionSeeder::class,
-        //     RoleSeeder::class,
-        //     CategorySeeder::class,
-        //     AttributeSeeder::class,
-        //     AttributeValueSeeder::class,
-        // ]);
+        $this->call([
+            PermissionSeeder::class,
+            RoleSeeder::class,
+            // CategorySeeder::class,
+            // AttributeSeeder::class,
+            // AttributeValueSeeder::class,
+        ]);
 
         User::updateOrCreate(
             ['email' => 'test@example.com'], // search by email

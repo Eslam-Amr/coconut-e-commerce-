@@ -8,15 +8,38 @@ use App\Http\Requests\Api\Dashboard\Admin\AdminRequest;
 use App\Http\Requests\Api\Dashboard\Admin\UpdateAdminRequest;
 use App\Models\Admin;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
 
-class AdminController extends GenericCrudController
+class AdminController extends GenericCrudController implements HasMiddleware
 {
-    protected static $middleware = ['role:super_admin'];
+	protected static $permissionsList = [
+    'index' => 'admins.view',
+    'show' => 'admins.view',
+    'store' => 'admins.create',
+    'update' => 'admins.update',
+    'destroy' => 'admins.delete',
+	    'toggleActive' => 'admins.toggle_active',
+	    'assignRole' => 'admins.assign_role',
+	    'removeRole' => 'admins.remove_role',
+	    'grantPermission' => 'admins.grant_permission',
+	    'revokePermission' => 'admins.revoke_permission',
+	    'removeDirectPermission' => 'admins.remove_direct_permission',
+	    'getAvailableRoles' => 'admins.get_available_roles',
+	    'getAvailablePermissions' => 'admins.get_available_permissions',
+    // 'global' => [
+    // 	'admin'
+    // ]
+];
+protected static $middleware = ['admin'];
 
-    public function __construct()
+
+
+    // protected static $middleware = ['role:super_admin'];
+
+    public function __construct(AdminService $adminService)
     {
         parent::__construct(
-            new AdminService(),
+            $adminService,
             AdminRequest::class,
             Admin::class
         );

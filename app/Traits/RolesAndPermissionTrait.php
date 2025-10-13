@@ -9,17 +9,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 trait RolesAndPermissionTrait
 {
+    use ApiResponseTrait;
     // ... existing code ...
 
     public function roles(): BelongsToMany
     {
-        return $this->belongsToMany(Role::class,'role_user','user_id','role_id')
+        return $this->belongsToMany(Role::class, 'role_user', 'user_id', 'role_id')
             ->withTimestamps();
     }
 
     public function permissions(): BelongsToMany
     {
-        return $this->belongsToMany(Permission::class,'permission_user','user_id','permission_id')
+        return $this->belongsToMany(Permission::class, 'permission_user', 'user_id', 'permission_id')
             ->withPivot('granted')
             ->withTimestamps();
     }
@@ -178,24 +179,65 @@ trait RolesAndPermissionTrait
     public function grantPermission($permission)
     {
         $permissionModel = Permission::where('name', $permission)->first();
-if($this->roles()->whereHas('permissions', function ($q) use ($permission) {
-    $q->where('name', $permission);
-})->exists()){
-    $this->removeDirectPermission($permission);
-    dd('Permission found to this role');
-    return $this->errorResponse('Permission found to this role', 400);
-}
-        if ($permissionModel) {
-            $this->permissions()->syncWithoutDetaching([
-                $permissionModel->id => ['granted' => true]
-            ]);
+
+        if (!$permissionModel) {
+            return [
+                'ok' => false,
+                'code' => 404,
+                'message' => 'Permission not found',
+            ];
         }
+
+        // If permission is already provided via any role, do not attach direct grant
+        $hasViaRole = $this->roles()->whereHas('permissions', function ($q) use ($permission) {
+            $q->where('name', $permission);
+        })->exists();
+        if ($hasViaRole) {
+            // Ensure no stale direct record remains
+            $this->removeDirectPermission($permission);
+            return [
+                'ok' => false,
+                'code' => 409,
+                'message' => 'Permission already provided via role',
+            ];
+        }
+
+        // Check existing direct pivot state
+        $direct = $this->permissions()->where('permission_id', $permissionModel->id)->first();
+        if ($direct && $direct->pivot && $direct->pivot->granted) {
+            return [
+                'ok' => false,
+                'code' => 409,
+                'message' => 'Permission already granted',
+            ];
+        }
+
+        // Grant or re-grant
+        $this->permissions()->syncWithoutDetaching([
+            $permissionModel->id => ['granted' => true]
+        ]);
+
+        return [
+            'ok' => true,
+            'code' => 200,
+            'message' => $direct ? 'Permission re-granted' : 'Permission granted',
+        ];
     }
 
     // Revoke permission from user (overrides role permissions)
     public function revokePermission($permission)
     {
         $permissionModel = Permission::where('name', $permission)->first();
+        $id = $permissionModel->id;
+        $exists = $this->roles()->whereHas('permissions', function ($q) use ($id) {
+            $q->where('permission_id', $id);
+        })->exists();
+        if (!$exists) {
+            /*
+            if its not inside the role so its alredy revoked 
+            */
+            return $this->errorResponse('Permission not found to this role', 404);
+        }
 
         if ($permissionModel) {
             $this->permissions()->syncWithoutDetaching([

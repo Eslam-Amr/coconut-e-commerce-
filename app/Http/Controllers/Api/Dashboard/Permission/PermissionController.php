@@ -13,10 +13,10 @@ class PermissionController extends GenericCrudController
 {
     protected static $middleware = ['role:super_admin'];
 
-    public function __construct()
+    public function __construct(PermissionService $permissionService)
     {
         parent::__construct(
-            new PermissionService(),
+            $permissionService,
             PermissionRequest::class,
             Permission::class
         );

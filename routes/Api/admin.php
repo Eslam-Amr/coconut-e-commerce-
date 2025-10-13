@@ -100,6 +100,7 @@ Route::delete('admins/{admin}/remove-role', [AdminController::class, 'removeRole
 Route::post('admins/{admin}/grant-permission', [AdminController::class, 'grantPermission']);
 Route::delete('admins/{admin}/revoke-permission', [AdminController::class, 'revokePermission']);
 Route::delete('admins/{admin}/remove-direct-permission', [AdminController::class, 'removeDirectPermission']);
+Route::put('admins/{admin}/toggle-active', [AdminController::class, 'toggleActive']);
 Route::get('available-roles', [AdminController::class, 'getAvailableRoles']);
 Route::get('available-permissions', [AdminController::class, 'getAvailablePermissions']);
 

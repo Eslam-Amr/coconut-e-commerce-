@@ -11,12 +11,28 @@ use Illuminate\Http\Request;
 
 class RoleController extends GenericCrudController
 {
-    protected static $middleware = ['role:super_admin'];
 
-    public function __construct()
+	protected static $permissionsList = [
+		'index' => 'roles.view',
+		'show' => 'roles.view',
+		'store' => 'roles.create',
+		'update' => 'roles.update',
+		'destroy' => 'roles.delete',
+		'toggleActive' => 'roles.toggle_active',
+		// 'global' => [
+		// 	'admin'
+		// ]
+	];
+    protected static $middleware = ['admin'];
+
+
+
+    // protected static $middleware = ['role:super_admin'];
+
+    public function __construct(RoleService $roleService)
     {
         parent::__construct(
-            new RoleService(),
+            $roleService,
             RoleRequest::class,
             Role::class
         );

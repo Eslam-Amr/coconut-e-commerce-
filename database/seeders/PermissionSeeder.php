@@ -17,6 +17,20 @@ class PermissionSeeder extends Seeder
             ['name' => 'auth.login', 'description' => 'Can login to dashboard'],
             ['name' => 'auth.logout', 'description' => 'Can logout from dashboard'],
             
+            // Admin Management
+            ['name' => 'admins.view', 'description' => 'Can view admins'],
+            ['name' => 'admins.create', 'description' => 'Can create admins'],
+            ['name' => 'admins.update', 'description' => 'Can update admins'],
+            ['name' => 'admins.delete', 'description' => 'Can delete admins'],
+            ['name' => 'admins.toggle_active', 'description' => 'Can toggle admin active status'],
+            ['name' => 'admins.assign_role', 'description' => 'Can assign roles to admins'],
+            ['name' => 'admins.remove_role', 'description' => 'Can remove roles from admins'],
+            ['name' => 'admins.grant_permission', 'description' => 'Can grant permissions to admins'],
+            ['name' => 'admins.revoke_permission', 'description' => 'Can revoke permissions from admins'],
+            ['name' => 'admins.remove_direct_permission', 'description' => 'Can remove direct permission from admins'],
+            ['name' => 'admins.get_available_roles', 'description' => 'Can view available roles list'],
+            ['name' => 'admins.get_available_permissions', 'description' => 'Can view available permissions list'],
+            
             // User Management
             ['name' => 'users.view', 'description' => 'Can view users'],
             ['name' => 'users.create', 'description' => 'Can create users'],

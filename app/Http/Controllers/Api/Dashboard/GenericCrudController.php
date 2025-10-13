@@ -40,6 +40,7 @@ class GenericCrudController extends Controller implements HasMiddleware
             $this->modelClass = $modelClass;
         }
     }
+    
     public static function middleware(): array
     {
         $permissions = static::$permissionsList ?? [];
@@ -100,10 +101,10 @@ class GenericCrudController extends Controller implements HasMiddleware
         if (is_string($model) && $this->modelClass) {
             $model = app($this->modelClass)->findOrFail($model);
         }
-
         $model->update([
             'active' => !$model->active,
         ]);
+        // dd($model->active);
         $lastPart = Str::singular(ucfirst($model->getTable()));
 
         return $this->successResponse($model, $lastPart . ' toggled successfully');

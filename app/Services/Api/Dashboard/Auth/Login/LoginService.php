@@ -22,7 +22,11 @@ class LoginService
     {
         // $user = Auth::user('admin');
         $user = auth('admin')->user();
-
+        if (!$user->active) {
+            Auth::guard('admin')->logout();
+            return $this->errorResponse(__('messages.login.inactive_account'), code:403);
+ 
+        }
         return $this->successResponse([
             'access_token' => $token,
             'token_type' => 'bearer',

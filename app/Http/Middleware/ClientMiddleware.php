@@ -24,11 +24,19 @@ class ClientMiddleware
         }
 
         $user = Auth::user();
-        
+
         // Check if user is a client (not admin)
         if (!$user || $user->user_type === 'admin') {
             return response()->json([
                 'message' => 'Access denied. Client access only.',
+                'status' => false
+            ], 403);
+        }
+        if (!$user->active) {
+            Auth::guard()->logout();
+
+            return response()->json([
+                'message' => __("messages.login.inactive_account"),
                 'status' => false
             ], 403);
         }

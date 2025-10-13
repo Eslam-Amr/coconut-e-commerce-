@@ -1,0 +1,69 @@
+{
+  "info": {
+    "_postman_id": "7c2a3dcb-2c9b-4a2b-9c5e-guest-products-collection",
+    "name": "App - Guest - Products",
+    "description": "Guest-facing product endpoints: list, show, recommendations",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "List Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/app/guest/products?per_page=12&category_id=&brand_id=",
+              "host": ["{{base_url}}"],
+              "path": ["api", "app", "guest", "products"],
+              "query": [
+                { "key": "per_page", "value": "12", "description": "Items per page" },
+                { "key": "category_id", "value": "", "description": "Filter by category id" },
+                { "key": "brand_id", "value": "", "description": "Filter by brand id" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Show Product",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/app/guest/products/{{product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "app", "guest", "products", "{{product_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Recommendations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/app/guest/products/recommendations?limit=12",
+              "host": ["{{base_url}}"],
+              "path": ["api", "app", "guest", "products", "recommendations"],
+              "query": [
+                { "key": "limit", "value": "12", "description": "Number of recommendations" }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000", "description": "Base URL for the API" },
+    { "key": "product_id", "value": "1", "description": "Sample product ID" }
+  ]
+}
+
+
+

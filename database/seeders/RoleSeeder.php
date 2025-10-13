@@ -118,6 +118,12 @@ class RoleSeeder extends Seeder
             // Authentication
             'auth.login', 'auth.logout',
             
+            // Admin Management
+            'admins.view', 'admins.create', 'admins.update', 'admins.delete', 'admins.toggle_active',
+            'admins.assign_role', 'admins.remove_role',
+            'admins.grant_permission', 'admins.revoke_permission', 'admins.remove_direct_permission',
+            'admins.get_available_roles', 'admins.get_available_permissions',
+            
             // User Management
             'users.view', 'users.create', 'users.update', 'users.delete', 'users.toggle_active',
             

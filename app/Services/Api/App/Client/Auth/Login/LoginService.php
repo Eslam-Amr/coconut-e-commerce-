@@ -21,7 +21,7 @@ class LoginService
     public function login($credentials)
     {
         if (!$token = Auth::attempt($credentials))
-            return $this->errorResponse(__('messages.login.failed'), 401);
+            return $this->errorResponse(__('messages.login.failed'), code:401);
         return $this->createNewToken($token);
     }
 
@@ -29,8 +29,12 @@ class LoginService
     {
         $user = Auth::user();
         if ($user->email_verified_at == null) {
-            return $this->errorResponse(__('messages.login.not_verified'), 401);
+            return $this->errorResponse(__('messages.login.not_verified'), code:401);
             Auth::logout();
+        }
+        if (!$user->active) {
+            Auth::guard()->logout();
+            return $this->errorResponse(__('messages.login.inactive_account'), code:403);
         }
         return $this->successResponse([
             'access_token' => $token,

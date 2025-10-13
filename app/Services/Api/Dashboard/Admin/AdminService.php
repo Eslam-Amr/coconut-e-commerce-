@@ -132,18 +132,29 @@ class AdminService
     public function grantPermission(Admin $admin, $permissionId)
     {
         try {
-            $exists = $admin->roles()->whereHas('permissions', function ($q) use ($permissionId) {
-                $q->where('permission_id', $permissionId);
-            })->exists();
-            if ($exists) {
-                $permission = Permission::findOrFail($permissionId);
-                $admin->removeDirectPermission($permissionId);
-                return $this->errorResponse('Permission found to this role', 400);
-            }
+            // $exists = $admin->roles()->whereHas('permissions', function ($q) use ($permissionId) {
+            //     $q->where('permission_id', $permissionId);
+            // })->exists();
+            // if ($exists) {
+            //     $permission = Permission::findOrFail($permissionId);
+            //     $admin->removeDirectPermission($permissionId);
+            //     return $this->errorResponse('Permission found to this role', 400);
+            // }
             $permission = Permission::findOrFail($permissionId);
-            $admin->grantPermission($permission->name);
-            $admin->load(['roles', 'permissions']);
+            $result = $admin->grantPermission($permission->name);
 
+            // If trait returns structured array
+            if (is_array($result)) {
+                if ($result['ok'] === true) {
+                    $admin->load(['roles', 'permissions']);
+                    return $this->successResponse($admin, $result['message']);
+                }
+                // dd($result);
+                return $this->errorResponse($result['message'], code:$result['code'] ?? 400);
+            }
+
+            // Fallback: assume success
+            $admin->load(['roles', 'permissions']);
             return $this->successResponse($admin, 'Permission granted successfully');
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to grant permission', ['error' => $e->getMessage()]);
