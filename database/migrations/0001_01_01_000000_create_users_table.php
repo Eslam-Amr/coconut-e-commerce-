@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('language')->default('en');
             $table->string('user_type')->default('user');
             $table->foreignId('default_address_id')->nullable();
+            
 
             $table->rememberToken();
             $table->timestamps();

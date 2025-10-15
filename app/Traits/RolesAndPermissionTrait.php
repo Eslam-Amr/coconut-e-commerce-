@@ -6,16 +6,16 @@ use App\Models\Media;
 use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\Auth;
 
 trait RolesAndPermissionTrait
 {
     use ApiResponseTrait;
     // ... existing code ...
 
-    public function roles(): BelongsToMany
+    public function role()
     {
-        return $this->belongsToMany(Role::class, 'role_user', 'user_id', 'role_id')
-            ->withTimestamps();
+        return $this->belongsTo(Role::class);
     }
 
     public function permissions(): BelongsToMany
@@ -26,35 +26,66 @@ trait RolesAndPermissionTrait
     }
 
     // Assign role to user
-    public function assignRole($role)
+    // public function assignRole($role)
+    // {
+    //     $roleModel = Role::where('name', $role)->first();
+
+    //     if ($roleModel) {
+    //         $this->roles()->syncWithoutDetaching($roleModel->id);
+
+    //         // Optional: Remove any revoked permissions that are now granted through this role
+    //         $this->cleanupRevokedPermissionsAfterRoleAssignment($roleModel);
+    //     }
+    // }
+    public function assignRole(string $roleName)
     {
-        $roleModel = Role::where('name', $role)->first();
+        $role = Role::where('name', $roleName)->first();
 
-        if ($roleModel) {
-            $this->roles()->syncWithoutDetaching($roleModel->id);
+        if (!$role) 
+            return $this->errorResponse('Role not found', 404);
+        
 
-            // Optional: Remove any revoked permissions that are now granted through this role
-            $this->cleanupRevokedPermissionsAfterRoleAssignment($roleModel);
-        }
+        $this->update(['role_id' => $role->id]);
+        $this->cleanupRevokedPermissionsAfterRoleAssignment($role);
+        return $this->successResponse(['message' => 'Role assigned successfully']);
     }
 
     // Remove role from user
-    public function removeRole($role)
+    // public function removeRole($role)
+    // {
+    //     $roleModel = Role::where('name', $role)->first();
+    //     $this->update(['role_id' => null]);
+
+    //     if ($roleModel) {
+    //         // Get all permissions that were part of this role
+    //         $rolePermissions = $roleModel->permissions()->pluck('name')->toArray();
+
+    //         // Remove the role first
+    //         $this->roles()->detach($roleModel->id);
+
+    //         // Clean up permissions that were granted through this role
+    //         if (!empty($rolePermissions)) {
+    //             $this->cleanupPermissionsAfterRoleRemoval($rolePermissions, $roleModel);
+    //         }
+    //     }
+    // }
+    public function removeRole()
     {
-        $roleModel = Role::where('name', $role)->first();
-
-        if ($roleModel) {
-            // Get all permissions that were part of this role
-            $rolePermissions = $roleModel->permissions()->pluck('name')->toArray();
-
-            // Remove the role first
-            $this->roles()->detach($roleModel->id);
+        if (!$this->role_id) {
+            return $this->errorResponse('User has no role assigned', 404);
+        }
+        $roleModel = Role::find(Auth::user()->role_id);
+        if (!$roleModel) {
+            return $this->errorResponse('Role not found', 404);
+        }
+        $rolePermissions = $roleModel->permissions()->pluck('name')->toArray();
+        $this->update(['role_id' => null]);
 
             // Clean up permissions that were granted through this role
             if (!empty($rolePermissions)) {
                 $this->cleanupPermissionsAfterRoleRemoval($rolePermissions, $roleModel);
             }
-        }
+        return $this->successResponse(['message' => 'Role removed successfully']);
     }
 
     // Helper: Clean up revoked permissions when assigning a role
@@ -81,7 +112,7 @@ trait RolesAndPermissionTrait
     {
         foreach ($rolePermissions as $permissionName) {
             // Check if user still has this permission via another role
-            $hasPermissionThroughOtherRoles = $this->roles()
+            $hasPermissionThroughOtherRoles = $this->role()
                 ->whereKeyNot($removedRole->id)
                 ->whereHas('permissions', fn($q) => $q->where('name', $permissionName))
                 ->exists();
@@ -106,29 +137,44 @@ trait RolesAndPermissionTrait
     // Check if user has role
     public function hasRole($role): bool
     {
-        if (is_array($role)) {
-            return $this->roles()->whereIn('name', $role)->exists();
+        if (!$this->role) {
+            return false;
         }
 
-        return $this->roles()->where('name', $role)->exists();
+        if (is_array($role)) {
+            return in_array($this->role->name, $role);
+        }
+
+        return $this->role->name === $role;
     }
+
 
     // Check if user has any of the roles
     public function hasAnyRole(array $roles): bool
     {
-        return $this->roles()->whereIn('name', $roles)->exists();
+        if (!$this->role) {
+            return false;
+        }
+
+        return in_array($this->role->name, $roles);
     }
 
     // Check if user has all roles
     public function hasAllRoles(array $roles): bool
     {
-        foreach ($roles as $role) {
-            if (!$this->hasRole($role)) {
+        if (!$this->role) {
+            return false;
+        }
+
+        // In a single-role system, user can only have all roles if array contains exactly their role
+        foreach ($roles as $roleName) {
+            if ($this->role->name !== $roleName) {
                 return false;
             }
         }
         return true;
     }
+
 
     // Check if user has permission (considering direct grants/revokes)
     public function hasPermission($permission): bool
@@ -147,10 +193,15 @@ trait RolesAndPermissionTrait
             return true; // Explicitly granted
         }
 
+      
         // Check role permissions
-        return $this->roles()->whereHas('permissions', function ($q) use ($permission) {
-            $q->where('name', $permission);
-        })->exists();
+        if ($this->role) {
+            return $this->role->permissions()
+                ->where('name', $permission)
+                ->exists();
+        }
+
+        return false;
     }
 
     // Check if user has any of the permissions
@@ -189,17 +240,20 @@ trait RolesAndPermissionTrait
         }
 
         // If permission is already provided via any role, do not attach direct grant
-        $hasViaRole = $this->roles()->whereHas('permissions', function ($q) use ($permission) {
-            $q->where('name', $permission);
-        })->exists();
-        if ($hasViaRole) {
-            // Ensure no stale direct record remains
-            $this->removeDirectPermission($permission);
-            return [
-                'ok' => false,
-                'code' => 409,
-                'message' => 'Permission already provided via role',
-            ];
+        if ($this->role) {
+            $hasViaRole = $this->role->permissions()
+                ->where('name', $permission)
+                ->exists();
+
+            if ($hasViaRole) {
+                // Ensure no stale direct record remains
+                $this->removeDirectPermission($permission);
+                return [
+                    'ok' => false,
+                    'code' => 409,
+                    'message' => 'Permission already provided via role',
+                ];
+            }
         }
 
         // Check existing direct pivot state
@@ -228,15 +282,15 @@ trait RolesAndPermissionTrait
     public function revokePermission($permission)
     {
         $permissionModel = Permission::where('name', $permission)->first();
-        $id = $permissionModel->id;
-        $exists = $this->roles()->whereHas('permissions', function ($q) use ($id) {
-            $q->where('permission_id', $id);
-        })->exists();
-        if (!$exists) {
-            /*
-            if its not inside the role so its alredy revoked 
-            */
-            return $this->errorResponse('Permission not found to this role', 404);
+        $existsInRole = false;
+        if ($this->role) {
+            $existsInRole = $this->role->permissions()
+                ->where('permission_id', $permissionModel->id)
+                ->exists();
+        }
+
+        if (!$existsInRole) {
+            return $this->errorResponse('Permission not found in user\'s role', 404);
         }
 
         if ($permissionModel) {
@@ -256,17 +310,15 @@ trait RolesAndPermissionTrait
         }
     }
 
+ 
     // Get all effective permissions
     public function getAllPermissions()
     {
-        // Get permissions from roles
-        $rolePermissions = $this->roles()
-            ->with('permissions')
-            ->get()
-            ->pluck('permissions')
-            ->flatten()
-            ->pluck('name')
-            ->unique();
+        // Get permissions from role
+        $rolePermissions = collect([]);
+        if ($this->role) {
+            $rolePermissions = $this->role->permissions()->pluck('name');
+        }
 
         // Get explicitly revoked permissions
         $revokedPermissions = $this->permissions()
@@ -284,5 +336,13 @@ trait RolesAndPermissionTrait
             ->diff($revokedPermissions)
             ->unique()
             ->values();
+    }
+
+    // Helper: Get permissions from role
+    public function getRolePermissions()
+    {
+        return $this->role 
+            ? $this->role->permissions()->pluck('name') 
+            : collect([]);
     }
 }

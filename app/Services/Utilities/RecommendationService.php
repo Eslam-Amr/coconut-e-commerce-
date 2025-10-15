@@ -61,7 +61,7 @@ class RecommendationService
             ->limit($limit);
 
         $products = $query->get();
-
+// dd($products);
         // If user has very little history, inject diversity and backfill
         if ($products->count() < $limit) {
             $alreadyIds = $excludeIds->merge($products->pluck('id'))->unique();
@@ -96,6 +96,11 @@ class RecommendationService
     {
         $query = Product::query()
             ->where('active', true)
+            ->with([
+                'category.translations',
+                'brand.translations',
+                'translations',
+            ])
             ->where('total_quantity', '>', 0)
             ->withCount(['orderItems', 'wishlists', 'reviews'])
             ->withAvg('reviews', 'rating')
@@ -104,7 +109,7 @@ class RecommendationService
             ->orderByDesc('wishlists_count')
             ->orderByDesc('reviews_count')
             ->limit($limit);
-
+// dd($query->get()->values());
         if ($excludeIds && $excludeIds->isNotEmpty()) {
             $query->whereNotIn('id', $excludeIds);
         }
@@ -174,6 +179,11 @@ class RecommendationService
     {
         return Product::query()
             ->select('products.id')
+            ->with([
+                'category.translations',
+                'brand.translations',
+                'translations',
+            ])
             ->join('order_items', 'order_items.product_id', '=', 'products.id')
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
             ->where('orders.user_id', $userId)
@@ -251,6 +261,153 @@ class RecommendationService
         return $query->get();
     }
 
+    /**
+     * Get trending products (most sold recently) for guests.
+     */
+    public function getTrendingProducts(int $limit = 8): Collection
+    {
+        $query = Product::query()
+            ->where('active', true)
+            ->where('total_quantity', '>', 0)
+            ->with(['brand.translations', 'category.translations', 'translations'])
+            ->withAvg('reviews', 'rating')
+            ->withCount(['orderItems', 'wishlists', 'reviews'])
+            ->whereHas('orderItems.order', function ($q) {
+                $q->where('created_at', '>=', now()->subDays(30));
+            })
+            ->orderByDesc('order_items_count')
+            ->orderByDesc('reviews_avg_rating')
+            ->limit($limit);
+
+        return $query->get();
+    }
+
+    /**
+     * Get featured products (high-rated products) for guests.
+     */
+    public function getFeaturedProducts(int $limit = 8): Collection
+    {
+        $query = Product::query()
+            ->where('active', true)
+            ->where('total_quantity', '>', 0)
+            ->with(['brand.translations', 'category.translations', 'translations'])
+            ->withAvg('reviews', 'rating')
+            ->withCount(['orderItems', 'wishlists', 'reviews'])
+            ->having('reviews_avg_rating', '>=', 4.0)
+            ->having('reviews_count', '>=', 5)
+            ->orderByDesc('reviews_avg_rating')
+            ->orderByDesc('reviews_count')
+            ->limit($limit);
+
+        return $query->get();
+    }
+
+    /**
+     * Most ordered products recently, with fallback to overall popular if window is sparse.
+     */
+    public function getMostOrderedProducts(int $limit = 8): Collection
+    {
+        $recent = Product::query()
+            ->where('active', true)
+            ->where('total_quantity', '>', 0)
+            ->with(['brand.translations', 'category.translations', 'translations'])
+            ->withAvg('reviews', 'rating')
+            ->withCount(['orderItems', 'wishlists', 'reviews'])
+            ->whereHas('orderItems.order', function ($q) {
+                $q->where('created_at', '>=', now()->subDays(30));
+            })
+            ->orderByDesc('order_items_count')
+            ->limit($limit)
+            ->get();
+
+        if ($recent->count() >= $limit) {
+            return $recent;
+        }
+
+        $needed = $limit - $recent->count();
+        $fallback = Product::query()
+            ->where('active', true)
+            ->where('total_quantity', '>', 0)
+            ->with(['brand.translations', 'category.translations', 'translations'])
+            ->withAvg('reviews', 'rating')
+            ->withCount(['orderItems', 'wishlists', 'reviews'])
+            ->whereNotIn('id', $recent->pluck('id'))
+            ->orderByDesc('order_items_count')
+            ->limit($needed)
+            ->get();
+
+        return $recent->merge($fallback)->take($limit)->values();
+    }
+
+    /**
+     * Top-rated products with minimum review thresholds, fallback to popular if sparse.
+     */
+    public function getTopRatedProducts(int $limit = 8, float $minRating = 4.0, int $minReviews = 5): Collection
+    {
+        $topRated = Product::query()
+            ->where('active', true)
+            ->where('total_quantity', '>', 0)
+            ->with(['brand.translations', 'category.translations', 'translations'])
+            ->withAvg('reviews', 'rating')
+            ->withCount(['orderItems', 'wishlists', 'reviews'])
+            ->having('reviews_avg_rating', '>=', $minRating)
+            ->having('reviews_count', '>=', $minReviews)
+            ->orderByDesc('reviews_avg_rating')
+            ->orderByDesc('reviews_count')
+            ->limit($limit)
+            ->get();
+
+        if ($topRated->count() >= $limit) {
+            return $topRated;
+        }
+
+        $needed = $limit - $topRated->count();
+        $fallback = Product::query()
+            ->where('active', true)
+            ->where('total_quantity', '>', 0)
+            ->with(['brand.translations', 'category.translations', 'translations'])
+            ->withAvg('reviews', 'rating')
+            ->withCount(['orderItems', 'wishlists', 'reviews'])
+            ->whereNotIn('id', $topRated->pluck('id'))
+            ->orderByDesc('reviews_avg_rating')
+            ->orderByDesc('order_items_count')
+            ->limit($needed)
+            ->get();
+
+        return $topRated->merge($fallback)->take($limit)->values();
+    }
+    /**
+     * Get related products for a given product based on category and brand.
+     */
+    public function getRelatedProducts(Product $product, int $limit = 6): Collection
+    {
+        $query = Product::query()
+            ->where('active', true)
+            ->where('total_quantity', '>', 0)
+            ->where('id', '!=', $product->id)
+            ->with([
+                'brand.translations',
+                'category.translations',
+                'translations',
+            ])
+            ->withAvg('reviews', 'rating')
+            ->withCount(['orderItems', 'wishlists', 'reviews']);
+
+        $query->where(function ($q) use ($product) {
+            if (!is_null($product->category_id)) {
+                $q->where('category_id', $product->category_id);
+            }
+            if (!is_null($product->brand_id)) {
+                $q->orWhere('brand_id', $product->brand_id);
+            }
+        });
+
+        return $query
+            ->orderByDesc('reviews_avg_rating')
+            ->orderByDesc('order_items_count')
+            ->limit($limit)
+            ->get();
+    }
 }
 
 

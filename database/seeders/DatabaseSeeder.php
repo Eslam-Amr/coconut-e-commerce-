@@ -21,9 +21,14 @@ class DatabaseSeeder extends Seeder
         $this->call([
             PermissionSeeder::class,
             RoleSeeder::class,
-            // CategorySeeder::class,
-            // AttributeSeeder::class,
-            // AttributeValueSeeder::class,
+            CategorySeeder::class,
+            BrandSeeder::class,
+            AttributeSeeder::class,
+            AttributeValueSeeder::class,
+            ProductSeeder::class,
+            ProductAttributeSeeder::class,
+            ProductVariantSeeder::class,
+            VariantAttributeValueSeeder::class,
         ]);
 
         User::updateOrCreate(

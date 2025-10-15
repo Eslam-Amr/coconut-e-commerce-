@@ -60,6 +60,7 @@ Route::put('product-variants/{product_variant}/toggle-active', [ProductVariantCo
 Route::post('product-variants/{product_variant}/assign-attributes', [ProductVariantController::class, 'assignAttributes']);
 Route::delete('product-variants/{product_variant}/remove-attributes', [ProductVariantController::class, 'removeAttributes']);
 Route::get('product-variants/{product_variant}/with-attributes', [ProductVariantController::class, 'showWithAttributes']);
+Route::post('product-variants/{product_variant}/attach-attribute', [ProductVariantController::class, 'attachAttributeValue']);
 
 // Product Attribute routes
 Route::apiResource('product-attributes', ProductAttributeController::class);
@@ -69,15 +70,15 @@ Route::delete('products/{product}/attributes/remove-all', [ProductAttributeContr
 Route::get('products/{product}/available-attributes', [ProductAttributeController::class, 'getAvailableAttributes']);
 
 // Variant Attribute Management routes
-Route::post('products/{product}/create-variants', function ($productId, VariantAttributeService $service, Request $request) {
-    return $service->createVariantsForCombinations($productId, $request->all());
-});
-Route::post('products/{product}/validate-combinations', function ($productId, VariantAttributeService $service, Request $request) {
-    return $service->validateVariantCombinations($productId, $request->input('combinations', []));
-});
-Route::get('products/{product}/variant-summary', function ($productId, VariantAttributeService $service) {
-    return $service->getVariantSummary($productId);
-});
+// Route::post('products/{product}/create-variants', function ($productId, VariantAttributeService $service, Request $request) {
+//     return $service->createVariantsForCombinations($productId, $request->all());
+// });
+// Route::post('products/{product}/validate-combinations', function ($productId, VariantAttributeService $service, Request $request) {
+//     return $service->validateVariantCombinations($productId, $request->input('combinations', []));
+// });
+// Route::get('products/{product}/variant-summary', function ($productId, VariantAttributeService $service) {
+//     return $service->getVariantSummary($productId);
+// });
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Voucher routes

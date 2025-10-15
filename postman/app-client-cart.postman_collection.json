@@ -1,0 +1,375 @@
+{
+  "info": {
+    "_postman_id": "8d3e4f5a-1b2c-3d4e-5f6g-client-cart-collection",
+    "name": "App - Client - Cart",
+    "description": "Client cart endpoints: view cart, add items, increment/decrement quantities, update quantity, remove items",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Cart Operations",
+      "item": [
+        {
+          "name": "Get Cart",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "description": "JWT token for authenticated user"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/app/client/cart",
+              "host": ["{{base_url}}"],
+              "path": ["api", "app", "client", "cart"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add to Cart",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "description": "JWT token for authenticated user"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": {{product_id}},\n  \"product_variant_id\": {{product_variant_id}},\n  \"quantity\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/app/client/cart/add",
+              "host": ["{{base_url}}"],
+              "path": ["api", "app", "client", "cart", "add"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Increment Cart Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "description": "JWT token for authenticated user"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cart_item_id\": {{cart_item_id}},\n  \"by\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/app/client/cart/increment",
+              "host": ["{{base_url}}"],
+              "path": ["api", "app", "client", "cart", "increment"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Decrement Cart Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "description": "JWT token for authenticated user"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cart_item_id\": {{cart_item_id}},\n  \"by\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/app/client/cart/decrement",
+              "host": ["{{base_url}}"],
+              "path": ["api", "app", "client", "cart", "decrement"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Cart Item Quantity",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "description": "JWT token for authenticated user"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cart_item_id\": {{cart_item_id}},\n  \"quantity\": 3\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/app/client/cart/update-quantity",
+              "host": ["{{base_url}}"],
+              "path": ["api", "app", "client", "cart", "update-quantity"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Cart Item",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "description": "JWT token for authenticated user"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cart_item_id\": {{cart_item_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/app/client/cart/remove",
+              "host": ["{{base_url}}"],
+              "path": ["api", "app", "client", "cart", "remove"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Cart Examples",
+      "item": [
+        {
+          "name": "Add Product Without Variant",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": 1,\n  \"quantity\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/app/client/cart/add",
+              "host": ["{{base_url}}"],
+              "path": ["api", "app", "client", "cart", "add"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Product With Variant",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": 1,\n  \"product_variant_id\": 1,\n  \"quantity\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/app/client/cart/add",
+              "host": ["{{base_url}}"],
+              "path": ["api", "app", "client", "cart", "add"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Increment by 2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cart_item_id\": 1,\n  \"by\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/app/client/cart/increment",
+              "host": ["{{base_url}}"],
+              "path": ["api", "app", "client", "cart", "increment"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Decrement by 2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cart_item_id\": 1,\n  \"by\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/app/client/cart/decrement",
+              "host": ["{{base_url}}"],
+              "path": ["api", "app", "client", "cart", "decrement"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Set Quantity to 0 (Remove)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cart_item_id\": 1,\n  \"quantity\": 0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/app/client/cart/update-quantity",
+              "host": ["{{base_url}}"],
+              "path": ["api", "app", "client", "cart", "update-quantity"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { 
+      "key": "base_url", 
+      "value": "http://127.0.0.1:8000", 
+      "description": "Base URL for the API" 
+    },
+    { 
+      "key": "auth_token", 
+      "value": "your_jwt_token_here", 
+      "description": "JWT authentication token for client user" 
+    },
+    { 
+      "key": "product_id", 
+      "value": "1", 
+      "description": "Sample product ID" 
+    },
+    { 
+      "key": "product_variant_id", 
+      "value": "1", 
+      "description": "Sample product variant ID" 
+    },
+    { 
+      "key": "cart_item_id", 
+      "value": "1", 
+      "description": "Sample cart item ID" 
+    }
+  ]
+}

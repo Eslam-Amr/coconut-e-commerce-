@@ -50,6 +50,10 @@ class Product extends Model
         return $this->belongsTo(Brand::class);
     }
 
+    public function translations()
+    {
+        return $this->hasMany(ProductTranslation::class);
+    }
     public function variants(): HasMany
     {
         return $this->hasMany(ProductVariant::class);

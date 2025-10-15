@@ -8,6 +8,8 @@ use App\Http\Requests\Api\Dashboard\Role\RoleRequest;
 use App\Http\Requests\Api\Dashboard\Role\UpdateRoleRequest;
 use App\Models\Role;
 use Illuminate\Http\Request;
+use App\Http\Requests\Api\Dashboard\Role\AssignPermissionRequest;
+use App\Http\Requests\Api\Dashboard\Role\RemovePermissionRequest;
 
 class RoleController extends GenericCrudController
 {
@@ -41,24 +43,16 @@ class RoleController extends GenericCrudController
     /**
      * Assign permission to role
      */
-    public function assignPermission(Request $request, Role $role)
+    public function assignPermission(AssignPermissionRequest $request, Role $role)
     {
-        $request->validate([
-            'permission_id' => 'required|exists:permissions,id'
-        ]);
-
         return $this->service->assignPermission($role, $request->permission_id);
     }
 
     /**
      * Remove permission from role
      */
-    public function removePermission(Request $request, Role $role)
+    public function removePermission(RemovePermissionRequest $request, Role $role)
     {
-        $request->validate([
-            'permission_id' => 'required|exists:permissions,id'
-        ]);
-
         return $this->service->removePermission($role, $request->permission_id);
     }
 

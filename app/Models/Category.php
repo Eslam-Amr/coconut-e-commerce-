@@ -56,4 +56,10 @@ class Category extends Model implements TranslatableContract
     {
         return $this->morphMany(FlashSale::class, 'flashable');
     }
+    public function translations():HasMany
+    {
+        return $this->hasMany(CategoryTranslation::class);
+    }
+    
+
 }

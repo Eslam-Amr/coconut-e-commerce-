@@ -13,8 +13,15 @@ return new class extends Migration
                 $table->foreignId('default_address_id')->nullable()->after('user_type');
             }
             $table->foreign('default_address_id')
+            ->references('id')
+            ->on('addresses')
+            ->nullOnDelete();
+            if (!Schema::hasColumn('users', 'role_id')) {
+                $table->foreignId('role_id')->nullable()->after('user_type');
+            }
+            $table->foreign('role_id')
                 ->references('id')
-                ->on('addresses')
+                ->on('roles')
                 ->nullOnDelete();
         });
     }

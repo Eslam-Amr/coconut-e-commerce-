@@ -67,6 +67,7 @@ class ProductVariantService
 
     public function store(array $data)
     {
+        // dd($data);
         try {
             DB::beginTransaction();
 
@@ -224,6 +225,39 @@ class ProductVariantService
             return $this->successResponse($productVariant, 'Attributes removed successfully');
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to remove attributes', ['error' => $e->getMessage()]);
+        }
+    }
+
+    public function attachAttributeValue(ProductVariant $productVariant, int $attributeValueId)
+    {
+        try {
+            // Replace any existing value for the same attribute
+            $attribute = AttributeValue::select('attribute_id')->find($attributeValueId);
+            if (!$attribute) {
+                return $this->errorResponse('Attribute value not found', 404);
+            }
+            $attributeId = $attribute->attribute_id;
+
+            // Detach existing values for this attribute
+            $existingIds = $productVariant->attributeValues()
+                ->where('attribute_values.attribute_id', $attributeId)
+                ->pluck('attribute_values.id')
+                ->toArray();
+            if (!empty($existingIds)) {
+                $productVariant->attributeValues()->detach($existingIds);
+            }
+
+            // Attach new value
+            $productVariant->attributeValues()->attach($attributeValueId);
+
+            $productVariant->load([
+                'attributeValues.attribute.translations',
+                'attributeValues.translations'
+            ]);
+
+            return $this->successResponse($productVariant, 'Attribute value attached successfully');
+        } catch (\Exception $e) {
+            return $this->serverErrorResponse('Failed to attach attribute value', ['error' => $e->getMessage()]);
         }
     }
 

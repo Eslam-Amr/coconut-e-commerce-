@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Dashboard\Product;
 
 use App\Http\Controllers\Api\Dashboard\GenericCrudController;
 use App\Http\Requests\Api\Dashboard\Product\ProductVariantRequest;
+use App\Http\Requests\Api\Dashboard\Product\ProductVariantAttributeRequest;
 use App\Models\ProductVariant;
 use App\Services\Api\Dashboard\Product\ProductVariantService;
 use Illuminate\Http\Request;
@@ -54,5 +55,14 @@ class ProductVariantController extends GenericCrudController implements HasMiddl
     public function showWithAttributes(ProductVariant $productVariant)
     {
         return $this->service->showWithAttributes($productVariant);
+    }
+
+    /**
+     * Attach single attribute value to a product variant
+     */
+    public function attachAttributeValue(ProductVariantAttributeRequest $request, ProductVariant $productVariant)
+    {
+        $attributeValueId = (int) $request->input('attribute_value_id');
+        return $this->service->attachAttributeValue($productVariant, $attributeValueId);
     }
 }

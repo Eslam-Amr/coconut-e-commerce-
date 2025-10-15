@@ -121,18 +121,23 @@ class ProductVariantRequest extends MasterRequest
                     // Get the product's category
                     $product = \App\Models\Product::with('category')->find($productId);
                     
-                    if ($product && $product->category) {
-                        // Get valid attribute IDs for this category
-                        $validAttributeIds = \App\Models\Attribute::where('category_id', $product->category->id)
-                            ->pluck('id')
+                    if ($product) {
+                        // Get valid attribute IDs configured for this product via product_attributes
+                        $validAttributeIds = \App\Models\ProductAttribute::where('product_id', $product->id)
+                            ->pluck('attribute_id')
+                            ->unique()
                             ->toArray();
 
-                        // Check if all attribute values belong to valid attributes
-                        $invalidAttributeValues = \App\Models\AttributeValue::whereIn('id', $attributeValueIds)
-                            ->whereNotIn('attribute_id', $validAttributeIds)
-                            ->pluck('id')
-                            ->toArray();
+                        // Check if all attribute values belong to valid attributes for this product
+                        $invalidAttributeValues = [];
+                        if (!empty($validAttributeIds)) {
+                            $invalidAttributeValues = \App\Models\AttributeValue::whereIn('id', $attributeValueIds)
+                                ->whereNotIn('attribute_id', $validAttributeIds)
+                                ->pluck('id')
+                                ->toArray();
+                        }
 
+                        // dd($invalidAttributeValues);
                         if (!empty($invalidAttributeValues)) {
                             $validator->errors()->add(
                                 'attribute_value_ids',
