@@ -1,0 +1,291 @@
+{
+	"info": {
+		"_postman_id": "guest-recommendations-collection",
+		"name": "Guest Recommendations API",
+		"description": "Collection for testing guest recommendation endpoints (no authentication required)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get Guest Recommendations",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/client/guest/recommendations?limit=12",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"client",
+						"guest",
+						"recommendations"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "12",
+							"description": "Number of recommendations to return (default: 12)"
+						}
+					]
+				},
+				"description": "Get popular/trending products for guests (no authentication required)"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Guest Trending Products",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/client/guest/recommendations/trending?limit=12&days=7",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"client",
+						"guest",
+						"recommendations",
+						"trending"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "12",
+							"description": "Number of trending products to return (default: 12)"
+						},
+						{
+							"key": "days",
+							"value": "7",
+							"description": "Number of days to look back for trending (default: 7)"
+						}
+					]
+				},
+				"description": "Get trending products based on recent interactions (guest accessible)"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Guest Point-Based Recommendations",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/client/guest/recommendations/points?limit=12",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"client",
+						"guest",
+						"recommendations",
+						"points"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "12",
+							"description": "Number of recommendations to return (default: 12)"
+						}
+					]
+				},
+				"description": "Get recommendations based on interaction points (guest accessible)"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Guest Top Rated Products",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/client/guest/recommendations/top-rated?limit=12&min_rating=4",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"client",
+						"guest",
+						"recommendations",
+						"top-rated"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "12",
+							"description": "Number of products to return (default: 12)"
+						},
+						{
+							"key": "min_rating",
+							"value": "4",
+							"description": "Minimum rating threshold (1-5, default: 4)"
+						}
+					]
+				},
+				"description": "Get top rated products based on interaction ratings (guest accessible)"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Guest Most Reviewed Products",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/client/guest/recommendations/most-reviewed?limit=12&min_reviews=5",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"client",
+						"guest",
+						"recommendations",
+						"most-reviewed"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "12",
+							"description": "Number of products to return (default: 12)"
+						},
+						{
+							"key": "min_reviews",
+							"value": "5",
+							"description": "Minimum number of reviews required (default: 5)"
+						}
+					]
+				},
+				"description": "Get most reviewed products based on interaction reviews (guest accessible)"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Guest Category Recommendations",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/client/guest/recommendations/category/1?limit=12",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"client",
+						"guest",
+						"recommendations",
+						"category",
+						"1"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "12",
+							"description": "Number of recommendations to return (default: 12)"
+						}
+					]
+				},
+				"description": "Get category-specific recommendations (guest accessible)"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Guest Related Products",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/client/guest/recommendations/related/1?limit=6",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"client",
+						"guest",
+						"recommendations",
+						"related",
+						"1"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "6",
+							"description": "Number of related products to return (default: 6)"
+						}
+					]
+				},
+				"description": "Get related products for a specific product (guest accessible)"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		}
+	]
+}

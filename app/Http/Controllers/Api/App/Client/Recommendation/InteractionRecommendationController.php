@@ -8,6 +8,7 @@ use App\Services\Utilities\InteractionPointsService;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Support\Facades\Auth;
 
 class InteractionRecommendationController extends Controller implements HasMiddleware
 {
@@ -33,14 +34,7 @@ class InteractionRecommendationController extends Controller implements HasMiddl
         try {
             $limit = (int)($request->query('limit', 12));
             $limit = $limit > 0 ? $limit : 12;
-
-            $user = $request->user();
-            if (!$user) {
-                return $this->errorResponse('Unauthorized', [], 401);
-            }
-
-            $recommendations = $this->recommendationService->getRecommendations($user->id, $limit);
-
+            $recommendations = $this->recommendationService->getRecommendations(Auth::id(), $limit);
             return $this->successResponse($recommendations, 'Personalized recommendations retrieved successfully');
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to retrieve recommendations', ['error' => $e->getMessage()]);
@@ -191,6 +185,68 @@ class InteractionRecommendationController extends Controller implements HasMiddl
             throw $e;
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to record view interaction', ['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Get recommendations based on interaction points (simple and fast)
+     */
+    public function getPointBasedRecommendations(Request $request)
+    {
+        try {
+            $limit = (int)($request->query('limit', 12));
+            $limit = $limit > 0 ? $limit : 12;
+
+            $user = $request->user();
+            if (!$user) {
+                return $this->errorResponse('Unauthorized', [], 401);
+            }
+
+            $recommendations = $this->recommendationService->getPointBasedRecommendations($user->id, $limit);
+
+            return $this->successResponse($recommendations, 'Point-based recommendations retrieved successfully');
+        } catch (\Exception $e) {
+            return $this->serverErrorResponse('Failed to retrieve point-based recommendations', ['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Get top rated products based on interaction ratings
+     */
+    public function getTopRatedProducts(Request $request)
+    {
+        try {
+            $limit = (int)($request->query('limit', 12));
+            $limit = $limit > 0 ? $limit : 12;
+
+            $minRating = (int)($request->query('min_rating', 4));
+            $minRating = $minRating > 0 && $minRating <= 5 ? $minRating : 4;
+
+            $recommendations = $this->recommendationService->getTopRatedProducts($limit, $minRating);
+
+            return $this->successResponse($recommendations, 'Top rated products retrieved successfully');
+        } catch (\Exception $e) {
+            return $this->serverErrorResponse('Failed to retrieve top rated products', ['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Get most reviewed products based on interaction reviews
+     */
+    public function getMostReviewedProducts(Request $request)
+    {
+        try {
+            $limit = (int)($request->query('limit', 12));
+            $limit = $limit > 0 ? $limit : 12;
+
+            $minReviews = (int)($request->query('min_reviews', 5));
+            $minReviews = $minReviews > 0 ? $minReviews : 5;
+
+            $recommendations = $this->recommendationService->getMostReviewedProducts($limit, $minReviews);
+
+            return $this->successResponse($recommendations, 'Most reviewed products retrieved successfully');
+        } catch (\Exception $e) {
+            return $this->serverErrorResponse('Failed to retrieve most reviewed products', ['error' => $e->getMessage()]);
         }
     }
 }

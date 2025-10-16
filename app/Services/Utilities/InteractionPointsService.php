@@ -49,7 +49,7 @@ class InteractionPointsService
             case 'review':
                 $interaction->review_count++;
                 $pointsToAdd = UserProductInteraction::POINTS['review'];
-                
+
                 if ($rating !== null) {
                     $interaction->last_rating = $rating;
                     $pointsToAdd += UserProductInteraction::POINTS['rating_bonus'][$rating] ?? 0;
@@ -70,7 +70,10 @@ class InteractionPointsService
     public function getUserTopInteractions(int $userId, int $limit = 20): Collection
     {
         return UserProductInteraction::forUser($userId)
-            ->withPositivePoints()
+            // ->withPositivePoints()
+            ->where('total_points', '>', 0)
+
+
             ->orderByPoints()
             ->orderByLastInteraction()
             ->limit($limit)
@@ -85,7 +88,9 @@ class InteractionPointsService
         return UserProductInteraction::select('products.category_id', DB::raw('SUM(total_points) as total_points'))
             ->join('products', 'products.id', '=', 'user_product_interactions.product_id')
             ->forUser($userId)
-            ->withPositivePoints()
+            // ->withPositivePoints()
+            ->where('total_points', '>', 0)
+
             ->whereNotNull('products.category_id')
             ->groupBy('products.category_id')
             ->orderByDesc('total_points')
@@ -101,7 +106,9 @@ class InteractionPointsService
         return UserProductInteraction::select('products.brand_id', DB::raw('SUM(total_points) as total_points'))
             ->join('products', 'products.id', '=', 'user_product_interactions.product_id')
             ->forUser($userId)
-            ->withPositivePoints()
+            // ->withPositivePoints()
+            ->where('total_points', '>', 0)
+
             ->whereNotNull('products.brand_id')
             ->groupBy('products.brand_id')
             ->orderByDesc('total_points')
@@ -110,27 +117,77 @@ class InteractionPointsService
     }
 
     /**
+     * Get user's preferred categories and brands in a single query (UNION ALL)
+     * Returns an array with keys: 'category_ids' and 'brand_ids'
+     */
+    public function getUserPreferredCategoriesAndBrands(int $userId, int $limitPerType = 10): array
+    {
+        $categoriesQuery = UserProductInteraction::select(
+                DB::raw('products.category_id as id'),
+                DB::raw('SUM(total_points) as points'),
+                DB::raw("'category' as type")
+            )
+            ->join('products', 'products.id', '=', 'user_product_interactions.product_id')
+            ->forUser($userId)
+            // ->withPositivePoints()
+            ->where('total_points', '>', 0)
+            ->whereNotNull('products.category_id')
+            ->groupBy('products.category_id');
+
+        $brandsQuery = UserProductInteraction::select(
+                DB::raw('products.brand_id as id'),
+                DB::raw('SUM(total_points) as points'),
+                DB::raw("'brand' as type")
+            )
+            ->join('products', 'products.id', '=', 'user_product_interactions.product_id')
+            ->forUser($userId)
+            // ->withPositivePoints()
+            ->where('total_points', '>', 0)
+            ->whereNotNull('products.brand_id')
+            ->groupBy('products.brand_id');
+
+        $union = $categoriesQuery->unionAll($brandsQuery);
+
+        // Wrap union to allow ordering and limiting; fetch enough rows for both types
+        $rows = DB::query()
+            ->fromSub($union, 'prefs')
+            ->orderByDesc('points')
+            ->limit($limitPerType * 2)
+            ->get();
+
+        $categoryIds = $rows->where('type', 'category')->pluck('id')->take($limitPerType)->values();
+        $brandIds = $rows->where('type', 'brand')->pluck('id')->take($limitPerType)->values();
+
+        return [
+            'category_ids' => $categoryIds,
+            'brand_ids' => $brandIds,
+        ];
+    }
+
+    /**
      * Get category affinity scores (percentage of interest per category)
      */
     public function getCategoryAffinityScores(int $userId): array
     {
         $interactions = UserProductInteraction::select(
-                'products.category_id',
-                DB::raw('SUM(total_points) as category_points')
-            )
+            'products.category_id',
+            DB::raw('SUM(total_points) as category_points')
+        )
             ->join('products', 'products.id', '=', 'user_product_interactions.product_id')
             ->forUser($userId)
-            ->withPositivePoints()
+            // ->withPositivePoints()
+            ->where('total_points', '>', 0)
+
             ->whereNotNull('products.category_id')
             ->groupBy('products.category_id')
             ->get();
 
         $totalPoints = $interactions->sum('category_points');
-        
-        return $interactions->mapWithKeys(function($item) use ($totalPoints) {
+
+        return $interactions->mapWithKeys(function ($item) use ($totalPoints) {
             return [
-                $item->category_id => $totalPoints > 0 
-                    ? ($item->category_points / $totalPoints) 
+                $item->category_id => $totalPoints > 0
+                    ? ($item->category_points / $totalPoints)
                     : 0
             ];
         })->toArray();
@@ -142,25 +199,83 @@ class InteractionPointsService
     public function getBrandAffinityScores(int $userId): array
     {
         $interactions = UserProductInteraction::select(
-                'products.brand_id',
-                DB::raw('SUM(total_points) as brand_points')
-            )
+            'products.brand_id',
+            DB::raw('SUM(total_points) as brand_points')
+        )
             ->join('products', 'products.id', '=', 'user_product_interactions.product_id')
             ->forUser($userId)
-            ->withPositivePoints()
+            // ->withPositivePoints()
+            ->where('total_points', '>', 0)
+
             ->whereNotNull('products.brand_id')
             ->groupBy('products.brand_id')
             ->get();
 
         $totalPoints = $interactions->sum('brand_points');
-        
-        return $interactions->mapWithKeys(function($item) use ($totalPoints) {
+
+        return $interactions->mapWithKeys(function ($item) use ($totalPoints) {
             return [
-                $item->brand_id => $totalPoints > 0 
-                    ? ($item->brand_points / $totalPoints) 
+                $item->brand_id => $totalPoints > 0
+                    ? ($item->brand_points / $totalPoints)
                     : 0
             ];
         })->toArray();
+    }
+
+    /**
+     * Get combined affinity scores for categories and brands in ONE query.
+     * Returns: [ 'category_affinity' => [categoryId => ratio], 'brand_affinity' => [brandId => ratio] ]
+     */
+    public function getCombinedAffinityScores(int $userId): array
+    {
+        $categoriesQuery = UserProductInteraction::select(
+                DB::raw('products.category_id as id'),
+                DB::raw('SUM(total_points) as points'),
+                DB::raw("'category' as type")
+            )
+            ->join('products', 'products.id', '=', 'user_product_interactions.product_id')
+            ->forUser($userId)
+            // ->withPositivePoints()
+            ->where('total_points', '>', 0)
+            ->whereNotNull('products.category_id')
+            ->groupBy('products.category_id');
+
+        $brandsQuery = UserProductInteraction::select(
+                DB::raw('products.brand_id as id'),
+                DB::raw('SUM(total_points) as points'),
+                DB::raw("'brand' as type")
+            )
+            ->join('products', 'products.id', '=', 'user_product_interactions.product_id')
+            ->forUser($userId)
+            // ->withPositivePoints()
+            ->where('total_points', '>', 0)
+            ->whereNotNull('products.brand_id')
+            ->groupBy('products.brand_id');
+
+        $union = $categoriesQuery->unionAll($brandsQuery);
+
+        // Use window function to compute totals per type in the SAME query
+        $rows = DB::query()
+            ->fromSub($union, 'prefs')
+            ->selectRaw('id, type, points, SUM(points) OVER (PARTITION BY type) as total_points')
+            ->get();
+
+        $categoryAffinity = [];
+        $brandAffinity = [];
+
+        foreach ($rows as $row) {
+            if ($row->type === 'category' && $row->id !== null && $row->total_points > 0) {
+                $categoryAffinity[$row->id] = $row->points / $row->total_points;
+            }
+            if ($row->type === 'brand' && $row->id !== null && $row->total_points > 0) {
+                $brandAffinity[$row->id] = $row->points / $row->total_points;
+            }
+        }
+
+        return [
+            'category_affinity' => $categoryAffinity,
+            'brand_affinity' => $brandAffinity,
+        ];
     }
 
     /**
@@ -170,7 +285,9 @@ class InteractionPointsService
     {
         // Points older than 6 months decrease by 20%
         $affectedRows = UserProductInteraction::where('last_interaction_at', '<', now()->subMonths(6))
-            ->withPositivePoints()
+            // ->withPositivePoints()
+            ->where('total_points', '>', 0)
+
             ->update([
                 'total_points' => DB::raw('GREATEST(FLOOR(total_points * 0.8), 0)')
             ]);
@@ -207,14 +324,18 @@ class InteractionPointsService
     {
         // Find users who have similar product interactions
         return UserProductInteraction::select('user_id', DB::raw('COUNT(*) as common_interactions'))
-            ->whereIn('product_id', function($query) use ($userId) {
+            ->whereIn('product_id', function ($query) use ($userId) {
                 $query->select('product_id')
                     ->from('user_product_interactions')
                     ->where('user_id', $userId)
-                    ->withPositivePoints();
+                    // ->withPositivePoints()
+                    ->where('total_points', '>', 0)
+                ;
             })
             ->where('user_id', '!=', $userId)
-            ->withPositivePoints()
+            // ->withPositivePoints()
+            ->where('total_points', '>', 0)
+
             ->groupBy('user_id')
             ->orderByDesc('common_interactions')
             ->limit($limit)

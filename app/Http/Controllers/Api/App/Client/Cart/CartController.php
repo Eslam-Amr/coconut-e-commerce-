@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api\App\Client\Cart;
 
 use App\Http\Controllers\Controller;
 use App\Services\Api\App\Client\Cart\CartService;
-use App\Services\Utilities\InteractionPointsService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 
@@ -18,8 +17,7 @@ class CartController extends Controller implements HasMiddleware
     }
 
     public function __construct(
-        private CartService $cartService,
-        private InteractionPointsService $interactionService
+        private CartService $cartService
     ) {}
 
     public function index(Request $request)
@@ -29,15 +27,7 @@ class CartController extends Controller implements HasMiddleware
 
     public function add(Request $request)
     {
-        $result = $this->cartService->add($request);
-        
-        // Record interaction points for adding to cart
-        $userId = auth()->user()?->id;
-        if ($userId && $request->has('product_id')) {
-            $this->interactionService->recordInteraction($userId, $request->product_id, 'view');
-        }
-        
-        return $result;
+        return $this->cartService->add($request);
     }
 
     public function increment(Request $request)
@@ -58,6 +48,15 @@ class CartController extends Controller implements HasMiddleware
     public function remove(Request $request)
     {
         return $this->cartService->remove($request);
+    }
+
+    /**
+     * Calculate cart total with shipping, VAT, and tax
+     * Uses user's default address if no coordinates provided
+     */
+    public function calculateTotal(Request $request)
+    {
+        return $this->cartService->calculateTotal($request);
     }
 }
 

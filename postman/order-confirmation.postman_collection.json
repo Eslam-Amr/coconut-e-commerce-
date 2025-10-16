@@ -1,0 +1,130 @@
+{
+	"info": {
+		"_postman_id": "order-confirmation-collection",
+		"name": "Order Confirmation",
+		"description": "Collection for testing order confirmation endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Confirm Order",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"description": "JWT token for authentication"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/client/orders/confirm",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"client",
+						"orders",
+						"confirm"
+					]
+				},
+				"description": "Confirm order from cart. Validates flash sales, checks stock, and creates order with items."
+			},
+			"response": []
+		},
+		{
+			"name": "Get User Orders",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"description": "JWT token for authentication"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/client/orders?page=1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"client",
+						"orders"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "1",
+							"description": "Page number for pagination"
+						}
+					]
+				},
+				"description": "Get paginated list of user's orders"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Order Details",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"description": "JWT token for authentication"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/client/orders/{{order_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"client",
+						"orders",
+						"{{order_id}}"
+					]
+				},
+				"description": "Get detailed information about a specific order"
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"description": "Base URL for the API"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"description": "JWT authentication token"
+		},
+		{
+			"key": "order_id",
+			"value": "1",
+			"description": "Order ID for testing"
+		}
+	]
+}

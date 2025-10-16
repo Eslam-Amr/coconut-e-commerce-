@@ -34,22 +34,26 @@ class InteractionPointRecommendationService
      */
     private function getUserRecommendations(int $userId, int $limit): Collection
     {
-        // Get user's preferred categories and brands based on points
-        $preferredCategoryIds = $this->interactionService->getUserPreferredCategories($userId, 10);
-        $preferredBrandIds = $this->interactionService->getUserPreferredBrands($userId, 10);
+        // Get user's preferred categories and brands in one query
+        $prefs = $this->interactionService->getUserPreferredCategoriesAndBrands($userId, 10);
+        $preferredCategoryIds = collect($prefs['category_ids'] ?? []);
+        $preferredBrandIds = collect($prefs['brand_ids'] ?? []);
 
-        // Exclude products user has high interest in (purchased or wishlisted)
-        $excludeIds = $this->interactionService->getUserHighInterestProducts($userId, 10);
-
-        // Get potential interest products (viewed but not purchased)
-        $potentialInterestIds = $this->interactionService->getUserPotentialInterestProducts($userId, 3);
+        // Use left join to bring user's interaction stats, avoid extra queries
+        $minHighInterestPoints = 10;
 
         $query = Product::query()
             ->where('active', true)
             ->where('total_quantity', '>', 0)
+            ->leftJoin('user_product_interactions as upi', function ($j) use ($userId) {
+                $j->on('upi.product_id', '=', 'products.id')
+                  ->where('upi.user_id', '=', $userId);
+            })
             ->with(['brand.translations', 'category.translations', 'translations', 'media'])
             ->withAvg('reviews', 'rating')
-            ->withCount(['orderItems', 'wishlists', 'reviews']);
+            ->withCount(['orderItems', 'wishlists', 'reviews'])
+            // Cap result size to avoid loading too many rows before scoring
+            ->limit( 10);
 
         // Apply category and brand preferences
         if ($preferredCategoryIds->isNotEmpty() || $preferredBrandIds->isNotEmpty()) {
@@ -63,16 +67,21 @@ class InteractionPointRecommendationService
             });
         }
 
-        // Exclude products user already has high interest in
-        if ($excludeIds->isNotEmpty()) {
-            $query->whereNotIn('id', $excludeIds);
-        }
+        // Exclude high-interest products using the joined interaction
+        $query->where(function ($q) use ($minHighInterestPoints) {
+            $q->whereNull('upi.total_points')
+              ->orWhere('upi.total_points', '<', $minHighInterestPoints);
+        });
 
-        // Boost products user has potential interest in
-        $products = $query->get();
+        // Fetch candidate products (with joined interaction columns)
+        $products = $query->select('products.*',
+            DB::raw('COALESCE(upi.view_count, 0) as upi_view_count'),
+            DB::raw('COALESCE(upi.purchase_count, 0) as upi_purchase_count'),
+            DB::raw('COALESCE(upi.wishlist_count, 0) as upi_wishlist_count')
+        )->get();
 
         // Apply scoring algorithm
-        $scoredProducts = $this->scoreProducts($products, $userId, $preferredCategoryIds, $preferredBrandIds, $potentialInterestIds);
+        $scoredProducts = $this->scoreProducts($products, $userId, $preferredCategoryIds, $preferredBrandIds);
 
         return $scoredProducts->take($limit)->values();
     }
@@ -102,14 +111,14 @@ class InteractionPointRecommendationService
         Collection $products, 
         int $userId, 
         Collection $preferredCategoryIds, 
-        Collection $preferredBrandIds,
-        Collection $potentialInterestIds
+        Collection $preferredBrandIds
     ): Collection {
-        // Get user's affinity scores
-        $categoryAffinity = $this->interactionService->getCategoryAffinityScores($userId);
-        $brandAffinity = $this->interactionService->getBrandAffinityScores($userId);
+        // Get user's affinity scores in a single query
+        $affinity = $this->interactionService->getCombinedAffinityScores($userId);
+        $categoryAffinity = $affinity['category_affinity'] ?? [];
+        $brandAffinity = $affinity['brand_affinity'] ?? [];
 
-        return $products->map(function ($product) use ($categoryAffinity, $brandAffinity, $potentialInterestIds) {
+        return $products->map(function ($product) use ($categoryAffinity, $brandAffinity) {
             $score = 0;
 
             // Base score from product popularity
@@ -128,8 +137,10 @@ class InteractionPointRecommendationService
                 $score += $brandAffinity[$product->brand_id] * 30;
             }
 
-            // Potential interest bonus (viewed but not purchased)
-            if ($potentialInterestIds->contains($product->id)) {
+            // Potential interest bonus (viewed but not purchased, no wishlist)
+            if ((int)($product->upi_view_count ?? 0) >= 3
+                && (int)($product->upi_purchase_count ?? 0) === 0
+                && (int)($product->upi_wishlist_count ?? 0) === 0) {
                 $score += 25;
             }
 
@@ -164,11 +175,11 @@ class InteractionPointRecommendationService
 
         $recommendedProductIds = UserProductInteraction::whereIn('user_id', $similarUserIds)
             ->whereNotIn('product_id', $userInteractionIds)
-            ->withPositivePoints()
+            ->where('total_points', '>', 0)
             ->select('product_id', DB::raw('SUM(total_points) as total_points'))
             ->groupBy('product_id')
             ->orderByDesc('total_points')
-            ->limit($limit * 2) // Get more to filter
+            ->limit($limit ) 
             ->pluck('product_id');
 
         return Product::query()
@@ -191,7 +202,7 @@ class InteractionPointRecommendationService
             ->select('product_id', DB::raw('SUM(total_points) as total_points'))
             ->groupBy('product_id')
             ->orderByDesc('total_points')
-            ->limit($limit * 2)
+            ->limit($limit )
             ->pluck('product_id');
 
         return Product::query()
@@ -314,5 +325,100 @@ class InteractionPointRecommendationService
         })->sortByDesc('recommendation_score');
 
         return $scoredProducts->take($limit)->values();
+    }
+
+    /**
+     * Get recommendations based on interaction points (simple and fast)
+     * Returns products ordered by highest total interaction points
+     */
+    public function getPointBasedRecommendations(int $userId, int $limit = 12): Collection
+    {
+        // Single round-trip: join aggregated interaction totals and filter in one query
+        return Product::query()
+            ->joinSub(
+                UserProductInteraction::select('product_id', DB::raw('SUM(total_points) as total_points'))
+                    ->groupBy('product_id'),
+                'agg',
+                'agg.product_id',
+                '=',
+                'products.id'
+            )
+            ->where('active', true)
+            ->where('total_quantity', '>', 0)
+            ->orderByDesc('agg.total_points')
+            ->with(['brand.translations', 'category.translations', 'translations', 'media'])
+            ->withAvg('reviews', 'rating')
+            ->withCount(['orderItems', 'wishlists', 'reviews'])
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Get top rated products based on interaction ratings
+     * Returns products ordered by highest average rating from interactions
+     */
+    public function getTopRatedProducts(int $limit = 12, int $minRating = 4): Collection
+    {
+        // Single round-trip: join aggregated avg rating
+        $products = Product::query()
+            ->joinSub(
+                UserProductInteraction::select('product_id', DB::raw('AVG(last_rating) as avg_rating'))
+                    ->whereNotNull('last_rating')
+                    ->where('last_rating', '>=', $minRating)
+                    ->groupBy('product_id')
+                    ->having('avg_rating', '>=', $minRating),
+                'agg',
+                'agg.product_id',
+                '=',
+                'products.id'
+            )
+            ->where('active', true)
+            ->where('total_quantity', '>', 0)
+            ->orderByDesc('agg.avg_rating')
+            ->with(['brand.translations', 'category.translations', 'translations', 'media'])
+            ->withAvg('reviews', 'rating')
+            ->withCount(['orderItems', 'wishlists', 'reviews'])
+            ->limit($limit)
+            ->get();
+
+        if ($products->isEmpty()) {
+            return $this->getGuestRecommendations($limit);
+        }
+
+        return $products;
+    }
+
+    /**
+     * Get most reviewed products based on interaction reviews
+     * Returns products ordered by highest review count from interactions
+     */
+    public function getMostReviewedProducts(int $limit = 12, int $minReviews = 5): Collection
+    {
+        // Single round-trip: join aggregated review totals
+        $products = Product::query()
+            ->joinSub(
+                UserProductInteraction::select('product_id', DB::raw('SUM(review_count) as total_reviews'))
+                    ->where('review_count', '>', 0)
+                    ->groupBy('product_id')
+                    ->having('total_reviews', '>=', $minReviews),
+                'agg',
+                'agg.product_id',
+                '=',
+                'products.id'
+            )
+            ->where('active', true)
+            ->where('total_quantity', '>', 0)
+            ->orderByDesc('agg.total_reviews')
+            ->with(['brand.translations', 'category.translations', 'translations', 'media'])
+            ->withAvg('reviews', 'rating')
+            ->withCount(['orderItems', 'wishlists', 'reviews'])
+            ->limit($limit)
+            ->get();
+
+        if ($products->isEmpty()) {
+            return $this->getGuestRecommendations($limit);
+        }
+
+        return $products;
     }
 }

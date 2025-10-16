@@ -25,6 +25,7 @@ class User extends Authenticatable implements JWTSubject
         'password',
         'active',
         'notification',
+        'default_address_id',
         'user_type',
         'lang',
         'dark_mode',

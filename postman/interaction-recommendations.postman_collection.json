@@ -1,0 +1,456 @@
+{
+	"info": {
+		"_postman_id": "interaction-recommendations-collection",
+		"name": "Interaction Recommendations API",
+		"description": "Collection for testing InteractionRecommendationController endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get Interaction Recommendations",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/client/recommendations/interaction?limit=12",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"client",
+						"recommendations",
+						"interaction"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "12",
+							"description": "Number of recommendations to return (default: 12)"
+						}
+					]
+				},
+				"description": "Get personalized recommendations based on interaction points"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Collaborative Recommendations",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/client/recommendations/collaborative?limit=12",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"client",
+						"recommendations",
+						"collaborative"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "12",
+							"description": "Number of recommendations to return (default: 12)"
+						}
+					]
+				},
+				"description": "Get collaborative recommendations based on similar users"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Trending Products",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/client/recommendations/trending?limit=12&days=7",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"client",
+						"recommendations",
+						"trending"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "12",
+							"description": "Number of trending products to return (default: 12)"
+						},
+						{
+							"key": "days",
+							"value": "7",
+							"description": "Number of days to look back for trending (default: 7)"
+						}
+					]
+				},
+				"description": "Get trending products based on recent interactions"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Personalized Recommendations",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/client/recommendations/personalized?limit=12",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"client",
+						"recommendations",
+						"personalized"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "12",
+							"description": "Number of recommendations to return (default: 12)"
+						}
+					]
+				},
+				"description": "Get personalized recommendations with detailed explanation"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Point-Based Recommendations",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/client/recommendations/points?limit=12",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"client",
+						"recommendations",
+						"points"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "12",
+							"description": "Number of recommendations to return (default: 12)"
+						}
+					]
+				},
+				"description": "Get recommendations based on interaction points (simple and fast query)"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Top Rated Products",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/client/recommendations/top-rated?limit=12&min_rating=4",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"client",
+						"recommendations",
+						"top-rated"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "12",
+							"description": "Number of products to return (default: 12)"
+						},
+						{
+							"key": "min_rating",
+							"value": "4",
+							"description": "Minimum rating threshold (1-5, default: 4)"
+						}
+					]
+				},
+				"description": "Get top rated products based on interaction ratings"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Most Reviewed Products",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/client/recommendations/most-reviewed?limit=12&min_reviews=5",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"client",
+						"recommendations",
+						"most-reviewed"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "12",
+							"description": "Number of products to return (default: 12)"
+						},
+						{
+							"key": "min_reviews",
+							"value": "5",
+							"description": "Minimum number of reviews required (default: 5)"
+						}
+					]
+				},
+				"description": "Get most reviewed products based on interaction reviews"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Category Recommendations",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/client/recommendations/category/1?limit=12",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"client",
+						"recommendations",
+						"category",
+						"1"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "12",
+							"description": "Number of recommendations to return (default: 12)"
+						}
+					]
+				},
+				"description": "Get category-specific recommendations"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Related Products",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/client/recommendations/related/1?limit=6",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"client",
+						"recommendations",
+						"related",
+						"1"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "6",
+							"description": "Number of related products to return (default: 6)"
+						}
+					]
+				},
+				"description": "Get related products for a specific product"
+			},
+			"response": []
+		},
+		{
+			"name": "Get User Stats",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/client/recommendations/stats",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"client",
+						"recommendations",
+						"stats"
+					]
+				},
+				"description": "Get user interaction statistics"
+			},
+			"response": []
+		},
+		{
+			"name": "Record View Interaction",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"product_id\": 1\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/client/recommendations/record-view",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"client",
+						"recommendations",
+						"record-view"
+					]
+				},
+				"description": "Record a product view interaction"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

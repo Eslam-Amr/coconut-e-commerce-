@@ -6,6 +6,10 @@ use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Models\FlashSale;
+use App\Models\Category;
+use App\Services\Utilities\CartCalculationService;
+use App\Services\Utilities\InteractionPointsService;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +18,11 @@ use Illuminate\Support\Facades\DB;
 class CartService
 {
     use ApiResponseTrait;
+
+    public function __construct(
+        private CartCalculationService $calculationService,
+        private InteractionPointsService $interactionService
+    ) {}
 
     public function getCart(Request $request)
     {
@@ -52,9 +61,36 @@ class CartService
                 $variantId = $validated['product_variant_id'] ?? null;
                 $unitPrice = $product->base_price; // fallback
 
+                // Detect active flash sale for this product or its category (pick highest discount)
+                $now = now();
+                $flashSale = FlashSale::query()
+                    ->where('active', true)
+                    ->where('start_date', '<=', $now)
+                    ->where('end_date', '>=', $now)
+                    ->where(function($q) use ($product) {
+                        $q->where(function($q2) use ($product) {
+                            $q2->where('flashable_type', Product::class)
+                               ->where('flashable_id', $product->id);
+                        });
+                        if (!is_null($product->category_id)) {
+                            $q->orWhere(function($q3) use ($product) {
+                                $q3->where('flashable_type', Category::class)
+                                   ->where('flashable_id', $product->category_id);
+                            });
+                        }
+                    })
+                    ->orderByDesc('discount')
+                    ->first();
+
                 if ($variantId) {
                     $variant = ProductVariant::query()->where('id', $variantId)->where('active', true)->firstOrFail();
                     $unitPrice = $variant->price ?? $unitPrice;
+                }
+
+                // Apply flash sale discount if applicable
+                $effectivePrice = $unitPrice;
+                if ($flashSale && $flashSale->discount > 0) {
+                    $effectivePrice = round(max(0, $unitPrice * (1 - ((float)$flashSale->discount / 100))), 2);
                 }
 
                 // Check current cart quantity for this item
@@ -63,6 +99,8 @@ class CartService
                     ->where('product_id', $product->id)
                     ->when($variantId, fn($q) => $q->where('product_variant_id', $variantId))
                     ->when(!$variantId, fn($q) => $q->whereNull('product_variant_id'))
+                    ->when($flashSale, fn($q) => $q->where('flash_sale_id', $flashSale->id))
+                    ->when(!$flashSale, fn($q) => $q->whereNull('flash_sale_id'))
                     ->first();
 
                 $currentCartQuantity = $existingItem ? $existingItem->quantity : 0;
@@ -84,21 +122,40 @@ class CartService
                     );
                 }
 
+                // Enforce flash sale max limit per cart/user if present
+                if ($flashSale && !empty($flashSale->max_limit) && is_numeric($flashSale->max_limit)) {
+                    $maxLimit = (int)$flashSale->max_limit;
+                    $currentFlashQty = $existingItem ? (int)$existingItem->quantity : 0;
+                    if ($currentFlashQty + $quantityToAdd > $maxLimit) {
+                        $allowed = max(0, $maxLimit - $currentFlashQty);
+                        return $this->errorResponse('Flash sale limit exceeded', [
+                            'max_limit' => $maxLimit,
+                            'current_in_cart' => $currentFlashQty,
+                            'trying_to_add' => $quantityToAdd,
+                            'allowed_remaining' => $allowed,
+                        ], 422);
+                    }
+                }
+
                 if ($existingItem) {
                     $existingItem->quantity += $quantityToAdd;
-                    $existingItem->price = $unitPrice;
+                    $existingItem->price = $effectivePrice;
                     $existingItem->save();
                 } else {
                     CartItem::create([
                         'cart_id' => $cart->id,
                         'product_id' => $product->id,
+                        'flash_sale_id' => $flashSale?->id,
                         'product_variant_id' => $variantId,
                         'quantity' => $quantityToAdd,
-                        'price' => $unitPrice,
+                        'price' => $effectivePrice,
                     ]);
                 }
 
                 $this->recalculateCartTotals($cart);
+
+                // Record interaction points for adding to cart
+                $this->interactionService->recordInteraction($userId, $validated['product_id'], 'view');
 
                 $cart->load(['items.product.translations', 'items.product.brand.translations', 'items.product.category.translations', 'items.productVariant']);
 
@@ -277,6 +334,35 @@ class CartService
             throw $e;
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to remove item', ['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Calculate cart total with shipping, VAT, and tax
+     * Uses user's default address if no address_id provided
+     */
+    public function calculateTotal(Request $request)
+    {
+        try {
+            $user = auth()->user();
+            if (!$user) {
+                return $this->errorResponse('Unauthorized', [], 401);
+            }
+
+            $validated = $request->validate([
+                'address_id' => ['nullable', 'integer', 'exists:addresses,id'],
+            ]);
+
+            $result = $this->calculationService->calculateCartTotalByAddress(
+                $user->id,
+                $validated['address_id'] ?? null
+            );
+
+            return $this->successResponse($result, 'Cart total calculated successfully');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
+        } catch (\Exception $e) {
+            return $this->serverErrorResponse('Failed to calculate cart total', ['error' => $e->getMessage()]);
         }
     }
 

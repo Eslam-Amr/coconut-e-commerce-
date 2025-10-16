@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
             ProductAttributeSeeder::class,
             ProductVariantSeeder::class,
             VariantAttributeValueSeeder::class,
+            AddressSeeder::class,
         ]);
 
         User::updateOrCreate(
