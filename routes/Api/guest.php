@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\App\Client\Recommendation\OptimizedRecommendationController;
 use App\Http\Controllers\Api\App\Guest\Recommendation\GuestRecommendationController;
 use Illuminate\Support\Facades\Route;
 
@@ -29,11 +30,17 @@ Route::controller(ProductController::class)->group(function () {
 
 
 
-// Guest recommendation routes (no authentication required)
-Route::get('/recommendations', [GuestRecommendationController::class, 'getRecommendations']);
-Route::get('/recommendations/trending', [GuestRecommendationController::class, 'getTrendingProducts']);
-Route::get('/recommendations/points', [GuestRecommendationController::class, 'getPointBasedRecommendations']);
-Route::get('/recommendations/top-rated', [GuestRecommendationController::class, 'getTopRatedProducts']);
-Route::get('/recommendations/most-reviewed', [GuestRecommendationController::class, 'getMostReviewedProducts']);
-Route::get('/recommendations/category/{categoryId}', [GuestRecommendationController::class, 'getCategoryRecommendations']);
-Route::get('/recommendations/related/{productId}', [GuestRecommendationController::class, 'getRelatedProducts']);
+// // Guest recommendation routes (no authentication required)
+// Route::get('/recommendations', [GuestRecommendationController::class, 'getRecommendations']);
+// Route::get('/recommendations/trending', [GuestRecommendationController::class, 'getTrendingProducts']);
+// Route::get('/recommendations/points', [GuestRecommendationController::class, 'getPointBasedRecommendations']);
+// Route::get('/recommendations/top-rated', [GuestRecommendationController::class, 'getTopRatedProducts']);
+// Route::get('/recommendations/most-reviewed', [GuestRecommendationController::class, 'getMostReviewedProducts']);
+// Route::get('/recommendations/category/{categoryId}', [GuestRecommendationController::class, 'getCategoryRecommendations']);
+// Route::get('/recommendations/related/{productId}', [GuestRecommendationController::class, 'getRelatedProducts']);
+
+
+
+Route::get('/recommendations', [OptimizedRecommendationController::class, 'getRecommendations']);
+Route::get('/recommendations/top-rated', [OptimizedRecommendationController::class, 'getTopRatedProducts']);
+Route::get('/recommendations/most-ordered', [OptimizedRecommendationController::class, 'getMostOrderedProducts']);

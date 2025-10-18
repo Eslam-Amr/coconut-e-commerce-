@@ -1,0 +1,140 @@
+{
+	"info": {
+		"_postman_id": "optimized-recommendations-collection",
+		"name": "Optimized Recommendations",
+		"description": "High-performance recommendation endpoints with collaborative filtering and fallback",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get Recommendations (Collaborative + Fallback)",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"description": "JWT token for authentication"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/client/recommendations?limit=12",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"client",
+						"recommendations"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "12",
+							"description": "Number of recommendations to return (default: 12)"
+						}
+					]
+				},
+				"description": "Get personalized recommendations using collaborative filtering. Falls back to general recommendations if no user data available. Optimized for 200-250ms response time."
+			},
+			"response": []
+		},
+		{
+			"name": "Get Top Rated Products",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"description": "JWT token for authentication"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/client/recommendations/top-rated?limit=12&min_rating=4.0",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"client",
+						"recommendations",
+						"top-rated"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "12",
+							"description": "Number of products to return (default: 12)"
+						},
+						{
+							"key": "min_rating",
+							"value": "4.0",
+							"description": "Minimum rating threshold (default: 4.0)"
+						}
+					]
+				},
+				"description": "Get products with highest ratings. Requires minimum 3 reviews and specified rating threshold."
+			},
+			"response": []
+		},
+		{
+			"name": "Get Most Ordered Products",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"description": "JWT token for authentication"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/client/recommendations/most-ordered?limit=12",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"client",
+						"recommendations",
+						"most-ordered"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "12",
+							"description": "Number of products to return (default: 12)"
+						}
+					]
+				},
+				"description": "Get products ordered most frequently. Sorted by order count and average rating."
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"description": "Base URL for the API"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"description": "JWT authentication token"
+		}
+	]
+}

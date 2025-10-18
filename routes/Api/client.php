@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\App\client\wallet\WalletController;
 use App\Http\Controllers\Api\App\Client\Wishlist\WishlistController;
 use App\Http\Controllers\Api\App\Client\Cart\CartController;
 use App\Http\Controllers\Api\App\Client\Order\OrderController;
+use App\Http\Controllers\Api\App\Client\Recommendation\OptimizedRecommendationController;
 use App\Http\Controllers\Api\App\Client\Recommendation\InteractionRecommendationController;
 
 
@@ -54,15 +55,23 @@ Route::post('/orders/confirm', [OrderController::class, 'confirmOrder']);
 Route::get('/orders', [OrderController::class, 'index']);
 Route::get('/orders/{orderId}', [OrderController::class, 'show']);
 
+
+
+
 // Interaction-based Recommendations
-Route::get('/recommendations/interaction', [InteractionRecommendationController::class, 'getRecommendations']);
-Route::get('/recommendations/collaborative', [InteractionRecommendationController::class, 'getCollaborativeRecommendations']);
-Route::get('/recommendations/trending', [InteractionRecommendationController::class, 'getTrendingProducts']);
-Route::get('/recommendations/personalized', [InteractionRecommendationController::class, 'getPersonalizedRecommendations']);
-Route::get('/recommendations/points', [InteractionRecommendationController::class, 'getPointBasedRecommendations']);
-Route::get('/recommendations/top-rated', [InteractionRecommendationController::class, 'getTopRatedProducts']);
-Route::get('/recommendations/most-reviewed', [InteractionRecommendationController::class, 'getMostReviewedProducts']);
-Route::get('/recommendations/category/{categoryId}', [InteractionRecommendationController::class, 'getCategoryRecommendations']);
-Route::get('/recommendations/related/{productId}', [InteractionRecommendationController::class, 'getRelatedProducts']);
-Route::get('/recommendations/stats', [InteractionRecommendationController::class, 'getUserStats']);
-Route::post('/recommendations/record-view', [InteractionRecommendationController::class, 'recordView']);
+// Route::get('/recommendations/interaction', [InteractionRecommendationController::class, 'getRecommendations']);
+// Route::get('/recommendations/collaborative', [InteractionRecommendationController::class, 'getCollaborativeRecommendations']);
+// Route::get('/recommendations/trending', [InteractionRecommendationController::class, 'getTrendingProducts']);
+// Route::get('/recommendations/personalized', [InteractionRecommendationController::class, 'getPersonalizedRecommendations']);
+// Route::get('/recommendations/points', [InteractionRecommendationController::class, 'getPointBasedRecommendations']);
+// Route::get('/recommendations/top-rated', [InteractionRecommendationController::class, 'getTopRatedProducts']);
+// Route::get('/recommendations/most-reviewed', [InteractionRecommendationController::class, 'getMostReviewedProducts']);
+// Route::get('/recommendations/category/{categoryId}', [InteractionRecommendationController::class, 'getCategoryRecommendations']);
+// Route::get('/recommendations/related/{productId}', [InteractionRecommendationController::class, 'getRelatedProducts']);
+// Route::get('/recommendations/stats', [InteractionRecommendationController::class, 'getUserStats']);
+// Route::post('/recommendations/record-view', [InteractionRecommendationController::class, 'recordView']);
+
+// Optimized Recommendations
+// Route::get('/recommendations', [OptimizedRecommendationController::class, 'getRecommendations']);
+// Route::get('/recommendations/top-rated', [OptimizedRecommendationController::class, 'getTopRatedProducts']);
+// Route::get('/recommendations/most-ordered', [OptimizedRecommendationController::class, 'getMostOrderedProducts']);
