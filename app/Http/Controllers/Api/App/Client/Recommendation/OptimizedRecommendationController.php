@@ -11,12 +11,6 @@ use Illuminate\Support\Facades\Auth;
 class OptimizedRecommendationController extends Controller 
 {
 
-    // public static function middleware(): array
-    // {
-    //     return [
-    //         'client'
-    //     ];
-    // }
 
     public function __construct(private OptimizedRecommendationService $recommendationService) {}
 

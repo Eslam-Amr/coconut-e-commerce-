@@ -61,31 +61,34 @@ class CartService
                 $variantId = $validated['product_variant_id'] ?? null;
                 $unitPrice = $product->base_price; // fallback
 
+                if ($variantId) {
+                    $variant = ProductVariant::query()->where('id', $variantId)->where('active', true)->firstOrFail();
+                    if ($variant->product_id !== $product->id) {
+                        return $this->errorResponse('Variant does not belong to product', [], 400);
+                    }
+                    $unitPrice = $variant->price ?? $unitPrice;
+                }
                 // Detect active flash sale for this product or its category (pick highest discount)
                 $now = now();
                 $flashSale = FlashSale::query()
                     ->where('active', true)
                     ->where('start_date', '<=', $now)
                     ->where('end_date', '>=', $now)
-                    ->where(function($q) use ($product) {
-                        $q->where(function($q2) use ($product) {
+                    ->where(function ($q) use ($product) {
+                        $q->where(function ($q2) use ($product) {
                             $q2->where('flashable_type', Product::class)
-                               ->where('flashable_id', $product->id);
+                                ->where('flashable_id', $product->id);
                         });
                         if (!is_null($product->category_id)) {
-                            $q->orWhere(function($q3) use ($product) {
+                            $q->orWhere(function ($q3) use ($product) {
                                 $q3->where('flashable_type', Category::class)
-                                   ->where('flashable_id', $product->category_id);
+                                    ->where('flashable_id', $product->category_id);
                             });
                         }
                     })
                     ->orderByDesc('discount')
                     ->first();
 
-                if ($variantId) {
-                    $variant = ProductVariant::query()->where('id', $variantId)->where('active', true)->firstOrFail();
-                    $unitPrice = $variant->price ?? $unitPrice;
-                }
 
                 // Apply flash sale discount if applicable
                 $effectivePrice = $unitPrice;

@@ -14,17 +14,25 @@ class Order extends Model
     protected $fillable = [
         'order_number',
         'user_id',
+        'address_id',
+        'longitude',
+        'latitude',
         'subtotal',
         'discount',
         'shipping_fee',
         'tax',
         'total',
         'status',
+        'payment_method',
+        'payment_status',
+        // 'currency',
         'shipping_address',
         'billing_address',
     ];
 
     protected $casts = [
+        'longitude' => 'decimal:7',
+        'latitude' => 'decimal:7',
         'subtotal' => 'decimal:2',
         'discount' => 'decimal:2',
         'shipping_fee' => 'decimal:2',

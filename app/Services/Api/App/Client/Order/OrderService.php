@@ -2,6 +2,7 @@
 
 namespace App\Services\Api\App\Client\Order;
 
+use App\Models\Address;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Order;
@@ -10,16 +11,28 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\FlashSale;
 use App\Models\FlashSaleItem;
-use App\Models\Inventory;
-use App\Models\ProductVariantInventory;
+use App\Models\Transaction;
+use App\Models\Voucher;
+use App\Models\VoucherUsage;
+use App\Models\Wallet;
+use App\Models\WalletTransaction;
+use App\Services\Utilities\OrderPaymentService;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class OrderService
 {
     use ApiResponseTrait;
+    
+    protected $paymentService;
+    
+    public function __construct(OrderPaymentService $paymentService)
+    {
+        $this->paymentService = $paymentService;
+    }
 
     /**
      * Confirm order from cart
@@ -28,10 +41,7 @@ class OrderService
     {
         try {
             $user = $request->user();
-            if (!$user) {
-                return $this->errorResponse('Unauthorized', [], 401);
-            }
-
+            
             // Get user's cart
             $cart = Cart::where('user_id', $user->id)->with(['items.product', 'items.productVariant', 'items.flashSale'])->first();
             
@@ -39,20 +49,38 @@ class OrderService
                 return $this->errorResponse('Cart is empty', [], 400);
             }
 
-            // Validate flash sales and stock before creating order
-            $validationResult = $this->validateCartForOrder($cart);
-            if (!$validationResult['valid']) {
-                return $this->errorResponse($validationResult['message'], $validationResult['details'], 400);
+            // Get voucher validation data
+            $voucherValidation = $this->getVoucherValidation($request->voucher_code, $user->id, $cart);
+            
+            // Get payment validation data
+            $paymentValidation = $this->getPaymentValidation($request->payment_method, $user->id, $cart, $voucherValidation['discount'] ?? 0);
+
+            // Handle payment gateway separately
+            if ($request->payment_method === 'payment_gateway') {
+                return $this->processPaymentGatewayOrder($user, $cart, $request, $voucherValidation, $paymentValidation);
             }
 
             DB::beginTransaction();
 
             try {
                 // Create order
-                $order = $this->createOrder($user, $cart);
+                $order = $this->createOrder($user, $cart, $request, $voucherValidation['discount'] ?? 0);
                 
                 // Create order items and update stock
                 $this->createOrderItems($order, $cart);
+                
+                // Create transaction record
+                $this->createTransaction($order, $request->payment_method, $paymentValidation);
+                
+                // Process voucher usage if applicable
+                if ($request->voucher_code && $voucherValidation['voucher']) {
+                    $this->processVoucherUsage($voucherValidation['voucher'], $user->id, $order->id, $voucherValidation['discount']);
+                }
+                
+                // Process wallet payment if applicable
+                if ($request->payment_method === 'wallet') {
+                    $this->processWalletPayment($user->id, $order->total);
+                }
                 
                 // Update flash sale counts
                 $this->updateFlashSaleCounts($cart);
@@ -66,8 +94,9 @@ class OrderService
                 return $this->successResponse(
                     'Order confirmed successfully',
                     [
-                        'order' => $order->load(['items.product', 'items.productVariant', 'items.flashSale']),
-                        'order_number' => $order->order_number
+                        'order' => $order->load(['items.product', 'items.productVariant', 'items.flashSale', 'transactions']),
+                        'order_number' => $order->order_number,
+                        'transaction_id' => $order->transactions->first()->transaction_id ?? null
                     ]
                 );
 
@@ -81,92 +110,42 @@ class OrderService
         }
     }
 
-    /**
-     * Validate cart items for order confirmation
-     */
-    private function validateCartForOrder(Cart $cart)
-    {
-        $errors = [];
-        $now = now();
-
-        foreach ($cart->items as $item) {
-            // Check if flash sale is still active
-            if ($item->flash_sale_id) {
-                $flashSale = FlashSale::find($item->flash_sale_id);
-                
-                if (!$flashSale || !$flashSale->active || 
-                    $flashSale->start_date > $now || 
-                    $flashSale->end_date < $now) {
-                    $errors[] = "Flash sale for product '{$item->product->name}' has expired";
-                    continue;
-                }
-
-                // Check flash sale limits
-                $flashSaleItem = FlashSaleItem::where('flash_sale_id', $flashSale->id)
-                    ->where('product_id', $item->product_id)
-                    ->first();
-
-                if ($flashSaleItem) {
-                    $totalOrdered = OrderItem::whereHas('order', function($q) use ($flashSale) {
-                        $q->where('created_at', '>=', $flashSale->start_date)
-                          ->where('created_at', '<=', $flashSale->end_date);
-                    })
-                    ->where('product_id', $item->product_id)
-                    ->where('flash_sale_id', $flashSale->id)
-                    ->sum('quantity');
-
-                    if (($totalOrdered + $item->quantity) > $flashSaleItem->max_limit) {
-                        $available = $flashSaleItem->max_limit - $totalOrdered;
-                        $errors[] = "Flash sale limit exceeded for '{$item->product->name}'. Available: {$available}";
-                    }
-                }
-            }
-
-            // Check stock availability
-            if ($item->product_variant_id) {
-                $variantInventory = ProductVariantInventory::where('product_variant_id', $item->product_variant_id)
-                    ->where('quantity', '>=', $item->quantity)
-                    ->first();
-
-                if (!$variantInventory) {
-                    $errors[] = "Insufficient stock for variant of '{$item->product->name}'";
-                }
-            } else {
-                $inventory = Inventory::where('product_id', $item->product_id)
-                    ->where('quantity', '>=', $item->quantity)
-                    ->first();
-
-                if (!$inventory) {
-                    $errors[] = "Insufficient stock for '{$item->product->name}'";
-                }
-            }
-        }
-
-        return [
-            'valid' => empty($errors),
-            'message' => empty($errors) ? 'Cart is valid' : 'Cart validation failed',
-            'details' => $errors
-        ];
-    }
 
     /**
      * Create order record
      */
-    private function createOrder($user, Cart $cart)
+    private function createOrder($user, Cart $cart, Request $request, $discount = 0, $paymentStatus = null)
     {
         $subtotal = $cart->items->sum(function($item) {
-            return $item->unit_price * $item->quantity;
+            return $item->price * $item->quantity;
         });
 
+        $total = $subtotal - $discount;
+
+        // Determine payment status
+        if ($paymentStatus) {
+            $finalPaymentStatus = $paymentStatus;
+        } else {
+            $finalPaymentStatus = $request->payment_method === 'cash' ? 'pending' : 'completed';
+        }
+        $addressId = $request->address_id ?? $user->default_address_id;
+        $address = Address::find($addressId);
+        $longitude = $request->longitude ?? $address->longitude;
+$latitude = $request->latitude ?? $address->latitude;
         return Order::create([
             'user_id' => $user->id,
+            'address_id' => $addressId,
+            'longitude' => $longitude,
+            'latitude' => $latitude,
             'order_number' => $this->generateOrderNumber(),
             'status' => 'pending',
             'subtotal' => $subtotal,
-            'total' => $subtotal, // Will be updated with shipping, tax, etc.
-            'currency' => 'USD',
-            'payment_status' => 'pending',
-            'shipping_status' => 'pending'
+            'discount' => $discount,
+            'total' => $total,
+            // 'currency' => $request->currency ?? 'USD',
+            'payment_method' => $request->payment_method,
+            'payment_status' => $finalPaymentStatus,
+            // 'shipping_status' => 'pending'
         ]);
     }
 
@@ -183,17 +162,59 @@ class OrderService
                 'product_variant_id' => $cartItem->product_variant_id,
                 'flash_sale_id' => $cartItem->flash_sale_id,
                 'quantity' => $cartItem->quantity,
-                'unit_price' => $cartItem->unit_price,
-                'total_price' => $cartItem->unit_price * $cartItem->quantity
+                'price' => $cartItem->price,
+                // 'total_price' => $cartItem->price * $cartItem->quantity
             ]);
 
             // Update stock
             if ($cartItem->product_variant_id) {
-                ProductVariantInventory::where('product_variant_id', $cartItem->product_variant_id)
-                    ->decrement('quantity', $cartItem->quantity);
+                // Update variant stock from product_variants table
+                $variant = ProductVariant::find($cartItem->product_variant_id);
+                if ($variant && $variant->stock >= $cartItem->quantity) {
+                    $oldStock = $variant->stock;
+                    $variant->decrement('stock', $cartItem->quantity);
+                    
+                    Log::info('Variant stock updated', [
+                        'variant_id' => $variant->id,
+                        'product_id' => $cartItem->product_id,
+                        'old_stock' => $oldStock,
+                        'quantity_decremented' => $cartItem->quantity,
+                        'new_stock' => $variant->fresh()->stock
+                    ]);
+                       // Update regular product stock from products table
+                $product = Product::find($cartItem->product_id);
+                if ($product && $product->total_quantity >= $cartItem->quantity) {
+                    $oldStock = $product->total_quantity;
+                    $product->decrement('total_quantity', $cartItem->quantity);
+                    
+                    Log::info('Product stock updated', [
+                        'product_id' => $cartItem->product_id,
+                        'old_stock' => $oldStock,
+                        'quantity_decremented' => $cartItem->quantity,
+                        'new_stock' => $product->fresh()->total_quantity
+                    ]);
+                } else {
+                    throw new \Exception("Insufficient stock for product ID: {$cartItem->product_id}");
+                }
+                } else {
+                    throw new \Exception("Insufficient stock for variant of product ID: {$cartItem->product_id}");
+                }
             } else {
-                Inventory::where('product_id', $cartItem->product_id)
-                    ->decrement('quantity', $cartItem->quantity);
+                // Update regular product stock from products table
+                $product = Product::find($cartItem->product_id);
+                if ($product && $product->total_quantity >= $cartItem->quantity) {
+                    $oldStock = $product->total_quantity;
+                    $product->decrement('total_quantity', $cartItem->quantity);
+                    
+                    Log::info('Product stock updated', [
+                        'product_id' => $cartItem->product_id,
+                        'old_stock' => $oldStock,
+                        'quantity_decremented' => $cartItem->quantity,
+                        'new_stock' => $product->fresh()->total_quantity
+                    ]);
+                } else {
+                    throw new \Exception("Insufficient stock for product ID: {$cartItem->product_id}");
+                }
             }
         }
     }
@@ -207,7 +228,7 @@ class OrderService
             if ($item->flash_sale_id) {
                 FlashSaleItem::where('flash_sale_id', $item->flash_sale_id)
                     ->where('product_id', $item->product_id)
-                    ->increment('sold_count', $item->quantity);
+                    ->increment('count', $item->quantity);
             }
         }
     }
@@ -271,6 +292,494 @@ class OrderService
 
         } catch (\Exception $e) {
             return $this->errorResponse('Failed to retrieve order details', ['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get voucher validation data
+     */
+    private function getVoucherValidation($voucherCode, $userId, Cart $cart)
+    {
+        if (!$voucherCode) {
+            return ['valid' => true, 'discount' => 0];
+        }
+
+        $voucher = Voucher::where('code', $voucherCode)
+            ->where('active', true)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->first();
+
+        if (!$voucher) {
+            return ['valid' => false, 'message' => 'Invalid or expired voucher code'];
+        }
+
+        // Calculate discount amount
+        $subtotal = $cart->items->sum(function($item) {
+            return $item->price * $item->quantity;
+        });
+
+        $discount = min($voucher->discount, $subtotal);
+
+        return [
+            'valid' => true,
+            'voucher' => $voucher,
+            'discount' => $discount
+        ];
+    }
+
+    /**
+     * Get payment validation data
+     */
+    private function getPaymentValidation($paymentMethod, $userId, Cart $cart, $discount = 0)
+    {
+        $subtotal = $cart->items->sum(function($item) {
+            return $item->price * $item->quantity;
+        });
+
+        $total = $subtotal - $discount;
+
+        return [
+            'valid' => true,
+            'amount' => $total
+        ];
+    }
+
+    /**
+     * Create transaction record
+     */
+    private function createTransaction(Order $order, $paymentMethod, $paymentValidation, $status = null)
+    {
+        $transactionId = 'TXN-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -8));
+
+        // Determine transaction status
+        if ($status) {
+            $finalStatus = $status;
+        } else {
+            $finalStatus = 'completed';
+            if ($paymentMethod === 'cash') {
+                $finalStatus = 'pending';
+            }
+        }
+
+        Transaction::create([
+            'transaction_id' => $transactionId,
+            'order_id' => $order->id,
+            'amount' => $paymentValidation['amount'],
+            'status' => $finalStatus,
+            'payment_method' => $this->mapPaymentMethod($paymentMethod),
+            'tax' => 0, // You can calculate tax here
+            'vat' => 0, // You can calculate VAT here
+            'tax_percentage' => 0,
+            'vat_percentage' => 0,
+        ]);
+    }
+
+    /**
+     * Map payment method to transaction enum
+     */
+    private function mapPaymentMethod($paymentMethod)
+    {
+        $mapping = [
+            'cash' => 'cash_on_delivery',
+            'wallet' => 'wallet',
+            'payment_gateway' => 'credit_card'
+        ];
+
+        return $mapping[$paymentMethod] ?? 'cash_on_delivery';
+    }
+
+    /**
+     * Process voucher usage
+     */
+    private function processVoucherUsage(Voucher $voucher, $userId, $orderId, $discountAmount)
+    {
+        // Create voucher usage record
+        VoucherUsage::create([
+            'voucher_id' => $voucher->id,
+            'user_id' => $userId,
+            'order_id' => $orderId,
+            'discount_amount' => $discountAmount
+        ]);
+
+        // Update voucher used count
+        $voucher->increment('used_count');
+    }
+
+    /**
+     * Process wallet payment
+     */
+    private function processWalletPayment($userId, $amount)
+    {
+        $wallet = Wallet::where('user_id', $userId)->first();
+        
+        if ($wallet) {
+            // Deduct amount from wallet
+            $oldBalance = $wallet->balance;
+            if($oldBalance < $amount) {
+                return $this->errorResponse('Insufficient wallet balance', [], 400);
+            }
+            $wallet->decrement('balance', $amount);
+            // $wallet->update(['last_change' => -$amount]);
+
+            // Create wallet transaction record
+            WalletTransaction::create([
+                'wallet_id' => $wallet->id,
+                'user_id' => $userId,
+                // 'type' => 'debit',
+                'amount' => $amount,
+                'transaction_id' => 'PAY-' . $wallet->id . '-' . time(),
+                'description' => 'Order payment',
+                'balance_after' => $wallet->fresh()->balance
+            ]);
+        }
+    }
+
+    /**
+     * Process payment gateway order
+     */
+    private function processPaymentGatewayOrder($user, $cart, $request, $voucherValidation, $paymentValidation)
+    {
+        try {
+            // Create order with pending payment status
+            $order = $this->createOrder($user, $cart, $request, $voucherValidation['discount'] ?? 0, 'pending');
+            
+            Log::info('Payment gateway order created', [
+                'order_id' => $order->id,
+                'order_number' => $order->order_number,
+                'payment_status' => $order->payment_status,
+                'total' => $order->total
+            ]);
+            
+            // Create order items and update stock
+            $this->createOrderItems($order, $cart);
+            
+            // Create pending transaction record
+            $this->createTransaction($order, $request->payment_method, $paymentValidation, 'pending');
+            
+            // Process voucher usage if applicable
+            if ($request->voucher_code && $voucherValidation['voucher']) {
+                $this->processVoucherUsage($voucherValidation['voucher'], $user->id, $order->id, $voucherValidation['discount']);
+            }
+            
+            // Update flash sale counts
+            $this->updateFlashSaleCounts($cart);
+            
+            // Clear cart
+            $cart->items()->delete();
+            $cart->delete();
+
+            // Prepare payment request
+            $paymentRequest = new Request([
+                'amount' => $paymentValidation['amount'],
+                'currency' => $request->currency ?? 'USD',
+                'order_id' => $order->id,
+                'order_number' => $order->order_number
+            ]);
+
+            // Process payment through gateway
+            $paymentResult = $this->paymentService->sendPayment($paymentRequest);
+
+            Log::info('Payment gateway result', [
+                'order_id' => $order->id,
+                'payment_success' => $paymentResult['success'],
+                'payment_url' => $paymentResult['url'] ?? null
+            ]);
+
+            if ($paymentResult['success']) {
+                return $this->successResponse('Payment initiated successfully', [
+                    'payment_url' => $paymentResult['url'],
+                    'order' => $order->load(['items.product', 'items.productVariant', 'items.flashSale']),
+                    'order_number' => $order->order_number,
+                    'order_id' => $order->id
+                ]);
+            } else {
+                // Payment initiation failed - restore stock and mark as failed
+                $this->handleOrderFailure($order->id, 'Payment initiation failed');
+                
+                Log::error('Payment gateway initiation failed', [
+                    'order_id' => $order->id,
+                    'order_number' => $order->order_number
+                ]);
+                
+                return $this->errorResponse('Payment initiation failed', [
+                    'order_number' => $order->order_number
+                ], 400);
+            }
+
+        } catch (\Exception $e) {
+            return $this->errorResponse('Failed to process payment gateway order: ' . $e->getMessage(), [], 500);
+        }
+    }
+
+    /**
+     * Handle order failure and restore stock
+     */
+    public function handleOrderFailure($orderId, $reason = 'Order failed')
+    {
+        try {
+            $order = Order::find($orderId);
+            if (!$order) {
+                return false;
+            }
+
+            DB::beginTransaction();
+
+            try {
+                // Restore stock for all order items
+                foreach ($order->items as $orderItem) {
+                    if ($orderItem->product_variant_id) {
+                        // Restore variant stock
+                        $variant = ProductVariant::find($orderItem->product_variant_id);
+                        if ($variant) {
+                            $variant->increment('stock', $orderItem->quantity);
+                            
+                            Log::info('Variant stock restored due to order failure', [
+                                'variant_id' => $variant->id,
+                                'product_id' => $orderItem->product_id,
+                                'quantity_restored' => $orderItem->quantity,
+                                'new_stock' => $variant->fresh()->stock,
+                                'order_id' => $orderId,
+                                'reason' => $reason
+                            ]);
+                        }
+                    } else {
+                        // Restore regular product stock
+                        $product = Product::find($orderItem->product_id);
+                        if ($product) {
+                            $product->increment('total_quantity', $orderItem->quantity);
+                            
+                            Log::info('Product stock restored due to order failure', [
+                                'product_id' => $orderItem->product_id,
+                                'quantity_restored' => $orderItem->quantity,
+                                'new_stock' => $product->fresh()->total_quantity,
+                                'order_id' => $orderId,
+                                'reason' => $reason
+                            ]);
+                        }
+                    }
+
+                    // Restore flash sale counts if applicable
+                    if ($orderItem->flash_sale_id) {
+                        $flashSaleItem = FlashSaleItem::where('flash_sale_id', $orderItem->flash_sale_id)
+                            ->where('product_id', $orderItem->product_id)
+                            ->first();
+                        
+                        if ($flashSaleItem) {
+                            $flashSaleItem->decrement('count', $orderItem->quantity);
+                            
+                            Log::info('Flash sale count restored due to order failure', [
+                                'flash_sale_id' => $orderItem->flash_sale_id,
+                                'product_id' => $orderItem->product_id,
+                                'quantity_restored' => $orderItem->quantity,
+                                'new_count' => $flashSaleItem->fresh()->count,
+                                'order_id' => $orderId,
+                                'reason' => $reason
+                            ]);
+                        }
+                    }
+                }
+
+                // Restore voucher usage if applicable
+                $voucherUsages = VoucherUsage::where('order_id', $orderId)->get();
+                foreach ($voucherUsages as $voucherUsage) {
+                    // Decrement voucher used count
+                    $voucher = Voucher::find($voucherUsage->voucher_id);
+                    if ($voucher) {
+                        $voucher->decrement('used_count');
+                        
+                        Log::info('Voucher usage restored due to order failure', [
+                            'voucher_id' => $voucher->id,
+                            'voucher_code' => $voucher->code,
+                            'order_id' => $orderId,
+                            'new_used_count' => $voucher->fresh()->used_count,
+                            'reason' => $reason
+                        ]);
+                    }
+                    
+                    // Delete voucher usage record
+                    $voucherUsage->delete();
+                    
+                    Log::info('Voucher usage record deleted due to order failure', [
+                        'voucher_usage_id' => $voucherUsage->id,
+                        'voucher_id' => $voucherUsage->voucher_id,
+                        'order_id' => $orderId,
+                        'reason' => $reason
+                    ]);
+                }
+
+                // Update order status
+                $order->update([
+                    'payment_status' => 'failed',
+                    'status' => 'cancelled'
+                ]);
+
+                // Restore wallet balance if order was paid with wallet
+                if ($order->payment_method === 'wallet') {
+                    $wallet = Wallet::where('user_id', $order->user_id)->first();
+                    if ($wallet) {
+                        $oldBalance = $wallet->balance;
+                        $wallet->increment('balance', $order->total);
+                        
+                        // Create wallet transaction record for refund
+                        WalletTransaction::create([
+                            'wallet_id' => $wallet->id,
+                            'type' => 'credit',
+                            'amount' => $order->total,
+                            'transaction_id' => 'REFUND-' . $wallet->id . '-' . time(),
+                            'description' => 'Order refund due to failure: ' . $reason,
+                            'balance_after' => $wallet->fresh()->balance
+                        ]);
+                        
+                        Log::info('Wallet balance restored due to order failure', [
+                            'wallet_id' => $wallet->id,
+                            'user_id' => $order->user_id,
+                            'old_balance' => $oldBalance,
+                            'refund_amount' => $order->total,
+                            'new_balance' => $wallet->fresh()->balance,
+                            'order_id' => $orderId,
+                            'reason' => $reason
+                        ]);
+                    }
+                }
+
+                // Update transaction status
+                $order->transactions()->update(['status' => 'failed']);
+
+                DB::commit();
+
+                Log::info('Order failure handled successfully', [
+                    'order_id' => $orderId,
+                    'order_number' => $order->order_number,
+                    'reason' => $reason
+                ]);
+
+                return true;
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error('Failed to handle order failure', [
+                    'order_id' => $orderId,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+                throw $e;
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Exception in handleOrderFailure', [
+                'order_id' => $orderId,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Cancel an order and restore stock
+     */
+    public function cancelOrder($orderId, $reason = 'Order cancelled')
+    {
+        try {
+            $order = Order::find($orderId);
+            if (!$order) {
+                return $this->errorResponse('Order not found', [], 404);
+            }
+
+            if ($order->payment_status === 'completed') {
+                return $this->errorResponse('Cannot cancel completed order', [], 400);
+            }
+
+            if ($order->status === 'cancelled') {
+                return $this->errorResponse('Order already cancelled', [], 400);
+            }
+
+            $result = $this->handleOrderFailure($orderId, $reason);
+            
+            if ($result) {
+                return $this->successResponse('Order cancelled successfully', [
+                    'order_number' => $order->order_number,
+                    'status' => 'cancelled'
+                ]);
+            } else {
+                return $this->errorResponse('Failed to cancel order', [], 500);
+            }
+
+        } catch (\Exception $e) {
+            return $this->errorResponse('Failed to cancel order: ' . $e->getMessage(), [], 500);
+        }
+    }
+
+    /**
+     * Handle payment gateway callback for orders
+     */
+    public function handleOrderPaymentCallback(Request $request)
+    {
+        try {
+            $sessionId = $request->get('session_id');
+            $orderId = $request->get('order_id');
+            
+            if (!$sessionId || !$orderId) {
+                return $this->errorResponse('Missing required parameters', [], 400);
+            }
+
+            // Get order
+            $order = Order::find($orderId);
+            if (!$order) {
+                return $this->errorResponse('Order not found', [], 404);
+            }
+
+            // Check if already processed
+            $transaction = $order->transactions()->where('status', 'pending')->first();
+            if (!$transaction) {
+                return $this->errorResponse('Order already processed', [], 400);
+            }
+
+            // Verify payment with gateway
+            $paymentRequest = new Request(['session_id' => $sessionId]);
+            $paymentVerified = $this->paymentService->callBack($paymentRequest);
+
+            DB::beginTransaction();
+
+            try {
+                if ($paymentVerified) {
+                    // Payment successful - update order and transaction
+                    $order->update([
+                        'payment_status' => 'completed',
+                        // 'status' => 'confirmed'
+                    ]);
+
+                    $transaction->update([
+                        'status' => 'completed',
+                        'transaction_id' => $sessionId // Store actual payment gateway transaction ID
+                    ]);
+
+                    DB::commit();
+
+                    return $this->successResponse('Order payment completed successfully', [
+                        'order_number' => $order->order_number,
+                        'transaction_id' => $sessionId,
+                        'payment_status' => 'completed'
+                    ]);
+                } else {
+                    // Payment failed - restore stock and mark as failed
+                    $this->handleOrderFailure($order->id, 'Payment verification failed');
+                    
+                    DB::commit();
+
+                    return $this->errorResponse('Payment verification failed', [
+                        'order_number' => $order->order_number
+                    ], 400);
+                }
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
+
+        } catch (\Exception $e) {
+            return $this->errorResponse('Failed to process payment callback', [
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 }

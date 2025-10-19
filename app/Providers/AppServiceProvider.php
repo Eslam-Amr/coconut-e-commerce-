@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Interfaces\PaymentGatewayInterface;
 use App\Models\Admin;
 use App\Models\Media;
 use App\Models\User;
@@ -10,6 +11,7 @@ use App\Notifications\Channels\SmsChannel;
 use App\Observers\AdminObserver;
 use App\Observers\MediaObserver;
 use App\Observers\UserObserver;
+use App\Services\Utilities\StripePaymentService;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\ServiceProvider;
 
@@ -28,6 +30,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+
+        $this->app->bind(PaymentGatewayInterface::class,StripePaymentService::class);
+
         // Register observers
         User::observe(UserObserver::class);
 

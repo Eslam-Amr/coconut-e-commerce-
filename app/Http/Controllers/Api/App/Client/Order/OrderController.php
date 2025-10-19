@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\App\Client\Order;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\App\Client\Order\ConfirmPaymentRequest;
 use App\Services\Api\App\Client\Order\OrderService;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
@@ -25,7 +26,7 @@ class OrderController extends Controller implements HasMiddleware
     /**
      * Confirm order from cart
      */
-    public function confirmOrder(Request $request)
+    public function confirmOrder(ConfirmPaymentRequest $request)
     {
         return $this->orderService->confirmOrder($request);
     }
@@ -45,4 +46,21 @@ class OrderController extends Controller implements HasMiddleware
     {
         return $this->orderService->getOrderDetails($request, $orderId);
     }
+
+    /**
+     * Handle order payment callback
+     */
+    public function handlePaymentCallback(Request $request)
+    {
+        return $this->orderService->handleOrderPaymentCallback($request);
+    }
+
+    /**
+     * Cancel an order
+     */
+    // public function cancelOrder(Request $request, $orderId)
+    // {
+    //     $reason = $request->input('reason', 'Order cancelled by user');
+    //     return $this->orderService->cancelOrder($orderId, $reason);
+    // }
 }

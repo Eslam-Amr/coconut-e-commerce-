@@ -14,15 +14,18 @@ class OrderItem extends Model
         'order_id',
         'product_id',
         'product_variant_id',
+        'flash_sale_id',
         'quantity',
+        'price',
         'unit_price',
-        'line_total',
+        'total_price',
     ];
 
     protected $casts = [
         'quantity' => 'integer',
+        'price' => 'decimal:2',
         'unit_price' => 'decimal:2',
-        'line_total' => 'decimal:2',
+        'total_price' => 'decimal:2',
     ];
 
     public function order(): BelongsTo
@@ -38,5 +41,10 @@ class OrderItem extends Model
     public function productVariant(): BelongsTo
     {
         return $this->belongsTo(ProductVariant::class);
+    }
+
+    public function flashSale(): BelongsTo
+    {
+        return $this->belongsTo(FlashSale::class);
     }
 }

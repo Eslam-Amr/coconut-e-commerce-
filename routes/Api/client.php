@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\App\client\wallet\WalletController;
 use App\Http\Controllers\Api\App\Client\Wishlist\WishlistController;
 use App\Http\Controllers\Api\App\Client\Cart\CartController;
 use App\Http\Controllers\Api\App\Client\Order\OrderController;
+use App\Http\Controllers\Api\App\Client\Payment\PaymentController;
 use App\Http\Controllers\Api\App\Client\Recommendation\OptimizedRecommendationController;
 use App\Http\Controllers\Api\App\Client\Recommendation\InteractionRecommendationController;
 
@@ -37,7 +38,11 @@ Route::get('/products/recommendations', [ClientProductController::class, 'recomm
 Route::get('/wishlist', [WishlistController::class, 'index']);
 Route::post('/wishlist/{productId}', [WishlistController::class, 'toggleWishlist']);
 
+// Wallet routes
 Route::post('/wallet', [WalletController::class, 'createWallet']);
+Route::post('/wallet/charge', [WalletController::class, 'chargeWallet']);
+Route::get('/wallet/info', [WalletController::class, 'getWalletInfo']);
+Route::get('/wallet/transaction/{transactionId}', [WalletController::class, 'getTransactionDetails']);
 
 // Cart
 Route::get('/cart', [CartController::class, 'index']);
@@ -52,6 +57,8 @@ Route::get('/cart/calculate-total', [CartController::class, 'calculateTotal']);
 
 // Orders
 Route::post('/orders/confirm', [OrderController::class, 'confirmOrder']);
+Route::post('/orders/payment/callback', [OrderController::class, 'handlePaymentCallback']);
+// Route::post('/orders/{orderId}/cancel', [OrderController::class, 'cancelOrder']);
 Route::get('/orders', [OrderController::class, 'index']);
 Route::get('/orders/{orderId}', [OrderController::class, 'show']);
 
@@ -75,3 +82,10 @@ Route::get('/orders/{orderId}', [OrderController::class, 'show']);
 // Route::get('/recommendations', [OptimizedRecommendationController::class, 'getRecommendations']);
 // Route::get('/recommendations/top-rated', [OptimizedRecommendationController::class, 'getTopRatedProducts']);
 // Route::get('/recommendations/most-ordered', [OptimizedRecommendationController::class, 'getMostOrderedProducts']);
+
+
+
+
+
+Route::post('/payment/process', [PaymentController::class, 'paymentProcess']);
+Route::match(['GET','POST'],'/payment/callback', [PaymentController::class, 'callBack']);

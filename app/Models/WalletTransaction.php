@@ -14,11 +14,17 @@ class WalletTransaction extends Model
         'wallet_id',
         'type',
         'amount',
-        'reason',
+        'description',
+        'balance_after',
+        'transaction_id',
+        'payment_method',
+        'status',
+        'user_id',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'balance_after' => 'decimal:2',
         'created_at' => 'datetime',
     ];
 
