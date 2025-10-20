@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\App\Client\Wishlist\WishlistController;
 use App\Http\Controllers\Api\App\Client\Cart\CartController;
 use App\Http\Controllers\Api\App\Client\Order\OrderController;
 use App\Http\Controllers\Api\App\Client\Payment\PaymentController;
+use App\Http\Controllers\Api\App\Client\Product\ProductReviewController;
 use App\Http\Controllers\Api\App\Client\Recommendation\OptimizedRecommendationController;
 use App\Http\Controllers\Api\App\Client\Recommendation\InteractionRecommendationController;
 
@@ -61,6 +62,14 @@ Route::post('/orders/payment/callback', [OrderController::class, 'handlePaymentC
 // Route::post('/orders/{orderId}/cancel', [OrderController::class, 'cancelOrder']);
 Route::get('/orders', [OrderController::class, 'index']);
 Route::get('/orders/{orderId}', [OrderController::class, 'show']);
+
+// Product Reviews
+Route::post('/reviews', [ProductReviewController::class, 'store']);
+Route::get('/products/{productId}/reviews', [ProductReviewController::class, 'getProductReviews']);
+Route::get('/reviews/my-reviews', [ProductReviewController::class, 'getUserReviews']);
+Route::put('/reviews/{reviewId}', [ProductReviewController::class, 'update']);
+Route::delete('/reviews/{reviewId}', [ProductReviewController::class, 'destroy']);
+Route::get('/products/{productId}/can-review', [ProductReviewController::class, 'canReview']);
 
 
 

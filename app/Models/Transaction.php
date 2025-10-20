@@ -14,6 +14,7 @@ class Transaction extends Model
         'transaction_id',
         'order_id',
         'amount',
+        'paid_amount',
         'currency',
         'status',
         'payment_method',
@@ -25,6 +26,7 @@ class Transaction extends Model
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'paid_amount' => 'decimal:2',
         'fees' => 'decimal:2',
         'gateway_response' => 'array',
         'processed_at' => 'datetime',

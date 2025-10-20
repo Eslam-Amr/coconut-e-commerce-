@@ -2,6 +2,7 @@
 
 namespace App\Services\Api\App\Client\Cart;
 
+use App\Models\Address;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Product;
@@ -160,7 +161,7 @@ class CartService
                 // Record interaction points for adding to cart
                 $this->interactionService->recordInteraction($userId, $validated['product_id'], 'view');
 
-                $cart->load(['items.product.translations', 'items.product.brand.translations', 'items.product.category.translations', 'items.productVariant']);
+                // $cart->load(['items.product.translations', 'items.product.brand.translations', 'items.product.category.translations', 'items.productVariant']);
 
                 return $this->successResponse($cart, 'Item added to cart successfully');
             });
@@ -347,7 +348,7 @@ class CartService
     public function calculateTotal(Request $request)
     {
         try {
-            $user = auth()->user();
+            $user = Auth::user();
             if (!$user) {
                 return $this->errorResponse('Unauthorized', [], 401);
             }
@@ -382,8 +383,12 @@ class CartService
     {
         $subtotal = (float) CartItem::query()->where('cart_id', $cart->id)->sum(DB::raw('quantity * price'));
         $discount = (float) ($cart->discount ?? 0);
+        $address = Address::find($cart->user->default_address_id);
+        $shippingPrice = (float) ($cart->shipping_price!=0 ? $cart->shipping_price : $this->calculationService->calculateShippingCost($address->latitude, $address->longitude));
+        
         $cart->subtotal = $subtotal;
-        $cart->total = max(0, $subtotal - $discount);
+        $cart->total = max(0, $subtotal - $discount); // Total without shipping
+        $cart->shipping_price = $shippingPrice; // Store shipping price separately
         $cart->save();
     }
 

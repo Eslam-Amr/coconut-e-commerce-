@@ -25,8 +25,8 @@ class ConfirmPaymentRequest extends MasterRequest
         return [
             'payment_method' => 'required|in:cash,wallet,payment_gateway',
             'voucher_code' => 'nullable|string',
-            'longitude' => 'nullable|numeric|between:-180,180',
-            'latitude' => 'nullable|numeric|between:-90,90',
+            // 'longitude' => 'nullable|numeric|between:-180,180',
+            // 'latitude' => 'nullable|numeric|between:-90,90',
             'address_id' => 'nullable|exists:addresses,id',
             'currency' => 'nullable|string|in:USD,EUR,GBP'
         ];
@@ -41,6 +41,7 @@ class ConfirmPaymentRequest extends MasterRequest
             $this->validateCart($validator);
             $this->validateVoucher($validator);
             $this->validatePaymentMethod($validator);
+            $this->validateAddress($validator);
         });
     }
 
@@ -235,5 +236,34 @@ class ConfirmPaymentRequest extends MasterRequest
             'address_id.exists' => 'Selected address does not exist',
             'currency.in' => 'Currency must be USD, EUR, or GBP'
         ];
+    }
+
+    /**
+     * Validate address requirements
+     */
+    private function validateAddress($validator)
+    {
+        $user = $this->user();
+        $addressId = $this->input('address_id');
+
+        // Check if user has a default address
+        $hasDefaultAddress = $user->default_address_id !== null;
+
+        // If user has no default address, address_id is required
+        if (!$hasDefaultAddress && !$addressId) {
+            $validator->errors()->add('address_id', 'Address is required when you have no default address');
+            return;
+        }
+
+        // If address_id is provided, validate it belongs to the user
+        if ($addressId) {
+            $address = \App\Models\Address::where('id', $addressId)
+                ->where('user_id', $user->id)
+                ->first();
+
+            if (!$address) {
+                $validator->errors()->add('address_id', 'Selected address does not belong to you');
+            }
+        }
     }
 }

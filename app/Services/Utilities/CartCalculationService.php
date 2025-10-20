@@ -8,6 +8,7 @@ use App\Models\CartItem;
 use App\Models\Address;
 use App\Models\User;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 
 class CartCalculationService
 {
@@ -44,7 +45,7 @@ class CartCalculationService
             }
         } else {
             // Use default address
-            $defaultAddress = Address::find(auth()->user()->default_address_id);
+            $defaultAddress = Address::find(Auth::user()->default_address_id);
                         if ($defaultAddress && $defaultAddress->hasCoordinates()) {
                 $userLatitude = $defaultAddress->latitude;
                 $userLongitude = $defaultAddress->longitude;
@@ -63,17 +64,22 @@ class CartCalculationService
         // Calculate tax
         $taxAmount = $this->calculateTax($subtotal);
         
-        // Calculate total
-        $total = $subtotal + $shippingCost + $vatAmount + $taxAmount;
+        // Calculate formatted totals with proper rounding
+        $totals = $this->calculateFormattedTotals($subtotal, $shippingCost, $vatAmount, $taxAmount, $cart->discount);
+
+        // Update cart with shipping price
+        $cart->update(['shipping_price' => $totals['shipping_price']]);
 
         return [
-            'subtotal' => round($subtotal, 2),
-            'shipping_cost' => round($shippingCost, 2),
+            'subtotal' => $totals['subtotal'],
+            'shipping_cost' => $totals['shipping_cost'],
+            'shipping_price' => $totals['shipping_price'], // Same as shipping_cost for compatibility
             'vat_rate' => $this->settings->vat_rate,
-            'vat_amount' => round($vatAmount, 2),
+            'vat_amount' => $totals['vat_amount'],
             'tax_rate' => $this->settings->tax_rate,
-            'tax_amount' => round($taxAmount, 2),
-            'total' => round($total, 2),
+            'tax_amount' => $totals['tax_amount'],
+            'total_without_shipping' => $totals['total_without_shipping'], // Total without shipping
+            'total' => $totals['total'], // Total with shipping
             'currency' => 'EGP',
             'breakdown' => [
                 'items_count' => $cart->items->count(),
@@ -103,10 +109,10 @@ class CartCalculationService
 
         // Get user's default address if no coordinates provided
         if (!$userLatitude || !$userLongitude) {
-            // dd(auth()->user()->default_address_id);
+            // dd(Auth::user()->default_address_id);
             // $defaultAddress = Address::getDefaultForUser($userId)->first();
-            $defaultAddress = Address::find(auth()->user()->default_address_id);
-            // dd(auth()->user()->default_address_id,$defaultAddress);
+            $defaultAddress = Address::find(Auth::user()->default_address_id);
+            // dd(Auth::user()->default_address_id,$defaultAddress);
             if ($defaultAddress && $defaultAddress->hasCoordinates()) {
                 $userLatitude = $defaultAddress->latitude;
                 $userLongitude = $defaultAddress->longitude;
@@ -127,17 +133,22 @@ class CartCalculationService
         // Calculate tax
         $taxAmount = $this->calculateTax($subtotal);
         
-        // Calculate total
-        $total = $subtotal + $shippingCost + $vatAmount + $taxAmount;
+        // Calculate formatted totals with proper rounding
+        $totals = $this->calculateFormattedTotals($subtotal, $shippingCost, $vatAmount, $taxAmount, $cart->discount);
+
+        // Update cart with shipping price
+        $cart->update(['shipping_price' => $totals['shipping_price']]);
 
         return [
-            'subtotal' => round($subtotal, 2),
-            'shipping_cost' => round($shippingCost, 2),
+            'subtotal' => $totals['subtotal'],
+            'shipping_cost' => $totals['shipping_cost'],
+            'shipping_price' => $totals['shipping_price'], // Same as shipping_cost for compatibility
             'vat_rate' => $this->settings->vat_rate,
-            'vat_amount' => round($vatAmount, 2),
+            'vat_amount' => $totals['vat_amount'],
             'tax_rate' => $this->settings->tax_rate,
-            'tax_amount' => round($taxAmount, 2),
-            'total' => round($total, 2),
+            'tax_amount' => $totals['tax_amount'],
+            'total_without_shipping' => $totals['total_without_shipping'], // Total without shipping
+            'total' => $totals['total'], // Total with shipping
             'currency' => 'EGP', // You can make this configurable
             'breakdown' => [
                 'items_count' => $cart->items->count(),
@@ -154,6 +165,33 @@ class CartCalculationService
     }
 
     /**
+     * Calculate and format cart totals with proper rounding
+     */
+    private function calculateFormattedTotals($subtotal, $shippingCost, $vatAmount, $taxAmount, $discount = 0): array
+    {
+        // Round all components first
+        $roundedSubtotal = round($subtotal, 2);
+        $roundedShippingCost = round($shippingCost, 2);
+        $roundedVatAmount = round($vatAmount, 2);
+        $roundedTaxAmount = round($taxAmount, 2);
+        $roundedDiscount = round($discount, 2);
+        
+        // Calculate totals with rounded values
+        $totalWithoutShipping = $roundedSubtotal - $roundedDiscount;
+        $total = $totalWithoutShipping + $roundedShippingCost + $roundedVatAmount + $roundedTaxAmount;
+        
+        return [
+            'subtotal' => $roundedSubtotal,
+            'shipping_cost' => $roundedShippingCost,
+            'shipping_price' => $roundedShippingCost,
+            'vat_amount' => $roundedVatAmount,
+            'tax_amount' => $roundedTaxAmount,
+            'total_without_shipping' => $totalWithoutShipping,
+            'total' => round($total, 2)
+        ];
+    }
+
+    /**
      * Calculate subtotal from cart items
      */
     private function calculateSubtotal(Collection $items): float
@@ -166,7 +204,7 @@ class CartCalculationService
     /**
      * Calculate shipping cost using Haversine formula
      */
-    private function calculateShippingCost(?float $userLatitude, ?float $userLongitude): float
+    public function calculateShippingCost(?float $userLatitude, ?float $userLongitude): float
     {
         if (!$userLatitude || !$userLongitude) {
             // Return fixed shipping cost if no user location provided
@@ -257,7 +295,7 @@ class CartCalculationService
             return 'none';
         }
 
-        $defaultAddress = Address::find(auth()->user()->default_address_id)->first();
+        $defaultAddress = Address::find(Auth::user()->default_address_id)->first();
         if ($defaultAddress && $defaultAddress->hasCoordinates()) {
             // Check if coordinates match default address
             if (abs($defaultAddress->latitude - $userLatitude) < 0.0001 && 

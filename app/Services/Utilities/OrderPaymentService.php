@@ -27,8 +27,14 @@ class OrderPaymentService extends BasePaymentService implements PaymentGatewayIn
         $data = $this->formatData($request);
         $response = $this->buildRequest('POST', '/v1/checkout/sessions', $data, 'form_params');
         
-        if ($response->getData(true)['success']) {
-            return ['success' => true, 'url' => $response->getData(true)['data']['url']];
+        $responseData = $response->getData(true);
+        
+        if ($responseData['success']) {
+            return [
+                'success' => true, 
+                'url' => $responseData['data']['url'],
+                'session_id' => $responseData['data']['id'] ?? null // Stripe session ID
+            ];
         }
         
         return ['success' => false, 'url' => route('order.payment.failed')];

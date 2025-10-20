@@ -11,6 +11,7 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\FlashSale;
 use App\Models\FlashSaleItem;
+use App\Models\Settings;
 use App\Models\Transaction;
 use App\Models\Voucher;
 use App\Models\VoucherUsage;
@@ -26,9 +27,9 @@ use Illuminate\Support\Facades\Log;
 class OrderService
 {
     use ApiResponseTrait;
-    
+
     protected $paymentService;
-    
+
     public function __construct(OrderPaymentService $paymentService)
     {
         $this->paymentService = $paymentService;
@@ -41,17 +42,17 @@ class OrderService
     {
         try {
             $user = $request->user();
-            
+
             // Get user's cart
             $cart = Cart::where('user_id', $user->id)->with(['items.product', 'items.productVariant', 'items.flashSale'])->first();
-            
+
             if (!$cart || $cart->items->isEmpty()) {
                 return $this->errorResponse('Cart is empty', [], 400);
             }
 
             // Get voucher validation data
             $voucherValidation = $this->getVoucherValidation($request->voucher_code, $user->id, $cart);
-            
+
             // Get payment validation data
             $paymentValidation = $this->getPaymentValidation($request->payment_method, $user->id, $cart, $voucherValidation['discount'] ?? 0);
 
@@ -65,26 +66,28 @@ class OrderService
             try {
                 // Create order
                 $order = $this->createOrder($user, $cart, $request, $voucherValidation['discount'] ?? 0);
-                
+
                 // Create order items and update stock
                 $this->createOrderItems($order, $cart);
-                
+
                 // Create transaction record
-                $this->createTransaction($order, $request->payment_method, $paymentValidation);
-                
+                $this->createTransaction($order, $request->payment_method, $paymentValidation, null, $cart);
+
                 // Process voucher usage if applicable
                 if ($request->voucher_code && $voucherValidation['voucher']) {
                     $this->processVoucherUsage($voucherValidation['voucher'], $user->id, $order->id, $voucherValidation['discount']);
                 }
-                
+
                 // Process wallet payment if applicable
                 if ($request->payment_method === 'wallet') {
-                    $this->processWalletPayment($user->id, $order->total);
+                    $transaction = $order->transactions()->first();
+                    $paidAmount = $transaction ? $transaction->paid_amount : $order->total;
+                    $this->processWalletPayment($user->id, $paidAmount);
                 }
-                
+
                 // Update flash sale counts
                 $this->updateFlashSaleCounts($cart);
-                
+
                 // Clear cart
                 $cart->items()->delete();
                 $cart->delete();
@@ -99,12 +102,10 @@ class OrderService
                         'transaction_id' => $order->transactions->first()->transaction_id ?? null
                     ]
                 );
-
             } catch (\Exception $e) {
                 DB::rollBack();
                 return $this->errorResponse('Failed to confirm order: ' . $e->getMessage(), [], 500);
             }
-
         } catch (\Exception $e) {
             return $this->errorResponse('Failed to process order confirmation', ['error' => $e->getMessage()], 500);
         }
@@ -116,11 +117,17 @@ class OrderService
      */
     private function createOrder($user, Cart $cart, Request $request, $discount = 0, $paymentStatus = null)
     {
-        $subtotal = $cart->items->sum(function($item) {
+        $subtotal = $cart->items->sum(function ($item) {
             return $item->price * $item->quantity;
         });
 
-        $total = $subtotal - $discount;
+        $addressId = $request->address_id ?? $user->default_address_id;
+        $address = Address::find($addressId);
+        $longitude = $address->longitude;
+        $latitude = $address->latitude;
+
+        $shippingPrice = $this->calculateShippingCost($latitude, $longitude); // Get shipping price from cart
+        $total = $subtotal - $discount; // Total without shipping
 
         // Determine payment status
         if ($paymentStatus) {
@@ -128,10 +135,7 @@ class OrderService
         } else {
             $finalPaymentStatus = $request->payment_method === 'cash' ? 'pending' : 'completed';
         }
-        $addressId = $request->address_id ?? $user->default_address_id;
-        $address = Address::find($addressId);
-        $longitude = $request->longitude ?? $address->longitude;
-$latitude = $request->latitude ?? $address->latitude;
+
         return Order::create([
             'user_id' => $user->id,
             'address_id' => $addressId,
@@ -141,7 +145,8 @@ $latitude = $request->latitude ?? $address->latitude;
             'status' => 'pending',
             'subtotal' => $subtotal,
             'discount' => $discount,
-            'total' => $total,
+            'shipping_price' => $shippingPrice, // Store shipping price separately
+            'total' => $total, // Total without shipping
             // 'currency' => $request->currency ?? 'USD',
             'payment_method' => $request->payment_method,
             'payment_status' => $finalPaymentStatus,
@@ -173,7 +178,7 @@ $latitude = $request->latitude ?? $address->latitude;
                 if ($variant && $variant->stock >= $cartItem->quantity) {
                     $oldStock = $variant->stock;
                     $variant->decrement('stock', $cartItem->quantity);
-                    
+
                     Log::info('Variant stock updated', [
                         'variant_id' => $variant->id,
                         'product_id' => $cartItem->product_id,
@@ -181,21 +186,21 @@ $latitude = $request->latitude ?? $address->latitude;
                         'quantity_decremented' => $cartItem->quantity,
                         'new_stock' => $variant->fresh()->stock
                     ]);
-                       // Update regular product stock from products table
-                $product = Product::find($cartItem->product_id);
-                if ($product && $product->total_quantity >= $cartItem->quantity) {
-                    $oldStock = $product->total_quantity;
-                    $product->decrement('total_quantity', $cartItem->quantity);
-                    
-                    Log::info('Product stock updated', [
-                        'product_id' => $cartItem->product_id,
-                        'old_stock' => $oldStock,
-                        'quantity_decremented' => $cartItem->quantity,
-                        'new_stock' => $product->fresh()->total_quantity
-                    ]);
-                } else {
-                    throw new \Exception("Insufficient stock for product ID: {$cartItem->product_id}");
-                }
+                    // Update regular product stock from products table
+                    $product = Product::find($cartItem->product_id);
+                    if ($product && $product->total_quantity >= $cartItem->quantity) {
+                        $oldStock = $product->total_quantity;
+                        $product->decrement('total_quantity', $cartItem->quantity);
+
+                        Log::info('Product stock updated', [
+                            'product_id' => $cartItem->product_id,
+                            'old_stock' => $oldStock,
+                            'quantity_decremented' => $cartItem->quantity,
+                            'new_stock' => $product->fresh()->total_quantity
+                        ]);
+                    } else {
+                        throw new \Exception("Insufficient stock for product ID: {$cartItem->product_id}");
+                    }
                 } else {
                     throw new \Exception("Insufficient stock for variant of product ID: {$cartItem->product_id}");
                 }
@@ -205,7 +210,7 @@ $latitude = $request->latitude ?? $address->latitude;
                 if ($product && $product->total_quantity >= $cartItem->quantity) {
                     $oldStock = $product->total_quantity;
                     $product->decrement('total_quantity', $cartItem->quantity);
-                    
+
                     Log::info('Product stock updated', [
                         'product_id' => $cartItem->product_id,
                         'old_stock' => $oldStock,
@@ -262,7 +267,6 @@ $latitude = $request->latitude ?? $address->latitude;
                 ->paginate(15);
 
             return $this->successResponse('Orders retrieved successfully', $orders);
-
         } catch (\Exception $e) {
             return $this->errorResponse('Failed to retrieve orders', ['error' => $e->getMessage()], 500);
         }
@@ -289,7 +293,6 @@ $latitude = $request->latitude ?? $address->latitude;
             }
 
             return $this->successResponse('Order details retrieved successfully', $order);
-
         } catch (\Exception $e) {
             return $this->errorResponse('Failed to retrieve order details', ['error' => $e->getMessage()], 500);
         }
@@ -315,7 +318,7 @@ $latitude = $request->latitude ?? $address->latitude;
         }
 
         // Calculate discount amount
-        $subtotal = $cart->items->sum(function($item) {
+        $subtotal = $cart->items->sum(function ($item) {
             return $item->price * $item->quantity;
         });
 
@@ -333,7 +336,7 @@ $latitude = $request->latitude ?? $address->latitude;
      */
     private function getPaymentValidation($paymentMethod, $userId, Cart $cart, $discount = 0)
     {
-        $subtotal = $cart->items->sum(function($item) {
+        $subtotal = $cart->items->sum(function ($item) {
             return $item->price * $item->quantity;
         });
 
@@ -346,32 +349,71 @@ $latitude = $request->latitude ?? $address->latitude;
     }
 
     /**
+     * Calculate complete order total including shipping, tax, and VAT
+     */
+    private function calculatePaidAmount(Cart $cart, $discount = 0)
+    {
+        $subtotal = $cart->items->sum(function ($item) {
+            return $item->price * $item->quantity;
+        });
+
+        // Get shipping price from cart
+        $shippingPrice = $cart->shipping_price ?? 0;
+        
+        // Get settings for tax and VAT rates
+        $settings = Settings::current();
+        
+        // Calculate VAT and tax on subtotal
+        $vatAmount = $subtotal * $settings->vat_rate / 100;
+        $taxAmount = $subtotal * $settings->tax_rate / 100;
+        
+        // Calculate paid amount: subtotal - discount + shipping + VAT + tax
+        $paidAmount = ($subtotal - $discount) + $shippingPrice + $vatAmount + $taxAmount;
+        
+        return round($paidAmount, 2);
+    }
+
+    /**
      * Create transaction record
      */
-    private function createTransaction(Order $order, $paymentMethod, $paymentValidation, $status = null)
+    private function createTransaction(Order $order, $paymentMethod, $paymentValidation, $status = null, Cart $cart = null)
     {
-        $transactionId = 'TXN-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -8));
-
+        $setting = Settings::current();
+        
+        // Determine transaction ID based on payment method
+        if ($paymentMethod === 'payment_gateway') {
+            // For payment gateway, use the actual Stripe session ID or transaction ID
+            $transactionId = $paymentValidation['stripe_session_id'] ?? $paymentValidation['transaction_id'] ?? 'PENDING-' . time();
+        } else {
+            // For other payment methods, generate custom transaction ID
+            $transactionId = 'TXN-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -8));
+        }
+        
         // Determine transaction status
         if ($status) {
             $finalStatus = $status;
         } else {
-            $finalStatus = 'completed';
             if ($paymentMethod === 'cash') {
-                $finalStatus = 'pending';
+                $finalStatus = 'pending'; // Cash payments are pending until confirmed
+            } else {
+                $finalStatus = 'completed'; // Wallet and payment gateway are completed immediately
             }
         }
+
+        // Calculate paid amount (complete total including shipping, tax, VAT)
+        $paidAmount = $cart ? $this->calculatePaidAmount($cart, $order->discount ?? 0) : $paymentValidation['amount'];
 
         Transaction::create([
             'transaction_id' => $transactionId,
             'order_id' => $order->id,
-            'amount' => $paymentValidation['amount'],
+            'amount' => $paymentValidation['amount'], // Order total without shipping/tax/VAT
+            'paid_amount' => $paidAmount, // Complete amount to be paid
             'status' => $finalStatus,
             'payment_method' => $this->mapPaymentMethod($paymentMethod),
-            'tax' => 0, // You can calculate tax here
-            'vat' => 0, // You can calculate VAT here
-            'tax_percentage' => 0,
-            'vat_percentage' => 0,
+            'tax' => $paymentValidation['amount'] * $setting->tax_rate / 100, // You can calculate tax here
+            'vat' => $paymentValidation['amount'] * $setting->vat_rate / 100, // You can calculate VAT here
+            'tax_percentage' => $setting->tax_rate,
+            'vat_percentage' => $setting->vat_rate,
         ]);
     }
 
@@ -412,11 +454,11 @@ $latitude = $request->latitude ?? $address->latitude;
     private function processWalletPayment($userId, $amount)
     {
         $wallet = Wallet::where('user_id', $userId)->first();
-        
+
         if ($wallet) {
             // Deduct amount from wallet
             $oldBalance = $wallet->balance;
-            if($oldBalance < $amount) {
+            if ($oldBalance < $amount) {
                 return $this->errorResponse('Insufficient wallet balance', [], 400);
             }
             $wallet->decrement('balance', $amount);
@@ -441,37 +483,41 @@ $latitude = $request->latitude ?? $address->latitude;
     private function processPaymentGatewayOrder($user, $cart, $request, $voucherValidation, $paymentValidation)
     {
         try {
-            // Create order with pending payment status
-            $order = $this->createOrder($user, $cart, $request, $voucherValidation['discount'] ?? 0, 'pending');
-            
+            // Create order with completed payment status for payment gateway
+            $order = $this->createOrder($user, $cart, $request, $voucherValidation['discount'] ?? 0, 'completed');
+
             Log::info('Payment gateway order created', [
                 'order_id' => $order->id,
                 'order_number' => $order->order_number,
                 'payment_status' => $order->payment_status,
                 'total' => $order->total
             ]);
-            
+
             // Create order items and update stock
             $this->createOrderItems($order, $cart);
-            
-            // Create pending transaction record
-            $this->createTransaction($order, $request->payment_method, $paymentValidation, 'pending');
-            
+
+            // Create transaction record (will be completed for payment gateway)
+            $this->createTransaction($order, $request->payment_method, $paymentValidation, null, $cart);
+
             // Process voucher usage if applicable
             if ($request->voucher_code && $voucherValidation['voucher']) {
                 $this->processVoucherUsage($voucherValidation['voucher'], $user->id, $order->id, $voucherValidation['discount']);
             }
-            
+
             // Update flash sale counts
             $this->updateFlashSaleCounts($cart);
-            
+
             // Clear cart
             $cart->items()->delete();
             $cart->delete();
 
+            // Get the transaction to get the paid_amount
+            $transaction = $order->transactions()->first();
+            $paidAmount = $transaction ? $transaction->paid_amount : $paymentValidation['amount'];
+
             // Prepare payment request
             $paymentRequest = new Request([
-                'amount' => $paymentValidation['amount'],
+                'amount' => $paidAmount, // Use paid_amount (includes shipping, tax, VAT)
                 'currency' => $request->currency ?? 'USD',
                 'order_id' => $order->id,
                 'order_number' => $order->order_number
@@ -483,8 +529,21 @@ $latitude = $request->latitude ?? $address->latitude;
             Log::info('Payment gateway result', [
                 'order_id' => $order->id,
                 'payment_success' => $paymentResult['success'],
-                'payment_url' => $paymentResult['url'] ?? null
+                'payment_url' => $paymentResult['url'] ?? null,
+                'stripe_session_id' => $paymentResult['session_id'] ?? null
             ]);
+
+            // Update transaction with Stripe session ID if available
+            if ($paymentResult['success'] && isset($paymentResult['session_id'])) {
+                $order->transactions()->update([
+                    'transaction_id' => $paymentResult['session_id']
+                ]);
+                
+                Log::info('Transaction updated with Stripe session ID', [
+                    'order_id' => $order->id,
+                    'stripe_session_id' => $paymentResult['session_id']
+                ]);
+            }
 
             if ($paymentResult['success']) {
                 return $this->successResponse('Payment initiated successfully', [
@@ -496,17 +555,16 @@ $latitude = $request->latitude ?? $address->latitude;
             } else {
                 // Payment initiation failed - restore stock and mark as failed
                 $this->handleOrderFailure($order->id, 'Payment initiation failed');
-                
+
                 Log::error('Payment gateway initiation failed', [
                     'order_id' => $order->id,
                     'order_number' => $order->order_number
                 ]);
-                
+
                 return $this->errorResponse('Payment initiation failed', [
                     'order_number' => $order->order_number
                 ], 400);
             }
-
         } catch (\Exception $e) {
             return $this->errorResponse('Failed to process payment gateway order: ' . $e->getMessage(), [], 500);
         }
@@ -533,7 +591,7 @@ $latitude = $request->latitude ?? $address->latitude;
                         $variant = ProductVariant::find($orderItem->product_variant_id);
                         if ($variant) {
                             $variant->increment('stock', $orderItem->quantity);
-                            
+
                             Log::info('Variant stock restored due to order failure', [
                                 'variant_id' => $variant->id,
                                 'product_id' => $orderItem->product_id,
@@ -548,7 +606,7 @@ $latitude = $request->latitude ?? $address->latitude;
                         $product = Product::find($orderItem->product_id);
                         if ($product) {
                             $product->increment('total_quantity', $orderItem->quantity);
-                            
+
                             Log::info('Product stock restored due to order failure', [
                                 'product_id' => $orderItem->product_id,
                                 'quantity_restored' => $orderItem->quantity,
@@ -564,10 +622,10 @@ $latitude = $request->latitude ?? $address->latitude;
                         $flashSaleItem = FlashSaleItem::where('flash_sale_id', $orderItem->flash_sale_id)
                             ->where('product_id', $orderItem->product_id)
                             ->first();
-                        
+
                         if ($flashSaleItem) {
                             $flashSaleItem->decrement('count', $orderItem->quantity);
-                            
+
                             Log::info('Flash sale count restored due to order failure', [
                                 'flash_sale_id' => $orderItem->flash_sale_id,
                                 'product_id' => $orderItem->product_id,
@@ -587,7 +645,7 @@ $latitude = $request->latitude ?? $address->latitude;
                     $voucher = Voucher::find($voucherUsage->voucher_id);
                     if ($voucher) {
                         $voucher->decrement('used_count');
-                        
+
                         Log::info('Voucher usage restored due to order failure', [
                             'voucher_id' => $voucher->id,
                             'voucher_code' => $voucher->code,
@@ -596,10 +654,10 @@ $latitude = $request->latitude ?? $address->latitude;
                             'reason' => $reason
                         ]);
                     }
-                    
+
                     // Delete voucher usage record
                     $voucherUsage->delete();
-                    
+
                     Log::info('Voucher usage record deleted due to order failure', [
                         'voucher_usage_id' => $voucherUsage->id,
                         'voucher_id' => $voucherUsage->voucher_id,
@@ -620,7 +678,7 @@ $latitude = $request->latitude ?? $address->latitude;
                     if ($wallet) {
                         $oldBalance = $wallet->balance;
                         $wallet->increment('balance', $order->total);
-                        
+
                         // Create wallet transaction record for refund
                         WalletTransaction::create([
                             'wallet_id' => $wallet->id,
@@ -630,7 +688,7 @@ $latitude = $request->latitude ?? $address->latitude;
                             'description' => 'Order refund due to failure: ' . $reason,
                             'balance_after' => $wallet->fresh()->balance
                         ]);
-                        
+
                         Log::info('Wallet balance restored due to order failure', [
                             'wallet_id' => $wallet->id,
                             'user_id' => $order->user_id,
@@ -655,7 +713,6 @@ $latitude = $request->latitude ?? $address->latitude;
                 ]);
 
                 return true;
-
             } catch (\Exception $e) {
                 DB::rollBack();
                 Log::error('Failed to handle order failure', [
@@ -665,7 +722,6 @@ $latitude = $request->latitude ?? $address->latitude;
                 ]);
                 throw $e;
             }
-
         } catch (\Exception $e) {
             Log::error('Exception in handleOrderFailure', [
                 'order_id' => $orderId,
@@ -695,7 +751,7 @@ $latitude = $request->latitude ?? $address->latitude;
             }
 
             $result = $this->handleOrderFailure($orderId, $reason);
-            
+
             if ($result) {
                 return $this->successResponse('Order cancelled successfully', [
                     'order_number' => $order->order_number,
@@ -704,7 +760,6 @@ $latitude = $request->latitude ?? $address->latitude;
             } else {
                 return $this->errorResponse('Failed to cancel order', [], 500);
             }
-
         } catch (\Exception $e) {
             return $this->errorResponse('Failed to cancel order: ' . $e->getMessage(), [], 500);
         }
@@ -718,7 +773,7 @@ $latitude = $request->latitude ?? $address->latitude;
         try {
             $sessionId = $request->get('session_id');
             $orderId = $request->get('order_id');
-            
+
             if (!$sessionId || !$orderId) {
                 return $this->errorResponse('Missing required parameters', [], 400);
             }
@@ -764,7 +819,7 @@ $latitude = $request->latitude ?? $address->latitude;
                 } else {
                     // Payment failed - restore stock and mark as failed
                     $this->handleOrderFailure($order->id, 'Payment verification failed');
-                    
+
                     DB::commit();
 
                     return $this->errorResponse('Payment verification failed', [
@@ -775,11 +830,52 @@ $latitude = $request->latitude ?? $address->latitude;
                 DB::rollBack();
                 throw $e;
             }
-
         } catch (\Exception $e) {
             return $this->errorResponse('Failed to process payment callback', [
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function calculateShippingCost(?float $userLatitude, ?float $userLongitude): float
+    {
+        $setting = Settings::current();
+        if (!$userLatitude || !$userLongitude) {
+            // Return fixed shipping cost if no user location provided
+            return 00.00; // Default shipping cost
+        }
+
+        $distance = $this->calculateDistance($userLatitude, $userLongitude, $setting);
+        return $distance * $setting->kilo_shipping_price;
+    }
+
+    /**
+     * Calculate distance between two points using optimized formula
+     * Returns distance in kilometers
+     */
+    private function calculateDistance(?float $userLatitude, ?float $userLongitude, $setting): float
+    {
+        if (!$userLatitude || !$userLongitude) {
+            return 0;
+        }
+
+        // Convert degrees to radians
+        $lat1 = deg2rad($setting->latitude);
+        $lon1 = deg2rad($setting->longitude);
+        $lat2 = deg2rad($userLatitude);
+        $lon2 = deg2rad($userLongitude);
+
+        // Earth's radius in kilometers
+        $earthRadius = 6371;
+
+        // Calculate differences
+        $dLat = $lat2 - $lat1;
+        $dLon = $lon2 - $lon1;
+
+        // Haversine formula
+        $a = sin($dLat / 2) * sin($dLat / 2) + cos($lat1) * cos($lat2) * sin($dLon / 2) * sin($dLon / 2);
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        return $earthRadius * $c;
     }
 }

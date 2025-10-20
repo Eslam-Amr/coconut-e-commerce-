@@ -54,7 +54,7 @@ class OrderPaymentController extends Controller
             }
 
             // Check if already processed
-            $transaction = $order->transactions()->where('status', 'pending')->first();
+            $transaction = $order->transactions()->where('status', 'completed')->first();
             if (!$transaction) {
                 return view('payment-success', [
                     'message' => 'Order already processed',
@@ -71,16 +71,15 @@ class OrderPaymentController extends Controller
 
             try {
                 if ($paymentVerified) {
-                    // Payment successful - update order and transaction
-                    $order->update([
-                        'payment_status' => 'completed',
-                        'status' => 'confirmed'
-                    ]);
-
+                    // Payment successful - update transaction ID if needed
                     $transaction->update([
-                        'status' => 'completed',
                         'transaction_id' => $sessionId // Store actual payment gateway transaction ID
                     ]);
+                    
+                    // Order is already completed, just confirm it
+                    // $order->update([
+                    //     'status' => 'confirmed'
+                    // ]);
 
                     DB::commit();
 
