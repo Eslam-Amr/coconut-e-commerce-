@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\App\Client\Payment\PaymentController;
 use App\Http\Controllers\Api\App\Client\Product\ProductReviewController;
 use App\Http\Controllers\Api\App\Client\Recommendation\OptimizedRecommendationController;
 use App\Http\Controllers\Api\App\Client\Recommendation\InteractionRecommendationController;
+use App\Http\Controllers\Api\App\Client\SearchHistory\SearchHistoryController;
 
 
 
@@ -97,3 +98,8 @@ Route::get('/products/{productId}/can-review', [ProductReviewController::class, 
 
 Route::post('/payment/process', [PaymentController::class, 'paymentProcess']);
 Route::match(['GET','POST'],'/payment/callback', [PaymentController::class, 'callBack']);
+
+// Search History routes
+Route::get('/search-history', [SearchHistoryController::class, 'index']);
+Route::delete('/search-history', [SearchHistoryController::class, 'delete']); // Delete all
+Route::delete('/search-history/{id}', [SearchHistoryController::class, 'delete']); // Delete specific

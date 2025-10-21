@@ -21,6 +21,8 @@ use App\Http\Controllers\Api\Dashboard\District\DistrictController;
 use App\Http\Controllers\Api\Dashboard\Admin\AdminController;
 use App\Http\Controllers\Api\Dashboard\Role\RoleController;
 use App\Http\Controllers\Api\Dashboard\Permission\PermissionController;
+use App\Http\Controllers\Api\Dashboard\Order\OrderController;
+use App\Http\Controllers\Api\Dashboard\Refund\RefundController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [LoginController::class, 'login']);
@@ -113,6 +115,19 @@ Route::get('roles/{role}/available-permissions', [RoleController::class, 'getAva
 
 // Permission Management routes
 Route::apiResource('permissions', PermissionController::class);
+
+// Order Management routes
+Route::get('orders', [OrderController::class, 'index']);
+Route::get('orders/{order}', [OrderController::class, 'show']);
+Route::put('orders/{order}/change-status', [OrderController::class, 'changeStatus']);
+Route::get('orders-stats', [OrderController::class, 'getStats']);
+Route::get('order-statuses', [OrderController::class, 'getStatuses']);
+
+// Refund Management routes
+Route::get('refunds', [RefundController::class, 'index']);
+Route::get('refunds/{refund}', [RefundController::class, 'show']);
+Route::put('refunds/{refund}/update-status', [RefundController::class, 'updateStatus']);
+Route::get('refunds-stats', [RefundController::class, 'getStats']);
 // Route::post('categories/{category}/toggle-active', function($category) {
 //     try {
 //         // If we received a string (ID), resolve the model

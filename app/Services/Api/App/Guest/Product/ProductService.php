@@ -3,10 +3,13 @@
 namespace App\Services\Api\App\Guest\Product;
 
 use App\Models\Product;
+use App\Models\SearchHistory;
 use App\Services\Utilities\RecommendationService;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ProductService
 {
@@ -89,6 +92,9 @@ class ProductService
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('description', 'like', "%{$search}%");
             });
+            
+            // Store search history if user is authenticated
+            $this->storeSearchHistory($search);
         }
     }
 
@@ -285,6 +291,40 @@ class ProductService
             return $this->successResponse($products, 'Related products retrieved successfully');
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to retrieve related products', ['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Store search history for authenticated users
+     */
+    private function storeSearchHistory(string $searchQuery)
+    {
+        try {
+            // Only store if user is authenticated
+            if (Auth::check()) {
+                $userId = Auth::id();
+                $searchQuery = trim($searchQuery);
+                
+                // Don't store empty or very short queries
+                if (strlen($searchQuery) < 2) {
+                    return;
+                }
+
+                // Check if the same search was done recently (within last 5 minutes)
+                $recentSearch = SearchHistory::where('user_id', $userId)
+                    ->where('text', $searchQuery)
+                    ->first();
+
+                if (!$recentSearch) {
+                    SearchHistory::create([
+                        'user_id' => $userId,
+                        'text' => $searchQuery,
+                    ]);
+                }
+            }
+        } catch (\Exception $e) {
+            // Log error but don't break the search functionality
+            Log::error('Failed to store search history: ' . $e->getMessage());
         }
     }
 }
