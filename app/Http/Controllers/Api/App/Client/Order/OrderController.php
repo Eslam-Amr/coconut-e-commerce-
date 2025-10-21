@@ -47,13 +47,6 @@ class OrderController extends Controller implements HasMiddleware
         return $this->orderService->getOrderDetails($request, $orderId);
     }
 
-    /**
-     * Handle order payment callback
-     */
-    public function handlePaymentCallback(Request $request)
-    {
-        return $this->orderService->handleOrderPaymentCallback($request);
-    }
 
     /**
      * Cancel an order

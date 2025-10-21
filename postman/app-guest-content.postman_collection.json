@@ -1,0 +1,283 @@
+{
+  "info": {
+    "_postman_id": "8d3e4f5a-6b7c-4d8e-9f0a-guest-content-collection",
+    "name": "App - Guest - Content",
+    "description": "Guest-facing content endpoints: static pages, banners, and sliders",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Static Pages",
+      "item": [
+        {
+          "name": "List Static Pages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{guest_base_url}}/static-pages?per_page=15",
+              "host": ["{{guest_base_url}}"],
+              "path": [ "static-pages"],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "15",
+                  "description": "Items per page"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Show Static Page by Title",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{guest_base_url}}/static-pages/about-us",
+              "host": ["{{guest_base_url}}"],
+              "path": [ "static-pages", "about-us"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Show Privacy Policy",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{guest_base_url}}/static-pages/privacy-policy",
+              "host": ["{{guest_base_url}}"],
+              "path": [ "static-pages", "privacy-policy"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Show Terms of Service",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{guest_base_url}}/static-pages/terms-of-service",
+              "host": ["{{guest_base_url}}"],
+              "path": [ "static-pages", "terms-of-service"]
+            }   
+          },
+          "response": []
+        },
+        {
+          "name": "Show Contact Us",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{guest_base_url}}/static-pages/contact-us",
+              "host": ["{{guest_base_url}}"],
+              "path": [ "static-pages", "contact-us"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Show FAQ",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{guest_base_url}}/static-pages/faq",
+              "host": ["{{guest_base_url}}"],
+              "path": [ "static-pages", "faq"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Banners",
+      "item": [
+        {
+          "name": "List Active Banners",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{guest_base_url}}/banners?per_page=15",
+              "host": ["{{guest_base_url}}"],
+              "path": [ "banners"],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "15",
+                  "description": "Items per page"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Show Banner by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{guest_base_url}}/banners/{{banner_id}}",
+              "host": ["{{guest_base_url}}"],
+              "path": [ "banners", "{{banner_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Sliders",
+      "item": [
+        {
+          "name": "List Active Sliders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{guest_base_url}}/sliders?per_page=15",
+              "host": ["{{guest_base_url}}"],
+              "path": [ "sliders"],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "15",
+                  "description": "Items per page"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Show Slider by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{guest_base_url}}/sliders/{{slider_id}}",
+              "host": ["{{guest_base_url}}"],
+              "path": [ "sliders", "{{slider_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "guest_base_url",
+      "value": "http://localhost:8000/guest",
+      "type": "string"
+    },
+    {
+      "key": "banner_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "slider_id",
+      "value": "1",
+      "type": "string"
+    }
+  ]
+}

@@ -28,36 +28,127 @@ class ProductService
             $query = Product::query()
                 ->where('active', true)
                 ->where('total_quantity', '>', 0)
-                ->with(['brand.translations', 'category.translations', 'translations'])
-                ->withAvg('reviews', 'rating')
-                ->withCount(['orderItems', 'wishlists', 'reviews'])
-                ->orderByDesc('reviews_avg_rating')
-                ->orderByDesc('order_items_count')
-                ->orderByDesc('wishlists_count');
+                ->with(['brand.translations', 'category.translations', 'translations', 'media'])
+                ->withAvg('reviews', 'rating');
+                // ->withCount(['orderItems', 'wishlists', 'reviews']);
 
             // Apply filters
-            if ($request->filled('category_id')) {
-                $query->where('category_id', (int)$request->query('category_id'));
-            }
-            
-            if ($request->filled('brand_id')) {
-                $query->where('brand_id', (int)$request->query('brand_id'));
-            }
+            $this->applyFilters($query, $request);
 
-            // Search functionality
-            if ($request->filled('search')) {
-                $search = $request->get('search');
-                $query->whereHas('translations', function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('description', 'like', "%{$search}%");
-                });
-            }
+            // Apply sorting
+            $this->applySorting($query, $request);
 
             $products = $query->paginate($perPage);
 
             return $this->successResponse($products, 'Products retrieved successfully');
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to retrieve products', ['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Apply filters to the query
+     */
+    private function applyFilters($query, Request $request)
+    {
+        // Category filter
+        if ($request->filled('category_id')) {
+            $query->where('category_id', (int)$request->query('category_id'));
+        }
+        
+        // Brand filter
+        if ($request->filled('brand_id')) {
+            $query->where('brand_id', (int)$request->query('brand_id'));
+        }
+
+        // Price range filter
+        if ($request->filled('min_price')) {
+            $query->where('base_price', '>=', (float)$request->query('min_price'));
+        }
+        
+        if ($request->filled('max_price')) {
+            $query->where('base_price', '<=', (float)$request->query('max_price'));
+        }
+
+        // Creation date filter
+        if ($request->filled('created_from')) {
+            $query->whereDate('created_at', '>=', $request->query('created_from'));
+        }
+        
+        if ($request->filled('created_to')) {
+            $query->whereDate('created_at', '<=', $request->query('created_to'));
+        }
+
+        // Attribute value filters (e.g., color=red, size=large)
+        $this->applyAttributeFilters($query, $request);
+
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->whereHas('translations', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+    }
+
+    /**
+     * Apply attribute value filters
+     */
+    private function applyAttributeFilters($query, Request $request)
+    {
+        // Get all request parameters that could be attribute filters
+        $attributeFilters = $request->except([
+            'per_page', 'page', 'category_id', 'brand_id', 'min_price', 'max_price', 
+            'created_from', 'created_to', 'search', 'sort_by', 'sort_order'
+        ]);
+
+        if (empty($attributeFilters)) {
+            return;
+        }
+
+        // Apply attribute filters using whereHas
+        foreach ($attributeFilters as $attributeName => $attributeValue) {
+            if (is_string($attributeValue) && !empty($attributeValue)) {
+                $query->whereHas('productAttributes.attributeValue', function ($q) use ($attributeName, $attributeValue) {
+                    $q->whereHas('attribute.translations', function ($attrQuery) use ($attributeName) {
+                        $attrQuery->where('name', $attributeName);
+                    })
+                    ->whereHas('translations', function ($valueQuery) use ($attributeValue) {
+                        $valueQuery->where('value', 'like', "%{$attributeValue}%");
+                    });
+                });
+            }
+        }
+    }
+
+    /**
+     * Apply sorting to the query
+     */
+    private function applySorting($query, Request $request)
+    {
+        $sortBy = $request->query('sort_by');
+        $sortOrder = $request->query('sort_order', 'desc');
+
+        // Validate sort order
+        $sortOrder = in_array(strtolower($sortOrder), ['asc', 'desc']) ? strtolower($sortOrder) : 'desc';
+
+        switch ($sortBy) {
+            case 'price':
+                $query->orderBy('base_price', $sortOrder);
+                break;
+            case 'created_at':
+                $query->orderBy('created_at', $sortOrder);
+                break;
+            case 'rating':
+                $query->orderBy('reviews_avg_rating', $sortOrder);
+                break;
+            case 'popularity':
+            // default:
+                $query->orderByDesc('reviews_avg_rating')
+                      ->orderByDesc('order_items_count')
+                      ->orderByDesc('wishlists_count');
+                break;
         }
     }
 

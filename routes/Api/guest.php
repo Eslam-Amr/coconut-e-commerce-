@@ -1,11 +1,16 @@
 <?php
 
 use App\Http\Controllers\Api\App\Client\Recommendation\OptimizedRecommendationController;
+use App\Http\Controllers\Api\App\Guest\Banner\BannerController;
+use App\Http\Controllers\Api\App\Guest\Brand\BrandController;
+use App\Http\Controllers\Api\App\Guest\Category\CategoryController;
 use App\Http\Controllers\Api\App\Guest\Recommendation\GuestRecommendationController;
+use App\Http\Controllers\Api\App\Guest\Slider\SliderController;
 use Illuminate\Support\Facades\Route;
 
 
 use App\Http\Controllers\Api\App\Guest\Product\ProductController;
+use App\Http\Controllers\Api\App\Guest\StaticPage\StaticPageController;
 
 Route::controller(ProductController::class)->group(function () {
     
@@ -44,3 +49,12 @@ Route::controller(ProductController::class)->group(function () {
 Route::get('/recommendations', [OptimizedRecommendationController::class, 'getRecommendations']);
 Route::get('/recommendations/top-rated', [OptimizedRecommendationController::class, 'getTopRatedProducts']);
 Route::get('/recommendations/most-ordered', [OptimizedRecommendationController::class, 'getMostOrderedProducts']);
+
+Route::get('/brands', [BrandController::class, 'index'])->name('guest.brands');
+Route::get('/categories', [CategoryController::class, 'index'])->name('guest.categories');
+Route::get('/static-pages', [StaticPageController::class, 'index'])->name('guest.static-pages');
+Route::get('/static-pages/{title}', [StaticPageController::class, 'show'])->name('guest.static-pages.show');
+Route::get('/banners', [BannerController::class, 'index'])->name('guest.banners');
+Route::get('/banners/{id}', [BannerController::class, 'show'])->name('guest.banners.show');
+Route::get('/sliders', [SliderController::class, 'index'])->name('guest.sliders');
+Route::get('/sliders/{id}', [SliderController::class, 'show'])->name('guest.sliders.show');

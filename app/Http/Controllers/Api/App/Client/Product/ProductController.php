@@ -23,8 +23,8 @@ class ProductController extends Controller implements HasMiddleware
 
     public function __construct(private ProductService $productService) {}
 
-    public function recommendations(Request $request)
-    {
-        return $this->productService->recommendations($request);
-    }
+    // public function recommendations(Request $request)
+    // {
+    //     return $this->productService->recommendations($request);
+    // }
 }

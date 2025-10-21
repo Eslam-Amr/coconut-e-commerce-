@@ -24,7 +24,7 @@ class ConfirmPaymentRequest extends MasterRequest
     {
         return [
             'payment_method' => 'required|in:cash,wallet,payment_gateway',
-            'voucher_code' => 'nullable|string',
+            'voucher_code' => 'nullable|string|exists:vouchers,code',
             // 'longitude' => 'nullable|numeric|between:-180,180',
             // 'latitude' => 'nullable|numeric|between:-90,90',
             'address_id' => 'nullable|exists:addresses,id',

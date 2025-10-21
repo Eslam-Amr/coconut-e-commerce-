@@ -58,7 +58,6 @@ Route::get('/cart/calculate-total', [CartController::class, 'calculateTotal']);
 
 // Orders
 Route::post('/orders/confirm', [OrderController::class, 'confirmOrder']);
-Route::post('/orders/payment/callback', [OrderController::class, 'handlePaymentCallback']);
 // Route::post('/orders/{orderId}/cancel', [OrderController::class, 'cancelOrder']);
 Route::get('/orders', [OrderController::class, 'index']);
 Route::get('/orders/{orderId}', [OrderController::class, 'show']);

@@ -47,13 +47,27 @@ class InteractionPointsService
                 break;
 
             case 'review':
-                $interaction->review_count++;
+                $interaction->review_count = 1;
                 $pointsToAdd = UserProductInteraction::POINTS['review'];
 
                 if ($rating !== null) {
                     $interaction->last_rating = $rating;
                     $pointsToAdd += UserProductInteraction::POINTS['rating_bonus'][$rating] ?? 0;
                 }
+                break;
+
+            case 'review_remove':
+                $interaction->review_count = 0;
+                $pointsToAdd = -UserProductInteraction::POINTS['review'];
+
+                if ($rating !== null) {
+                    $pointsToAdd -= UserProductInteraction::POINTS['rating_bonus'][$rating] ?? 0;
+                }
+                break;
+
+            case 'review_adjustment':
+                // For rating adjustments, just add the point difference
+                $pointsToAdd = $rating; // rating parameter contains the point difference
                 break;
         }
 

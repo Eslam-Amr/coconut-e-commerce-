@@ -64,14 +64,17 @@ class OrderService
             DB::beginTransaction();
 
             try {
+                // Calculate paid amount once at the beginning
+                $paidAmount = $this->calculatePaidAmount($cart, $voucherValidation['discount'] ?? 0);
+                
                 // Create order
                 $order = $this->createOrder($user, $cart, $request, $voucherValidation['discount'] ?? 0);
 
                 // Create order items and update stock
                 $this->createOrderItems($order, $cart);
 
-                // Create transaction record
-                $this->createTransaction($order, $request->payment_method, $paymentValidation, null, $cart);
+                // Create transaction record with pre-calculated paid amount
+                $this->createTransaction($order, $request->payment_method, $paymentValidation, null, $cart, $paidAmount);
 
                 // Process voucher usage if applicable
                 if ($request->voucher_code && $voucherValidation['voucher']) {
@@ -80,8 +83,6 @@ class OrderService
 
                 // Process wallet payment if applicable
                 if ($request->payment_method === 'wallet') {
-                    $transaction = $order->transactions()->first();
-                    $paidAmount = $transaction ? $transaction->paid_amount : $order->total;
                     $this->processWalletPayment($user->id, $paidAmount);
                 }
 
@@ -179,25 +180,25 @@ class OrderService
                     $oldStock = $variant->stock;
                     $variant->decrement('stock', $cartItem->quantity);
 
-                    Log::info('Variant stock updated', [
-                        'variant_id' => $variant->id,
-                        'product_id' => $cartItem->product_id,
-                        'old_stock' => $oldStock,
-                        'quantity_decremented' => $cartItem->quantity,
-                        'new_stock' => $variant->fresh()->stock
-                    ]);
+                    // Log::info('Variant stock updated', [
+                    //     'variant_id' => $variant->id,
+                    //     'product_id' => $cartItem->product_id,
+                    //     'old_stock' => $oldStock,
+                    //     'quantity_decremented' => $cartItem->quantity,
+                    //     'new_stock' => $variant->fresh()->stock
+                    // ]);
                     // Update regular product stock from products table
                     $product = Product::find($cartItem->product_id);
                     if ($product && $product->total_quantity >= $cartItem->quantity) {
                         $oldStock = $product->total_quantity;
                         $product->decrement('total_quantity', $cartItem->quantity);
 
-                        Log::info('Product stock updated', [
-                            'product_id' => $cartItem->product_id,
-                            'old_stock' => $oldStock,
-                            'quantity_decremented' => $cartItem->quantity,
-                            'new_stock' => $product->fresh()->total_quantity
-                        ]);
+                        // Log::info('Product stock updated', [
+                        //     'product_id' => $cartItem->product_id,
+                        //     'old_stock' => $oldStock,
+                        //     'quantity_decremented' => $cartItem->quantity,
+                        //     'new_stock' => $product->fresh()->total_quantity
+                        // ]);
                     } else {
                         throw new \Exception("Insufficient stock for product ID: {$cartItem->product_id}");
                     }
@@ -211,12 +212,12 @@ class OrderService
                     $oldStock = $product->total_quantity;
                     $product->decrement('total_quantity', $cartItem->quantity);
 
-                    Log::info('Product stock updated', [
-                        'product_id' => $cartItem->product_id,
-                        'old_stock' => $oldStock,
-                        'quantity_decremented' => $cartItem->quantity,
-                        'new_stock' => $product->fresh()->total_quantity
-                    ]);
+                    // Log::info('Product stock updated', [
+                    //     'product_id' => $cartItem->product_id,
+                    //     'old_stock' => $oldStock,
+                    //     'quantity_decremented' => $cartItem->quantity,
+                    //     'new_stock' => $product->fresh()->total_quantity
+                    // ]);
                 } else {
                     throw new \Exception("Insufficient stock for product ID: {$cartItem->product_id}");
                 }
@@ -351,14 +352,18 @@ class OrderService
     /**
      * Calculate complete order total including shipping, tax, and VAT
      */
-    private function calculatePaidAmount(Cart $cart, $discount = 0)
+    private function calculatePaidAmount(Cart $cart, $discount = 0, Order $order = null)
     {
         $subtotal = $cart->items->sum(function ($item) {
             return $item->price * $item->quantity;
         });
 
         // Get shipping price from cart
-        $shippingPrice = $cart->shipping_price ?? 0;
+        if ($order) {
+            $shippingPrice = $order->shipping_price ?? 0;
+        } else {
+            $shippingPrice = $cart->shipping_price ?? 0;
+        }
         
         // Get settings for tax and VAT rates
         $settings = Settings::current();
@@ -376,7 +381,7 @@ class OrderService
     /**
      * Create transaction record
      */
-    private function createTransaction(Order $order, $paymentMethod, $paymentValidation, $status = null, Cart $cart = null)
+    private function createTransaction(Order $order, $paymentMethod, $paymentValidation, $status = null, Cart $cart = null, $paidAmount = null)
     {
         $setting = Settings::current();
         
@@ -400,8 +405,10 @@ class OrderService
             }
         }
 
-        // Calculate paid amount (complete total including shipping, tax, VAT)
-        $paidAmount = $cart ? $this->calculatePaidAmount($cart, $order->discount ?? 0) : $paymentValidation['amount'];
+        // Use provided paid amount or calculate if not provided
+        if ($paidAmount === null) {
+            $paidAmount = $cart ? $this->calculatePaidAmount($cart, $order->discount ?? 0, $order) : $paymentValidation['amount'];
+        }
 
         Transaction::create([
             'transaction_id' => $transactionId,
@@ -483,21 +490,24 @@ class OrderService
     private function processPaymentGatewayOrder($user, $cart, $request, $voucherValidation, $paymentValidation)
     {
         try {
+            // Calculate paid amount once at the beginning
+            $paidAmount = $this->calculatePaidAmount($cart, $voucherValidation['discount'] ?? 0);
+            
             // Create order with completed payment status for payment gateway
             $order = $this->createOrder($user, $cart, $request, $voucherValidation['discount'] ?? 0, 'completed');
 
-            Log::info('Payment gateway order created', [
-                'order_id' => $order->id,
-                'order_number' => $order->order_number,
-                'payment_status' => $order->payment_status,
-                'total' => $order->total
-            ]);
+            // Log::info('Payment gateway order created', [
+            //     'order_id' => $order->id,
+            //     'order_number' => $order->order_number,
+            //     'payment_status' => $order->payment_status,
+            //     'total' => $order->total
+            // ]);
 
             // Create order items and update stock
             $this->createOrderItems($order, $cart);
 
-            // Create transaction record (will be completed for payment gateway)
-            $this->createTransaction($order, $request->payment_method, $paymentValidation, null, $cart);
+            // Create transaction record with pre-calculated paid amount
+            $this->createTransaction($order, $request->payment_method, $paymentValidation, null, $cart, $paidAmount);
 
             // Process voucher usage if applicable
             if ($request->voucher_code && $voucherValidation['voucher']) {
@@ -511,10 +521,6 @@ class OrderService
             $cart->items()->delete();
             $cart->delete();
 
-            // Get the transaction to get the paid_amount
-            $transaction = $order->transactions()->first();
-            $paidAmount = $transaction ? $transaction->paid_amount : $paymentValidation['amount'];
-
             // Prepare payment request
             $paymentRequest = new Request([
                 'amount' => $paidAmount, // Use paid_amount (includes shipping, tax, VAT)
@@ -526,12 +532,12 @@ class OrderService
             // Process payment through gateway
             $paymentResult = $this->paymentService->sendPayment($paymentRequest);
 
-            Log::info('Payment gateway result', [
-                'order_id' => $order->id,
-                'payment_success' => $paymentResult['success'],
-                'payment_url' => $paymentResult['url'] ?? null,
-                'stripe_session_id' => $paymentResult['session_id'] ?? null
-            ]);
+            // Log::info('Payment gateway result', [
+            //     'order_id' => $order->id,
+            //     'payment_success' => $paymentResult['success'],
+            //     'payment_url' => $paymentResult['url'] ?? null,
+            //     'stripe_session_id' => $paymentResult['session_id'] ?? null
+            // ]);
 
             // Update transaction with Stripe session ID if available
             if ($paymentResult['success'] && isset($paymentResult['session_id'])) {
@@ -539,10 +545,10 @@ class OrderService
                     'transaction_id' => $paymentResult['session_id']
                 ]);
                 
-                Log::info('Transaction updated with Stripe session ID', [
-                    'order_id' => $order->id,
-                    'stripe_session_id' => $paymentResult['session_id']
-                ]);
+                // Log::info('Transaction updated with Stripe session ID', [
+                //     'order_id' => $order->id,
+                //     'stripe_session_id' => $paymentResult['session_id']
+                // ]);
             }
 
             if ($paymentResult['success']) {
@@ -556,10 +562,10 @@ class OrderService
                 // Payment initiation failed - restore stock and mark as failed
                 $this->handleOrderFailure($order->id, 'Payment initiation failed');
 
-                Log::error('Payment gateway initiation failed', [
-                    'order_id' => $order->id,
-                    'order_number' => $order->order_number
-                ]);
+                // Log::error('Payment gateway initiation failed', [
+                //     'order_id' => $order->id,
+                //     'order_number' => $order->order_number
+                // ]);
 
                 return $this->errorResponse('Payment initiation failed', [
                     'order_number' => $order->order_number
@@ -765,77 +771,6 @@ class OrderService
         }
     }
 
-    /**
-     * Handle payment gateway callback for orders
-     */
-    public function handleOrderPaymentCallback(Request $request)
-    {
-        try {
-            $sessionId = $request->get('session_id');
-            $orderId = $request->get('order_id');
-
-            if (!$sessionId || !$orderId) {
-                return $this->errorResponse('Missing required parameters', [], 400);
-            }
-
-            // Get order
-            $order = Order::find($orderId);
-            if (!$order) {
-                return $this->errorResponse('Order not found', [], 404);
-            }
-
-            // Check if already processed
-            $transaction = $order->transactions()->where('status', 'pending')->first();
-            if (!$transaction) {
-                return $this->errorResponse('Order already processed', [], 400);
-            }
-
-            // Verify payment with gateway
-            $paymentRequest = new Request(['session_id' => $sessionId]);
-            $paymentVerified = $this->paymentService->callBack($paymentRequest);
-
-            DB::beginTransaction();
-
-            try {
-                if ($paymentVerified) {
-                    // Payment successful - update order and transaction
-                    $order->update([
-                        'payment_status' => 'completed',
-                        // 'status' => 'confirmed'
-                    ]);
-
-                    $transaction->update([
-                        'status' => 'completed',
-                        'transaction_id' => $sessionId // Store actual payment gateway transaction ID
-                    ]);
-
-                    DB::commit();
-
-                    return $this->successResponse('Order payment completed successfully', [
-                        'order_number' => $order->order_number,
-                        'transaction_id' => $sessionId,
-                        'payment_status' => 'completed'
-                    ]);
-                } else {
-                    // Payment failed - restore stock and mark as failed
-                    $this->handleOrderFailure($order->id, 'Payment verification failed');
-
-                    DB::commit();
-
-                    return $this->errorResponse('Payment verification failed', [
-                        'order_number' => $order->order_number
-                    ], 400);
-                }
-            } catch (\Exception $e) {
-                DB::rollBack();
-                throw $e;
-            }
-        } catch (\Exception $e) {
-            return $this->errorResponse('Failed to process payment callback', [
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
 
     public function calculateShippingCost(?float $userLatitude, ?float $userLongitude): float
     {
@@ -878,4 +813,5 @@ class OrderService
 
         return $earthRadius * $c;
     }
+
 }
