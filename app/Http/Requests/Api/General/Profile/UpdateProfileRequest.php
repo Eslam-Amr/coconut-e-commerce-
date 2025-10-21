@@ -3,7 +3,10 @@
 namespace App\Http\Requests\Api\General\Profile;
 
 use App\Http\Requests\Api\MasterRequest;
+use App\Traits\BilingualValidationTrait;
 use Illuminate\Validation\Rule;
+
+    
 
 class UpdateProfileRequest extends MasterRequest
 {
@@ -33,30 +36,10 @@ class UpdateProfileRequest extends MasterRequest
      *
      * @return array<string, string>
      */
-    public function messages(): array
-    {
-        return [
-            'name.required' => __('validation.custom.auth.name.required'),
-            'name.max' => __('validation.custom.auth.name.max'),
-            'email.required' => __('validation.custom.auth.email.required'),
-            'email.email' => __('validation.custom.auth.email.email'),
-            'email.max' => __('validation.custom.auth.email.max'),
-            'email.unique' => __('validation.custom.auth.email.unique'),
-            'image.image' => __('validation.custom.profile.image.image'),
-            'image.mimes' => __('validation.custom.profile.image.mimes'),
-            'image.max' => __('validation.custom.profile.image.max'),
-        ];
-    }
+    
 
     /**
      * Get custom attributes for validator errors.
      */
-    public function attributes(): array
-    {
-        return [
-            'name' => __('validation.attributes.name'),
-            'email' => __('validation.attributes.email'),
-            'image' => __('validation.attributes.image'),
-        ];
-    }
+    
 }

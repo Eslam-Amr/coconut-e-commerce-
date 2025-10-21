@@ -26,7 +26,7 @@ class GuestRecommendationController extends Controller
 
             $recommendations = $this->recommendationService->getRecommendations(null, $limit);
 
-            return $this->successResponse($recommendations, 'Guest recommendations retrieved successfully');
+            return $this->successResponse($recommendations,  __('messages.retrieved_successfully'));
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to retrieve guest recommendations', ['error' => $e->getMessage()]);
         }
@@ -46,7 +46,7 @@ class GuestRecommendationController extends Controller
 
             $trending = $this->recommendationService->getTrendingProducts($limit, $days);
 
-            return $this->successResponse($trending, 'Trending products retrieved successfully');
+            return $this->successResponse($trending,  __('messages.retrieved_successfully'));
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to retrieve trending products', ['error' => $e->getMessage()]);
         }
@@ -63,7 +63,7 @@ class GuestRecommendationController extends Controller
 
             $recommendations = $this->recommendationService->getPointBasedRecommendations(0, $limit);
 
-            return $this->successResponse($recommendations, 'Point-based recommendations retrieved successfully');
+            return $this->successResponse($recommendations,  __('messages.retrieved_successfully'));
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to retrieve point-based recommendations', ['error' => $e->getMessage()]);
         }
@@ -83,7 +83,7 @@ class GuestRecommendationController extends Controller
 
             $recommendations = $this->recommendationService->getTopRatedProducts($limit, $minRating);
 
-            return $this->successResponse($recommendations, 'Top rated products retrieved successfully');
+            return $this->successResponse($recommendations,  __('messages.retrieved_successfully'));
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to retrieve top rated products', ['error' => $e->getMessage()]);
         }
@@ -103,7 +103,7 @@ class GuestRecommendationController extends Controller
 
             $recommendations = $this->recommendationService->getMostReviewedProducts($limit, $minReviews);
 
-            return $this->successResponse($recommendations, 'Most reviewed products retrieved successfully');
+            return $this->successResponse($recommendations,  __('messages.retrieved_successfully'));
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to retrieve most reviewed products', ['error' => $e->getMessage()]);
         }
@@ -120,7 +120,7 @@ class GuestRecommendationController extends Controller
 
             $recommendations = $this->recommendationService->getCategoryRecommendations(0, $categoryId, $limit);
 
-            return $this->successResponse($recommendations, 'Category recommendations retrieved successfully');
+            return $this->successResponse($recommendations,  __('messages.retrieved_successfully'));
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to retrieve category recommendations', ['error' => $e->getMessage()]);
         }
@@ -137,7 +137,7 @@ class GuestRecommendationController extends Controller
 
             $related = $this->recommendationService->getRelatedProducts($productId, $limit);
 
-            return $this->successResponse($related, 'Related products retrieved successfully');
+            return $this->successResponse($related,  __('messages.retrieved_successfully'));
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to retrieve related products', ['error' => $e->getMessage()]);
         }

@@ -42,6 +42,7 @@ class Admin extends Authenticatable implements JWTSubject
         'email_verified_at',
         'locale',
         'notification_status',
+        'role_id',
     ];
 
     /**
@@ -80,6 +81,17 @@ class Admin extends Authenticatable implements JWTSubject
 
 
     // ... existing code ...
+
+    /**
+     * Get roles relationship (compatibility method for Spatie Permission)
+     * Returns a query builder that works with the single-role system
+     */
+    // public function roles()
+    // {
+    //     // Create a query builder that filters roles by the user's role_id
+    //     // This allows the AdminService to use whereHas() and other query methods
+    //     return Role::where('id', $this->role_id);
+    // }
 
     // public function roles(): BelongsToMany
     // {

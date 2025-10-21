@@ -51,7 +51,7 @@ class WalletController extends Controller implements HasMiddleware
             ]);
 
             return $this->successResponse([
-                'message' => 'Wallet created successfully.',
+                'message' =>  __('messages.created_successfully'),
                 'wallet' => $wallet
             ]);
         } catch (\Exception $e) {
@@ -160,7 +160,7 @@ class WalletController extends Controller implements HasMiddleware
                 ->orderBy('created_at', 'desc')
                 ->paginate(15);
 
-            return $this->successResponse('Wallet information retrieved successfully', [
+            return $this->successResponse( __('messages.retrieved_successfully'), [
                 'wallet' => [
                     'id' => $wallet->id,
                     'balance' => $wallet->balance,
@@ -197,7 +197,7 @@ class WalletController extends Controller implements HasMiddleware
                 return $this->errorResponse('Transaction not found', [], 404);
             }
 
-            return $this->successResponse('Transaction details retrieved successfully', $transaction);
+            return $this->successResponse( __('messages.retrieved_successfully'), $transaction);
 
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to retrieve transaction details', [

@@ -4,6 +4,7 @@ namespace App\Http\Requests\Api\Dashboard\Voucher;
 
 use App\Http\Requests\Api\MasterRequest;
 
+
 class VoucherRequest extends MasterRequest
 {
     public function rules(): array
@@ -35,13 +36,7 @@ class VoucherRequest extends MasterRequest
         ];
     }
 
-    public function messages(): array
-    {
-        return [
-            'code.unique' => 'Voucher code must be unique.',
-            'end_date.after_or_equal' => 'End date must be after or equal to start date.',
-        ];
-    }
+    
 }
 
 

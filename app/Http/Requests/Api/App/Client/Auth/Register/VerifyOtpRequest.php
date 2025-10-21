@@ -3,7 +3,10 @@
 namespace App\Http\Requests\Api\App\Client\Auth\Register;
 
 use App\Http\Requests\Api\MasterRequest;
+use App\Traits\BilingualValidationTrait;
 use App\Services\Utilities\OtpService;
+
+    
 
 class VerifyOtpRequest extends MasterRequest
 {
@@ -32,25 +35,10 @@ class VerifyOtpRequest extends MasterRequest
     /**
      * Get custom messages for validator errors.
      */
-    public function messages(): array
-    {
-        return [
-            'phone.required' => __('validation.custom.auth.phone.required'),
-            'phone.exists' => __('validation.custom.auth.phone.exists'),
-            'otp.required' => __('validation.custom.auth.otp.required'),
-            'otp.exists' => __('validation.custom.auth.otp.invalid'),
-            'otp.size' => __('validation.custom.auth.otp.digits'),
-        ];
-    }
+    
 
     /**
      * Get custom attributes for validator errors.
      */
-    public function attributes(): array
-    {
-        return [
-            'phone' => __('validation.attributes.phone'),
-            'otp' => __('validation.attributes.otp'),
-        ];
-    }
+    
 }

@@ -31,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'client' => \App\Http\Middleware\ClientMiddleware::class,
             'authenticated' => \App\Http\Middleware\AuthenticatedMiddleware::class,
+            'guest' => \App\Http\Middleware\ApiGuestMiddleware::class,
 
             'role' => \App\Http\Middleware\CheckRole::class,
             'permission' => \App\Http\Middleware\CheckPermission::class,

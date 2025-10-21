@@ -32,10 +32,10 @@ class BannerService
 
             return $this->successResponsePaginated(
                 $banners,
-                'Active banners retrieved successfully'
+                __('messages.retrieved_successfully')
             );
         } catch (\Exception $e) {
-            return $this->errorResponse('Failed to retrieve banners: ' . $e->getMessage());
+            return $this->errorResponse(__('messages.retrieval_failed') . ': ' . $e->getMessage());
         }
     }
 
@@ -58,12 +58,12 @@ class BannerService
                 ->first();
 
             if (!$banner) {
-                return $this->errorResponse('Banner not found', 404);
+                return $this->errorResponse(__('messages.not_found'), 404);
             }
 
-            return $this->successResponse($banner, 'Banner retrieved successfully');
+            return $this->successResponse($banner, __('messages.retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->errorResponse('Failed to retrieve banner: ' . $e->getMessage());
+            return $this->errorResponse(__('messages.retrieval_failed') . ': ' . $e->getMessage());
         }
     }
 }

@@ -22,9 +22,9 @@ class BrandService
                 ->orderBy('name')
                 ->paginate($perPage);
 
-            return $this->successResponse($brands, 'Brands retrieved successfully');
+            return $this->successResponse($brands, __('messages.retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->errorResponse('Failed to retrieve brands: ' . $e->getMessage());
+            return $this->errorResponse(__('messages.retrieval_failed') . ': ' . $e->getMessage());
         }
     }
 

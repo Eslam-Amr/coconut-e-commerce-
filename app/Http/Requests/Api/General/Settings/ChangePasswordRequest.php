@@ -4,6 +4,7 @@ namespace App\Http\Requests\Api\General\Settings;
 
 use App\Http\Requests\Api\MasterRequest;
 
+
 class ChangePasswordRequest extends MasterRequest
 {
     /**
@@ -23,26 +24,10 @@ class ChangePasswordRequest extends MasterRequest
     /**
      * Get custom messages for validator errors.
      */
-    public function messages(): array
-    {
-        return [
-            'current_password.required' => 'كلمة المرور الحالية مطلوبة.',
-            'new_password.required' => 'كلمة المرور الجديدة مطلوبة.',
-            'new_password.min' => 'كلمة المرور الجديدة يجب أن تكون 8 أحرف على الأقل.',
-            'new_password.confirmed' => 'تأكيد كلمة المرور الجديدة غير متطابق.',
-            'new_password_confirmation.required' => 'تأكيد كلمة المرور الجديدة مطلوب.',
-        ];
-    }
+    
 
     /**
      * Get custom attributes for validator errors.
      */
-    public function attributes(): array
-    {
-        return [
-            'current_password' => 'كلمة المرور الحالية',
-            'new_password' => 'كلمة المرور الجديدة',
-            'new_password_confirmation' => 'تأكيد كلمة المرور الجديدة',
-        ];
-    }
+    
 }

@@ -61,7 +61,7 @@ class ProductReviewService
                         'user:id,name',
                         'product'
                     ])                    
-                ], 'Review created successfully');
+                ], __('messages.created_successfully'));
 
             } catch (\Exception $e) {
                 DB::rollBack();
@@ -78,7 +78,7 @@ class ProductReviewService
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            return $this->errorResponse('Failed to create review: ' . $e->getMessage());
+            return $this->errorResponse(__('messages.creation_failed') . ': ' . $e->getMessage());
         }
     }
 
@@ -111,7 +111,7 @@ class ProductReviewService
                 'product_id' => $productId,
                 'error' => $e->getMessage()
             ]);
-            return $this->errorResponse('Failed to get product reviews: ' . $e->getMessage());
+            return $this->errorResponse(__('messages.retrieval_failed') . ': ' . $e->getMessage());
         }
     }
 
@@ -139,7 +139,7 @@ class ProductReviewService
                 'user_id' => $user->id ?? null,
                 'error' => $e->getMessage()
             ]);
-            return $this->errorResponse('Failed to get user reviews: ' . $e->getMessage());
+            return $this->errorResponse(__('messages.retrieval_failed') . ': ' . $e->getMessage());
         }
     }
 
@@ -158,7 +158,7 @@ class ProductReviewService
                 ->first();
 
             if (!$review) {
-                return $this->errorResponse('Review not found or you are not authorized to update it', 404);
+                return $this->errorResponse(__('messages.not_found_or_unauthorized'), 404);
             }
 
             DB::beginTransaction();
@@ -180,7 +180,7 @@ class ProductReviewService
 
                 return $this->successResponse([
                     'review' => $review->load(['user:id,name', 'product'])
-                ], 'Review updated successfully');
+                ], __('messages.updated_successfully'));
 
             } catch (\Exception $e) {
                 DB::rollBack();
@@ -197,7 +197,7 @@ class ProductReviewService
                 'review_id' => $reviewId,
                 'error' => $e->getMessage()
             ]);
-            return $this->errorResponse('Failed to update review: ' . $e->getMessage());
+            return $this->errorResponse(__('messages.update_failed') . ': ' . $e->getMessage());
         }
     }
 
@@ -214,7 +214,7 @@ class ProductReviewService
                 ->first();
 
             if (!$review) {
-                return $this->errorResponse('Review not found or you are not authorized to delete it', 404);
+                return $this->errorResponse(__('messages.not_found_or_unauthorized'), 404);
             }
 
             $productId = $review->product_id;
@@ -232,7 +232,7 @@ class ProductReviewService
                     'product_id' => $productId
                 ]);
 
-                return $this->successResponse([], 'Review deleted successfully');
+                return $this->successResponse([], __('messages.deleted_successfully'));
 
             } catch (\Exception $e) {
                 DB::rollBack();
@@ -249,7 +249,7 @@ class ProductReviewService
                 'review_id' => $reviewId,
                 'error' => $e->getMessage()
             ]);
-            return $this->errorResponse('Failed to delete review: ' . $e->getMessage());
+            return $this->errorResponse(__('messages.deletion_failed') . ': ' . $e->getMessage());
         }
     }
 

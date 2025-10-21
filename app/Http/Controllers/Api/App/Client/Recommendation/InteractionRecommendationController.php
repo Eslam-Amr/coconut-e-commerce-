@@ -35,7 +35,7 @@ class InteractionRecommendationController extends Controller implements HasMiddl
             $limit = (int)($request->query('limit', 12));
             $limit = $limit > 0 ? $limit : 12;
             $recommendations = $this->recommendationService->getRecommendations(Auth::id(), $limit);
-            return $this->successResponse($recommendations, 'Personalized recommendations retrieved successfully');
+            return $this->successResponse($recommendations,  __('messages.retrieved_successfully'));
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to retrieve recommendations', ['error' => $e->getMessage()]);
         }
@@ -57,7 +57,7 @@ class InteractionRecommendationController extends Controller implements HasMiddl
 
             $recommendations = $this->recommendationService->getCollaborativeRecommendations($user->id, $limit);
 
-            return $this->successResponse($recommendations, 'Collaborative recommendations retrieved successfully');
+            return $this->successResponse($recommendations,  __('messages.retrieved_successfully'));
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to retrieve collaborative recommendations', ['error' => $e->getMessage()]);
         }
@@ -77,7 +77,7 @@ class InteractionRecommendationController extends Controller implements HasMiddl
 
             $trending = $this->recommendationService->getTrendingProducts($limit, $days);
 
-            return $this->successResponse($trending, 'Trending products retrieved successfully');
+            return $this->successResponse($trending,  __('messages.retrieved_successfully'));
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to retrieve trending products', ['error' => $e->getMessage()]);
         }
@@ -94,7 +94,7 @@ class InteractionRecommendationController extends Controller implements HasMiddl
 
             $related = $this->recommendationService->getRelatedProducts($productId, $limit);
 
-            return $this->successResponse($related, 'Related products retrieved successfully');
+            return $this->successResponse($related,  __('messages.retrieved_successfully'));
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to retrieve related products', ['error' => $e->getMessage()]);
         }
@@ -116,7 +116,7 @@ class InteractionRecommendationController extends Controller implements HasMiddl
 
             $result = $this->recommendationService->getPersonalizedRecommendations($user->id, $limit);
 
-            return $this->successResponse($result, 'Personalized recommendations with explanation retrieved successfully');
+            return $this->successResponse($result,  __('messages.retrieved_successfully'));
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to retrieve personalized recommendations', ['error' => $e->getMessage()]);
         }
@@ -138,7 +138,7 @@ class InteractionRecommendationController extends Controller implements HasMiddl
 
             $recommendations = $this->recommendationService->getCategoryRecommendations($user->id, $categoryId, $limit);
 
-            return $this->successResponse($recommendations, 'Category recommendations retrieved successfully');
+            return $this->successResponse($recommendations,  __('messages.retrieved_successfully'));
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to retrieve category recommendations', ['error' => $e->getMessage()]);
         }
@@ -157,7 +157,7 @@ class InteractionRecommendationController extends Controller implements HasMiddl
 
             $stats = $this->interactionService->getUserInteractionStats($user->id);
 
-            return $this->successResponse($stats, 'User interaction statistics retrieved successfully');
+            return $this->successResponse($stats,  __('messages.retrieved_successfully'));
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to retrieve user statistics', ['error' => $e->getMessage()]);
         }
@@ -204,7 +204,7 @@ class InteractionRecommendationController extends Controller implements HasMiddl
 
             $recommendations = $this->recommendationService->getPointBasedRecommendations($user->id, $limit);
 
-            return $this->successResponse($recommendations, 'Point-based recommendations retrieved successfully');
+            return $this->successResponse($recommendations,  __('messages.retrieved_successfully'));
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to retrieve point-based recommendations', ['error' => $e->getMessage()]);
         }
@@ -224,7 +224,7 @@ class InteractionRecommendationController extends Controller implements HasMiddl
 
             $recommendations = $this->recommendationService->getTopRatedProducts($limit, $minRating);
 
-            return $this->successResponse($recommendations, 'Top rated products retrieved successfully');
+            return $this->successResponse($recommendations,  __('messages.retrieved_successfully'));
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to retrieve top rated products', ['error' => $e->getMessage()]);
         }
@@ -244,7 +244,7 @@ class InteractionRecommendationController extends Controller implements HasMiddl
 
             $recommendations = $this->recommendationService->getMostReviewedProducts($limit, $minReviews);
 
-            return $this->successResponse($recommendations, 'Most reviewed products retrieved successfully');
+            return $this->successResponse($recommendations,  __('messages.retrieved_successfully'));
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to retrieve most reviewed products', ['error' => $e->getMessage()]);
         }

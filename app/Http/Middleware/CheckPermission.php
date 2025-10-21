@@ -41,7 +41,7 @@ class CheckPermission
             }
 
             // Check if user has permission via their roles (not direct grant)
-            $hasViaRole = $user->roles()->whereHas('permissions', function ($q) use ($permission) {
+            $hasViaRole = $user->role()->whereHas('permissions', function ($q) use ($permission) {
                 $q->where('name', $permission);
             })->exists();
 // dd($hasViaRole);

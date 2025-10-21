@@ -3,8 +3,11 @@
 namespace App\Http\Requests\Api\App\Client\Product;
 
 use App\Http\Requests\Api\MasterRequest;
+use App\Traits\BilingualValidationTrait;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\ValidationException;
+
+    
 
 class ProductReviewRequest extends MasterRequest
 {
@@ -40,20 +43,7 @@ class ProductReviewRequest extends MasterRequest
     /**
      * Get custom messages for validator errors.
      */
-    public function messages(): array
-    {
-        return [
-            'product_id.required' => 'Product ID is required',
-            'product_id.integer' => 'Product ID must be an integer',
-            'product_id.exists' => 'Product not found',
-            'rating.required' => 'Rating is required',
-            'rating.integer' => 'Rating must be an integer',
-            'rating.min' => 'Rating must be at least 1 star',
-            'rating.max' => 'Rating cannot exceed 5 stars',
-            'comment.string' => 'Comment must be a string',
-            'comment.max' => 'Comment cannot exceed 1000 characters'
-        ];
-    }
+    
 
     /**
      * Configure the validator instance.

@@ -4,6 +4,7 @@ namespace App\Http\Requests\Api\General\Profile;
 
 use App\Http\Requests\Api\MasterRequest;
 
+
 class DeleteAccountRequest extends MasterRequest
 {
     /**

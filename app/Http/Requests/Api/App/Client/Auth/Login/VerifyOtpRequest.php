@@ -2,7 +2,10 @@
 
 namespace App\Http\Requests\Api\App\Client\Auth\Login;
 use App\Http\Requests\Api\MasterRequest;
+use App\Traits\BilingualValidationTrait;
 use App\Services\Utilities\OtpService;
+
+    
 
 class VerifyOtpRequest extends MasterRequest
 {

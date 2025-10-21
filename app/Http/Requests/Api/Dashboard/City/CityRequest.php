@@ -4,6 +4,7 @@ namespace App\Http\Requests\Api\Dashboard\City;
 
 use App\Http\Requests\Api\MasterRequest;
 
+
 class CityRequest extends MasterRequest
 {
     public function rules(): array
@@ -57,12 +58,5 @@ class CityRequest extends MasterRequest
         ];
     }
 
-    public function messages(): array
-    {
-        return [
-            'ar.name.required' => 'The Arabic city name is required.',
-            'en.name.required' => 'The English city name is required.',
-            'country_id.exists' => 'The selected country does not exist.',
-        ];
-    }
+    
 }

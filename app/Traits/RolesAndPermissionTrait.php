@@ -41,13 +41,14 @@ trait RolesAndPermissionTrait
     {
         $role = Role::where('name', $roleName)->first();
 
-        if (!$role) 
-            return $this->errorResponse('Role not found', 404);
-        
+        if (!$role) {
+            return false;
+        }
 
         $this->update(['role_id' => $role->id]);
+        $this->save();
         $this->cleanupRevokedPermissionsAfterRoleAssignment($role);
-        return $this->successResponse(['message' => 'Role assigned successfully']);
+        return true;
     }
 
     // Remove role from user
@@ -72,20 +73,23 @@ trait RolesAndPermissionTrait
     public function removeRole()
     {
         if (!$this->role_id) {
-            return $this->errorResponse('User has no role assigned', 404);
+            return false;
         }
-        $roleModel = Role::find(Auth::user()->role_id);
+        
+        $roleModel = Role::find($this->role_id);
         if (!$roleModel) {
-            return $this->errorResponse('Role not found', 404);
+            return false;
         }
+        
         $rolePermissions = $roleModel->permissions()->pluck('name')->toArray();
         $this->update(['role_id' => null]);
 
-            // Clean up permissions that were granted through this role
-            if (!empty($rolePermissions)) {
-                $this->cleanupPermissionsAfterRoleRemoval($rolePermissions, $roleModel);
-            }
-        return $this->successResponse(['message' => 'Role removed successfully']);
+        // Clean up permissions that were granted through this role
+        if (!empty($rolePermissions)) {
+            $this->cleanupPermissionsAfterRoleRemoval($rolePermissions, $roleModel);
+        }
+        
+        return true;
     }
 
     // Helper: Clean up revoked permissions when assigning a role

@@ -4,6 +4,7 @@ namespace App\Http\Requests\Api\Dashboard\Attribute\AttributeValue;
 
 use App\Http\Requests\Api\MasterRequest;
 
+
 class AttributeValueRequest extends MasterRequest
 {
     /**
@@ -68,17 +69,5 @@ class AttributeValueRequest extends MasterRequest
      *
      * @return array<string, string>
      */
-    public function messages(): array
-    {
-        return [
-            'attribute_id.required' => 'The attribute is required.',
-            'attribute_id.exists' => 'The selected attribute does not exist.',
-            'ar.value.required' => 'The Arabic value is required.',
-            'ar.value.string' => 'The Arabic value must be a string.',
-            'ar.value.max' => 'The Arabic value may not be greater than 255 characters.',
-            'en.value.required' => 'The English value is required.',
-            'en.value.string' => 'The English value must be a string.',
-            'en.value.max' => 'The English value may not be greater than 255 characters.',
-        ];
-    }
+    
 }

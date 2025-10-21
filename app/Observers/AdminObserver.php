@@ -10,11 +10,14 @@ class AdminObserver
     {
         $admin->user_type = 'admin';
         $admin->email_verified_at = now();
+        if ($admin && !$admin->role_id) {
+            $admin->assignRole('viewer');
+        }
 
     }
     public function created(Admin $admin): void
     {
-        if ($admin) {
+        if ($admin && !$admin->role_id) {
             $admin->assignRole('viewer');
         }
     }

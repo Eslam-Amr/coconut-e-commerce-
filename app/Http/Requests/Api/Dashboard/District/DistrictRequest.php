@@ -3,7 +3,10 @@
 namespace App\Http\Requests\Api\Dashboard\District;
 
 use App\Http\Requests\Api\MasterRequest;
+use App\Traits\BilingualValidationTrait;
 use Illuminate\Support\Facades\Log;
+
+    
 
 class DistrictRequest extends MasterRequest
 {
@@ -71,12 +74,5 @@ class DistrictRequest extends MasterRequest
         ];
     }
 
-    public function messages(): array
-    {
-        return [
-            'ar.name.required' => 'The Arabic district name is required.',
-            'en.name.required' => 'The English district name is required.',
-            'city_id.exists' => 'The selected city does not exist.',
-        ];
-    }
+    
 }

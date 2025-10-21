@@ -4,6 +4,7 @@ namespace App\Http\Requests\Api\Dashboard\Auth\Login;
 
 use App\Http\Requests\Api\MasterRequest;
 
+
 class LoginRequest extends MasterRequest
 {
     /**

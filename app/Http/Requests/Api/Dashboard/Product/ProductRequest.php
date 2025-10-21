@@ -3,7 +3,10 @@
 namespace App\Http\Requests\Api\Dashboard\Product;
 
 use App\Http\Requests\Api\MasterRequest;
+use App\Traits\BilingualValidationTrait;
 use Illuminate\Support\Facades\Log;
+
+    
 
 class ProductRequest extends MasterRequest
 {
@@ -43,19 +46,7 @@ class ProductRequest extends MasterRequest
 		];
 	}
 
-	public function messages(): array
-	{
-		return [
-			'name.required' => 'The product name is required.',
-			'category_id.required' => 'The category is required.',
-			'category_id.exists' => 'The selected category is invalid.',
-			'brand_id.exists' => 'The selected brand is invalid.',
-			'base_price.required' => 'The base price is required.',
-			'image.image' => 'The product image must be an image file.',
-			'image.mimes' => 'The product image must be a file of type: jpeg, png, jpg, gif, webp.',
-			'image.max' => 'The product image may not be greater than 5MB.',
-		];
-	}
+	
 }
 
 

@@ -4,6 +4,7 @@ namespace App\Http\Requests\Api\Dashboard\Country;
 
 use App\Http\Requests\Api\MasterRequest;
 
+
 class CountryRequest extends MasterRequest
 {
     public function rules(): array
@@ -56,11 +57,5 @@ class CountryRequest extends MasterRequest
         ];
     }
 
-    public function messages(): array
-    {
-        return [
-            'iso_code.size' => 'ISO code must be exactly 2 characters.',
-            'iso_code.unique' => 'This ISO code is already taken.',
-        ];
-    }
+    
 }

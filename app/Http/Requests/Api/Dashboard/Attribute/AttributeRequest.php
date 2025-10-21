@@ -4,6 +4,7 @@ namespace App\Http\Requests\Api\Dashboard\Attribute;
 
 use App\Http\Requests\Api\MasterRequest;
 
+
 class AttributeRequest extends MasterRequest
 {
     /**
@@ -31,15 +32,5 @@ class AttributeRequest extends MasterRequest
      *
      * @return array<string, string>
      */
-    public function messages(): array
-    {
-        return [
-            'ar.name.required' => 'The Arabic attribute name is required.',
-            'ar.name.string' => 'The Arabic attribute name must be a string.',
-            'ar.name.max' => 'The Arabic attribute name may not be greater than 255 characters.',
-            'en.name.required' => 'The English attribute name is required.',
-            'en.name.string' => 'The English attribute name must be a string.',
-            'en.name.max' => 'The English attribute name may not be greater than 255 characters.',
-        ];
-    }
+    
 }

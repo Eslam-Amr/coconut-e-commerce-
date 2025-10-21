@@ -4,6 +4,7 @@ namespace App\Http\Requests\Api\Dashboard\Product;
 
 use App\Http\Requests\Api\MasterRequest;
 
+
 class ProductVariantAttributeRequest extends MasterRequest
 {
     public function rules(): array
@@ -13,13 +14,7 @@ class ProductVariantAttributeRequest extends MasterRequest
         ];
     }
 
-    public function messages(): array
-    {
-        return [
-            'attribute_value_id.required' => 'Attribute value is required.',
-            'attribute_value_id.exists' => 'Selected attribute value does not exist.'
-        ];
-    }
+    
 
     public function withValidator($validator)
     {

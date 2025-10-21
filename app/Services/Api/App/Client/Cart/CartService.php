@@ -32,13 +32,13 @@ class CartService
 
             $cart = Cart::query()->where('user_id', Auth::id())->first();
             if (!$cart) {
-                return $this->successResponse([], 'no cart found and no item');
+                return $this->successResponse([], __('messages.no_cart_found'));
             }
 
             $cart->load(['items.product.translations', 'items.product.brand.translations', 'items.product.category.translations', 'items.productVariant']);
-            return $this->successResponse($cart, 'Cart retrieved successfully');
+            return $this->successResponse($cart, __('messages.retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve cart', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -65,7 +65,7 @@ class CartService
                 if ($variantId) {
                     $variant = ProductVariant::query()->where('id', $variantId)->where('active', true)->firstOrFail();
                     if ($variant->product_id !== $product->id) {
-                        return $this->errorResponse('Variant does not belong to product', [], 400);
+                        return $this->errorResponse(__('messages.variant_mismatch'), [], 400);
                     }
                     $unitPrice = $variant->price ?? $unitPrice;
                 }
@@ -115,7 +115,7 @@ class CartService
 
                 if ($requestedTotalQuantity > $availableStock) {
                     return $this->errorResponse(
-                        'Insufficient stock available',
+                        __('messages.insufficient_stock'),
                         [
                             'available_stock' => $availableStock,
                             'requested_quantity' => $requestedTotalQuantity,
@@ -132,7 +132,7 @@ class CartService
                     $currentFlashQty = $existingItem ? (int)$existingItem->quantity : 0;
                     if ($currentFlashQty + $quantityToAdd > $maxLimit) {
                         $allowed = max(0, $maxLimit - $currentFlashQty);
-                        return $this->errorResponse('Flash sale limit exceeded', [
+                        return $this->errorResponse(__('messages.flash_sale_limit_exceeded'), [
                             'max_limit' => $maxLimit,
                             'current_in_cart' => $currentFlashQty,
                             'trying_to_add' => $quantityToAdd,
@@ -163,12 +163,12 @@ class CartService
 
                 // $cart->load(['items.product.translations', 'items.product.brand.translations', 'items.product.category.translations', 'items.productVariant']);
 
-                return $this->successResponse($cart, 'Item added to cart successfully');
+                return $this->successResponse($cart, __('messages.added_to_cart'));
             });
         } catch (\Illuminate\Validation\ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to add to cart', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.cart_add_failed'), ['error' => $e->getMessage()]);
         }
     }
 

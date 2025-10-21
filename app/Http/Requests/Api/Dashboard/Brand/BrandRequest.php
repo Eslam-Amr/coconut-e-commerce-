@@ -4,6 +4,7 @@ namespace App\Http\Requests\Api\Dashboard\Brand;
 
 use App\Http\Requests\Api\MasterRequest;
 
+
 class BrandRequest extends MasterRequest
 {
     public function rules(): array
@@ -61,17 +62,7 @@ class BrandRequest extends MasterRequest
         ];
     }
 
-    public function messages(): array
-    {
-        return [
-            'ar.name.required' => 'The Arabic brand name is required.',
-            'en.name.required' => 'The English brand name is required.',
-            'image.image' => 'The brand image must be an image file.',
-            'image.mimes' => 'The brand image must be a file of type: jpeg, png, jpg, gif, webp.',
-            'image.max' => 'The brand image may not be greater than 5MB.',
-            'active.boolean' => 'The active field must be true or false.',
-        ];
-    }
+    
 }
 
 

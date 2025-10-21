@@ -49,25 +49,10 @@ public function withValidator($validator)
 /**
  * Get custom messages for validator errors.
  */
-public function messages(): array
-{
-    return [
-            'phone.exists' => __('validation.custom.auth.phone.exists'),
-            'password.required' => __('validation.custom.auth.password.required'),
-            'phone.required' => __('validation.custom.auth.phone.required'),
-            'phone.exists' => __('validation.custom.auth.phone.exists'),
-            'password.required' => __('validation.custom.auth.password.required'),
-        ];
-    }
 
-    /**
-     * Get custom attributes for validator errors.
-     */
-    public function attributes(): array
-    {
-        return [
-            'phone' => __('validation.attributes.phone'),
-            'password' => __('validation.attributes.password'),
-        ];
-    }
+
+/**
+ * Get custom attributes for validator errors.
+ */
+
 }

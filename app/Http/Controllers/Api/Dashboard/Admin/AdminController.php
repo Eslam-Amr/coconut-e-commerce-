@@ -12,25 +12,25 @@ use Illuminate\Routing\Controllers\HasMiddleware;
 
 class AdminController extends GenericCrudController implements HasMiddleware
 {
-	protected static $permissionsList = [
-    'index' => 'admins.view',
-    'show' => 'admins.view',
-    'store' => 'admins.create',
-    'update' => 'admins.update',
-    'destroy' => 'admins.delete',
-	    'toggleActive' => 'admins.toggle_active',
-	    'assignRole' => 'admins.assign_role',
-	    'removeRole' => 'admins.remove_role',
-	    'grantPermission' => 'admins.grant_permission',
-	    'revokePermission' => 'admins.revoke_permission',
-	    'removeDirectPermission' => 'admins.remove_direct_permission',
-	    'getAvailableRoles' => 'admins.get_available_roles',
-	    'getAvailablePermissions' => 'admins.get_available_permissions',
-    // 'global' => [
-    // 	'admin'
-    // ]
-];
-protected static $middleware = ['admin'];
+    protected static $permissionsList = [
+        'index' => 'admins.view',
+        'show' => 'admins.view',
+        'store' => 'admins.create',
+        'update' => 'admins.update',
+        'destroy' => 'admins.delete',
+        'toggleActive' => 'admins.toggle_active',
+        'assignRole' => 'admins.assign_role',
+        'removeRole' => 'admins.remove_role',
+        'grantPermission' => 'admins.grant_permission',
+        'revokePermission' => 'admins.revoke_permission',
+        'removeDirectPermission' => 'admins.remove_direct_permission',
+        'getAvailableRoles' => 'admins.get_available_roles',
+        'getAvailablePermissions' => 'admins.get_available_permissions',
+        // 'global' => [
+        // 	'admin'
+        // ]
+    ];
+    protected static $middleware = ['admin'];
 
 
 
@@ -119,5 +119,17 @@ protected static $middleware = ['admin'];
     public function getAvailablePermissions()
     {
         return $this->service->getAvailablePermissions();
+    }
+
+    /**
+     * Toggle admin active status
+     * Override to use service method with self-deactivation protection
+     */
+    public function toggleActive($model)
+    {
+        $serviceResponse = $this->service->toggleActive($model);
+        if ($serviceResponse !== null)
+            return $serviceResponse;
+        return parent::toggleActive($model);
     }
 }

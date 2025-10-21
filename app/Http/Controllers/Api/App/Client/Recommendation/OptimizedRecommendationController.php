@@ -28,7 +28,7 @@ class OptimizedRecommendationController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Recommendations retrieved successfully',
+                'message' =>  __('messages.retrieved_successfully'),
                 'data' => $recommendations
             ]);
 
@@ -54,7 +54,7 @@ class OptimizedRecommendationController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Top-rated products retrieved successfully',
+                'message' =>   __('messages.retrieved_successfully'),
                 'data' => $products
             ]);
 
@@ -79,7 +79,7 @@ class OptimizedRecommendationController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Most-ordered products retrieved successfully',
+                'message' =>  __('messages.retrieved_successfully'),
                 'data' => $products
             ]);
 

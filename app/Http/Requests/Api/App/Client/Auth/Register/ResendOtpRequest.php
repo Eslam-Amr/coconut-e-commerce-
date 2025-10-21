@@ -4,6 +4,7 @@ namespace App\Http\Requests\Api\App\Client\Auth\Register;
 
 use App\Http\Requests\Api\MasterRequest;
 
+
 class ResendOtpRequest extends MasterRequest
 {
     /**

@@ -16,7 +16,7 @@ class AdminService
     public function index(Request $request)
     {
         try {
-            $query = Admin::with(['roles', 'permissions']);
+            $query = Admin::with(['role', 'permissions']);
 
             if ($request->filled('search')) {
                 $search = $request->get('search');
@@ -28,7 +28,7 @@ class AdminService
             }
 
             if ($request->filled('role')) {
-                $query->whereHas('roles', function ($q) use ($request) {
+                $query->whereHas('role', function ($q) use ($request) {
                     $q->where('name', $request->get('role'));
                 });
             }
@@ -51,7 +51,7 @@ class AdminService
             }
 
             $admin = Admin::create($data);
-            $admin->load(['roles', 'permissions']);
+            $admin->load(['role', 'permissions']);
 
             return $this->successResponse($admin, 'Admin created successfully', 201);
         } catch (\Exception $e) {
@@ -62,7 +62,7 @@ class AdminService
     public function show(Admin $admin)
     {
         try {
-            $admin->load(['roles', 'permissions']);
+            $admin->load(['role', 'permissions']);
             return $this->successResponse($admin, 'Admin retrieved successfully');
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to retrieve admin', ['error' => $e->getMessage()]);
@@ -72,13 +72,21 @@ class AdminService
     public function update(Admin $admin, array $data)
     {
         try {
+            // Get the currently authenticated admin
+            $currentAdmin = auth('admin')->user();
+
+            // Prevent admin from deactivating themselves
+            if ($currentAdmin && $currentAdmin->id === $admin->id && isset($data['active']) && $data['active'] == false) {
+                return $this->errorResponse(__('messages.cannot_deactivate_self'), 422);
+            }
+
             // Hash password if provided
             if (isset($data['password'])) {
                 $data['password'] = Hash::make($data['password']);
             }
 
             $admin->update($data);
-            $admin->load(['roles', 'permissions']);
+            $admin->load(['role', 'permissions']);
 
             return $this->successResponse($admin, 'Admin updated successfully');
         } catch (\Exception $e) {
@@ -86,11 +94,43 @@ class AdminService
         }
     }
 
+    /**
+     * Toggle admin active status with self-deactivation protection
+     */
+    /**
+     * Check if admin can toggle active status
+     * Returns error response if not allowed, null if allowed
+     */
+    public function toggleActive($model)
+    {
+        if (is_string($model)) {
+            $model = Admin::findOrFail($model);
+        }
+        
+        // Get the currently authenticated admin
+        $currentAdmin = auth('admin')->user();
+
+        // Prevent admin from deactivating themselves
+        if ($currentAdmin && $currentAdmin->id === $model->id && $model->active) {
+            return response()->json([
+                'success' => false,
+                'message' => __('messages.cannot_deactivate_self'),
+                'details' => [
+                    'error_type' => 'validation_error',
+                    'error_code' => 'SELF_DEACTIVATION_NOT_ALLOWED'
+                ]
+            ], 422);
+        }
+        
+        // If allowed, return null to indicate proceed
+        return null;
+    }
+
     public function destroy(Admin $admin)
     {
         try {
             // Prevent deleting the last super admin
-            if ($admin->hasRole('super_admin') && Admin::whereHas('roles', function ($q) {
+            if ($admin->hasRole('super_admin') && Admin::whereHas('role', function ($q) {
                 $q->where('name', 'super_admin');
             })->count() <= 1) {
                 return $this->errorResponse('Cannot delete the last super admin', 422);
@@ -107,9 +147,12 @@ class AdminService
     {
         try {
             $role = Role::findOrFail($roleId);
-            $admin->assignRole($role->name);
-            $admin->load(['roles', 'permissions']);
-
+            $result = $admin->assignRole($role->name);
+            if (!$result) {
+                return $this->errorResponse('Role not found', 404);
+            }
+            
+            $admin->load(['role', 'permissions']);
             return $this->successResponse($admin, 'Role assigned successfully');
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to assign role', ['error' => $e->getMessage()]);
@@ -120,9 +163,13 @@ class AdminService
     {
         try {
             $role = Role::findOrFail($roleId);
-            $admin->removeRole($role->name);
-            $admin->load(['roles', 'permissions']);
-
+            $result = $admin->removeRole();
+            
+            if (!$result) {
+                return $this->errorResponse('User has no role assigned or role not found', 404);
+            }
+            
+            $admin->load(['role', 'permissions']);
             return $this->successResponse($admin, 'Role removed successfully');
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to remove role', ['error' => $e->getMessage()]);
@@ -146,15 +193,15 @@ class AdminService
             // If trait returns structured array
             if (is_array($result)) {
                 if ($result['ok'] === true) {
-                    $admin->load(['roles', 'permissions']);
+                    $admin->load(['role', 'permissions']);
                     return $this->successResponse($admin, $result['message']);
                 }
                 // dd($result);
-                return $this->errorResponse($result['message'], code:$result['code'] ?? 400);
+                return $this->errorResponse($result['message'], code: $result['code'] ?? 400);
             }
 
             // Fallback: assume success
-            $admin->load(['roles', 'permissions']);
+            $admin->load(['role', 'permissions']);
             return $this->successResponse($admin, 'Permission granted successfully');
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to grant permission', ['error' => $e->getMessage()]);
@@ -165,27 +212,24 @@ class AdminService
     {
 
         try {
-            $exists = $admin->roles()->whereHas('permissions', function ($q) use ($permissionId) {
-                $q->where('permission_id', $permissionId);
-            })->exists();
-            if (!$exists) {
-                return $this->errorResponse('Permission not found to this role', 404);
+            // Check if admin has a role
+            if (!$admin->role) {
+                return $this->errorResponse('Admin has no role assigned', 404);
             }
+
+            // Check if the role has this permission
             $permission = Permission::findOrFail($permissionId);
+            $hasPermission = $admin->role->permissions()->where('permission_id', $permissionId)->exists();
 
-            // Get roles that contain this permission before revoking
-            $rolesWithPermission = $admin->roles()->whereHas('permissions', function ($q) use ($permission) {
-                $q->where('name', $permission->name);
-            })->get();
+            if (!$hasPermission) {
+                return $this->errorResponse('Permission not found in admin\'s role', 404);
+            }
 
-            // Revoke the permission directly (this will also remove roles with the permission)
+            // Revoke the permission directly
             $admin->revokePermission($permission->name);
-            $admin->load(['roles', 'permissions']);
+            $admin->load(['role', 'permissions']);
 
             $message = 'Permission revoked successfully';
-            if ($rolesWithPermission->count() > 0) {
-                $message .= ' and ' . $rolesWithPermission->count() . ' related role(s) removed';
-            }
 
             return $this->successResponse($admin, $message);
         } catch (\Exception $e) {
@@ -198,7 +242,7 @@ class AdminService
         try {
             $permission = Permission::findOrFail($permissionId);
             $admin->removeDirectPermission($permission->name);
-            $admin->load(['roles', 'permissions']);
+            $admin->load(['role', 'permissions']);
 
             return $this->successResponse($admin, 'Direct permission removed successfully');
         } catch (\Exception $e) {

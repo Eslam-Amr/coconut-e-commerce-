@@ -3,9 +3,12 @@
 namespace App\Http\Requests\Api\Dashboard\Slider;
 
 use App\Http\Requests\Api\MasterRequest;
+use App\Traits\BilingualValidationTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+
+    
 
 class SliderRequest extends MasterRequest
 {
@@ -101,52 +104,12 @@ class SliderRequest extends MasterRequest
      *
      * @return array<string, string>
      */
-    public function messages(): array
-    {
-        return [
-            'ar.title.required' => 'The Arabic slider title is required.',
-            'ar.title.string' => 'The Arabic slider title must be a string.',
-            'ar.title.max' => 'The Arabic slider title may not be greater than 255 characters.',
-            'en.title.required' => 'The English slider title is required.',
-            'en.title.string' => 'The English slider title must be a string.',
-            'en.title.max' => 'The English slider title may not be greater than 255 characters.',
-            'ar.description.string' => 'The Arabic description must be a string.',
-            'ar.description.max' => 'The Arabic description may not be greater than 1000 characters.',
-            'en.description.string' => 'The English description must be a string.',
-            'en.description.max' => 'The English description may not be greater than 1000 characters.',
-            'image.required' => 'The slider image is required.',
-            'image.image' => 'The slider image must be an image file.',
-            'image.mimes' => 'The slider image must be a file of type: jpeg, png, jpg, gif, webp.',
-            'image.max' => 'The slider image may not be greater than 5MB.',
-            'link.string' => 'The slider link must be a string.',
-            'link.max' => 'The slider link may not be greater than 500 characters.',
-            'position.string' => 'The slider position must be a string.',
-            'position.max' => 'The slider position may not be greater than 100 characters.',
-            'active.boolean' => 'The active field must be true or false.',
-            'start_date.required' => 'The start date is required.',
-            'start_date.date' => 'The start date must be a valid date.',
-            'end_date.required' => 'The end date is required.',
-            'end_date.date' => 'The end date must be a valid date.',
-        ];
-    }
+    
 
     /**
      * Get custom attributes for validator errors.
      *
      * @return array<string, string>
      */
-    public function attributes(): array
-    {
-        return [
-            'ar.title' => 'Arabic slider title',
-            'en.title' => 'English slider title',
-            'ar.description' => 'Arabic description',
-            'en.description' => 'English description',
-            'image' => 'slider image',
-            'link' => 'slider link',
-            'position' => 'slider position',
-            'active' => 'active status',
-            'sort_order' => 'sort order',
-        ];
-    }
+    
 }

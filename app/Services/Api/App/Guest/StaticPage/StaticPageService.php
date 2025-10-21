@@ -21,10 +21,10 @@ class StaticPageService
             $paginatedPages = StaticPage::paginate($perPage);
             return $this->successResponsePaginated(
                 $paginatedPages,
-                'Static pages retrieved successfully'
+                __('messages.retrieved_successfully')
             );
         } catch (\Exception $e) {
-            return $this->errorResponse('Failed to retrieve static pages: ' . $e->getMessage());
+            return $this->errorResponse(__('messages.retrieval_failed') . ': ' . $e->getMessage());
         }
     }
 
@@ -43,9 +43,9 @@ class StaticPageService
             
          
 
-            return $this->successResponse($staticPage, 'Static page retrieved successfully');
+            return $this->successResponse($staticPage, __('messages.retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->errorResponse('Failed to retrieve static page: ' . $e->getMessage());
+            return $this->errorResponse(__('messages.retrieval_failed') . ': ' . $e->getMessage());
         }
     }
 }

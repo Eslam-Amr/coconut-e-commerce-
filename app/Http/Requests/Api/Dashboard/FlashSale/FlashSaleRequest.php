@@ -4,6 +4,7 @@ namespace App\Http\Requests\Api\Dashboard\FlashSale;
 
 use App\Http\Requests\Api\MasterRequest;
 
+
 class FlashSaleRequest extends MasterRequest
 {
     public function rules(): array
@@ -40,13 +41,7 @@ class FlashSaleRequest extends MasterRequest
         ];
     }
 
-    public function messages(): array
-    {
-        return [
-            'flashable_type.in' => 'flashable_type must be Product or Category model FQCN.',
-            'end_date.after' => 'End date must be after start date.',
-        ];
-    }
+    
 }
 
 

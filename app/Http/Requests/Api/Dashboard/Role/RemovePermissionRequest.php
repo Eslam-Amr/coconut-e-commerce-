@@ -4,6 +4,7 @@ namespace App\Http\Requests\Api\Dashboard\Role;
 
 use App\Http\Requests\Api\MasterRequest;
 
+
 class RemovePermissionRequest extends MasterRequest
 {
     public function rules(): array
@@ -13,13 +14,7 @@ class RemovePermissionRequest extends MasterRequest
         ];
     }
 
-    public function messages(): array
-    {
-        return [
-            'permission_id.required' => 'Permission is required.',
-            'permission_id.exists' => 'Selected permission does not exist.'
-        ];
-    }
+    
 }
 
 

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api\App\Client\Order;
 
 use App\Http\Requests\Api\MasterRequest;
+use App\Traits\BilingualValidationTrait;
 use App\Models\Cart;
 use App\Models\Product;
 use App\Models\ProductVariant;
@@ -13,6 +14,8 @@ use App\Models\Voucher;
 use App\Models\VoucherUsage;
 use App\Models\Wallet;
 use Illuminate\Validation\ValidationException;
+
+    
 
 class ConfirmPaymentRequest extends MasterRequest
 {
@@ -223,20 +226,7 @@ class ConfirmPaymentRequest extends MasterRequest
     /**
      * Get custom messages for validator errors.
      */
-    public function messages(): array
-    {
-        return [
-            'payment_method.required' => 'Payment method is required',
-            'payment_method.in' => 'Payment method must be cash, wallet, or payment_gateway',
-            'voucher_code.string' => 'Voucher code must be a string',
-            'longitude.numeric' => 'Longitude must be a number',
-            'longitude.between' => 'Longitude must be between -180 and 180',
-            'latitude.numeric' => 'Latitude must be a number',
-            'latitude.between' => 'Latitude must be between -90 and 90',
-            'address_id.exists' => 'Selected address does not exist',
-            'currency.in' => 'Currency must be USD, EUR, or GBP'
-        ];
-    }
+    
 
     /**
      * Validate address requirements

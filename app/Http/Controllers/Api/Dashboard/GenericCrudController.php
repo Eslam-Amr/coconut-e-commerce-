@@ -165,7 +165,7 @@ class GenericCrudController extends Controller implements HasMiddleware
                     $model->load('media');
                 }
 
-                return $this->successResponse($model, $original['message'] ?? 'Created successfully', 201);
+                return $this->successResponse($model, $original['message'] ?? __('messages.created_successfully'), 201);
             }
         }
         return $result;

@@ -17,7 +17,7 @@ use App\Http\Controllers\Api\App\Client\Recommendation\InteractionRecommendation
 
 
 
-Route::post('/register', [RegisterController::class, 'register']);
+// Route::post('/register', [RegisterController::class, 'register']);
 
 Route::post('/register', [RegisterController::class, 'register']);
 Route::post('/resend-otp', [RegisterController::class, 'resendOtp']);

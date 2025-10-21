@@ -4,6 +4,7 @@ namespace App\Http\Requests\Api\General\Settings;
 
 use App\Http\Requests\Api\MasterRequest;
 
+
 class ChangeLanguageRequest extends MasterRequest
 {
     /**
@@ -21,22 +22,10 @@ class ChangeLanguageRequest extends MasterRequest
     /**
      * Get custom messages for validator errors.
      */
-    public function messages(): array
-    {
-        return [
-            'language.required' => 'The language field is required.',
-            'language.string' => 'The language must be a string.',
-            'language.in' => 'The language must be either English (en) or Arabic (ar).',
-        ];
-    }
+    
 
     /**
      * Get custom attributes for validator errors.
      */
-    public function attributes(): array
-    {
-        return [
-            'language' => 'language',
-        ];
-    }
+    
 }

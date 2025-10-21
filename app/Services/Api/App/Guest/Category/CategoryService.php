@@ -21,9 +21,9 @@ class CategoryService
                 ->where('active', true)
                 ->paginate($perPage);
 
-            return $this->successResponse($categories, 'Categories retrieved successfully');
+            return $this->successResponse($categories, __('messages.retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->errorResponse('Failed to retrieve categories: ' . $e->getMessage());
+            return $this->errorResponse(__('messages.retrieval_failed') . ': ' . $e->getMessage());
         }
     }
 }

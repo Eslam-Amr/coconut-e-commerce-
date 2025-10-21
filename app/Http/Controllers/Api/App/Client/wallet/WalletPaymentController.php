@@ -64,7 +64,7 @@ DB::beginTransaction();
                         'current_status' => $walletTransaction->status
                     ]);
 
-                    // Payment successful - update wallet
+                    // __("messages.payment_successful") - update wallet
                     $wallet = $walletTransaction->wallet;
                     $oldBalance = $wallet->balance;
                     $newBalance = $wallet->balance + $walletTransaction->amount;

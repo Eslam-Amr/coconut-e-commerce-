@@ -3,8 +3,11 @@
 namespace App\Http\Requests\Api\Dashboard\Product;
 
 use App\Http\Requests\Api\MasterRequest;
+use App\Traits\BilingualValidationTrait;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+
+    
 
 class ProductVariantRequest extends MasterRequest
 {
@@ -66,42 +69,14 @@ class ProductVariantRequest extends MasterRequest
      *
      * @return array<string, string>
      */
-    public function messages(): array
-    {
-        return [
-            'product_id.required' => 'Product is required.',
-            'product_id.exists' => 'Selected product does not exist.',
-            'sku.required' => 'SKU is required.',
-            'sku.unique' => 'This SKU is already taken.',
-            'price.required' => 'Price is required.',
-            'price.numeric' => 'Price must be a valid number.',
-            'price.min' => 'Price must be at least 0.',
-            'minimum_stock.required' => 'Minimum stock is required.',
-            'minimum_stock.integer' => 'Minimum stock must be an integer.',
-            'minimum_stock.min' => 'Minimum stock must be at least 0.',
-            'stock.required' => 'Stock is required.',
-            'stock.integer' => 'Stock must be an integer.',
-            'stock.min' => 'Stock must be at least 0.',
-            'active.boolean' => 'Active status must be true or false.',
-            'attribute_value_ids.array' => 'Attribute values must be an array.',
-            'attribute_value_ids.*.integer' => 'Each attribute value ID must be an integer.',
-            'attribute_value_ids.*.exists' => 'One or more attribute values do not exist.'
-        ];
-    }
+    
 
     /**
      * Get custom attributes for validator errors.
      *
      * @return array<string, string>
      */
-    public function attributes(): array
-    {
-        return [
-            'product_id' => 'product',
-            'attribute_value_ids' => 'attribute values',
-            'attribute_value_ids.*' => 'attribute value'
-        ];
-    }
+    
 
     /**
      * Configure the validator instance.

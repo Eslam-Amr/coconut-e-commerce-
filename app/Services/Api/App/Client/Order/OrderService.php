@@ -47,7 +47,7 @@ class OrderService
             $cart = Cart::where('user_id', $user->id)->with(['items.product', 'items.productVariant', 'items.flashSale'])->first();
 
             if (!$cart || $cart->items->isEmpty()) {
-                return $this->errorResponse('Cart is empty', [], 400);
+                return $this->errorResponse(__('messages.cart_empty'), [], 400);
             }
 
             // Get voucher validation data
@@ -96,7 +96,7 @@ class OrderService
                 DB::commit();
 
                 return $this->successResponse(
-                    'Order confirmed successfully',
+                    __('messages.order_confirmed'),
                     [
                         'order' => $order->load(['items.product', 'items.productVariant', 'items.flashSale', 'transactions']),
                         'order_number' => $order->order_number,
@@ -105,10 +105,10 @@ class OrderService
                 );
             } catch (\Exception $e) {
                 DB::rollBack();
-                return $this->errorResponse('Failed to confirm order: ' . $e->getMessage(), [], 500);
+                return $this->errorResponse(__('messages.order_confirmation_failed') . ': ' . $e->getMessage(), [], 500);
             }
         } catch (\Exception $e) {
-            return $this->errorResponse('Failed to process order confirmation', ['error' => $e->getMessage()], 500);
+            return $this->errorResponse(__('messages.order_processing_failed'), ['error' => $e->getMessage()], 500);
         }
     }
 
@@ -259,7 +259,7 @@ class OrderService
         try {
             $user = $request->user();
             if (!$user) {
-                return $this->errorResponse('Unauthorized', [], 401);
+                return $this->errorResponse(__('messages.unauthorized'), [], 401);
             }
 
             $orders = Order::where('user_id', $user->id)
@@ -267,9 +267,9 @@ class OrderService
                 ->orderBy('created_at', 'desc')
                 ->paginate(15);
 
-            return $this->successResponse('Orders retrieved successfully', $orders);
+            return $this->successResponse(__('messages.retrieved_successfully'), $orders);
         } catch (\Exception $e) {
-            return $this->errorResponse('Failed to retrieve orders', ['error' => $e->getMessage()], 500);
+            return $this->errorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()], 500);
         }
     }
 
@@ -281,7 +281,7 @@ class OrderService
         try {
             $user = $request->user();
             if (!$user) {
-                return $this->errorResponse('Unauthorized', [], 401);
+                return $this->errorResponse(__('messages.unauthorized'), [], 401);
             }
 
             $order = Order::where('id', $orderId)
@@ -290,12 +290,12 @@ class OrderService
                 ->first();
 
             if (!$order) {
-                return $this->errorResponse('Order not found', [], 404);
+                return $this->errorResponse(__('messages.not_found'), [], 404);
             }
 
-            return $this->successResponse('Order details retrieved successfully', $order);
+            return $this->successResponse(__('messages.retrieved_successfully'), $order);
         } catch (\Exception $e) {
-            return $this->errorResponse('Failed to retrieve order details', ['error' => $e->getMessage()], 500);
+            return $this->errorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()], 500);
         }
     }
 
@@ -745,7 +745,7 @@ class OrderService
         try {
             $order = Order::find($orderId);
             if (!$order) {
-                return $this->errorResponse('Order not found', [], 404);
+                return $this->errorResponse(__('messages.not_found'), [], 404);
             }
 
             if ($order->payment_status === 'completed') {

@@ -3,8 +3,11 @@
 namespace App\Http\Requests\Api\Dashboard\Product;
 
 use App\Http\Requests\Api\MasterRequest;
+use App\Traits\BilingualValidationTrait;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+
+    
 
 class ProductAttributeRequest extends MasterRequest
 {
@@ -58,42 +61,14 @@ class ProductAttributeRequest extends MasterRequest
      *
      * @return array<string, string>
      */
-    public function messages(): array
-    {
-        return [
-            'product_id.required' => 'Product is required.',
-            'product_id.exists' => 'Selected product does not exist.',
-            'attribute_id.required' => 'Attribute is required.',
-            'attribute_id.exists' => 'Selected attribute does not exist.',
-            'attribute_value_id.required' => 'Attribute value is required.',
-            'attribute_value_id.exists' => 'Selected attribute value does not exist.',
-            'attributes.array' => 'Attributes must be an array.',
-            'attributes.min' => 'At least one attribute is required.',
-            'attributes.*.attribute_id.required_with' => 'Attribute ID is required for each attribute.',
-            'attributes.*.attribute_id.integer' => 'Attribute ID must be an integer.',
-            'attributes.*.attribute_id.exists' => 'Selected attribute does not exist.',
-            'attributes.*.attribute_value_id.required_with' => 'Attribute value ID is required for each attribute.',
-            'attributes.*.attribute_value_id.integer' => 'Attribute value ID must be an integer.',
-            'attributes.*.attribute_value_id.exists' => 'Selected attribute value does not exist.'
-        ];
-    }
+    
 
     /**
      * Get custom attributes for validator errors.
      *
      * @return array<string, string>
      */
-    public function attributes(): array
-    {
-        return [
-            'product_id' => 'product',
-            'attribute_id' => 'attribute',
-            'attribute_value_id' => 'attribute value',
-            'attributes' => 'attributes',
-            'attributes.*.attribute_id' => 'attribute ID',
-            'attributes.*.attribute_value_id' => 'attribute value ID'
-        ];
-    }
+    
 
     /**
      * Configure the validator instance.

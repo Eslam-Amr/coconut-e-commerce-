@@ -71,7 +71,7 @@ class OrderPaymentController extends Controller
 
             try {
                 if ($paymentVerified) {
-                    // Payment successful - update transaction ID if needed
+                    // __("messages.payment_successful") - update transaction ID if needed
                     $transaction->update([
                         'transaction_id' => $sessionId // Store actual payment gateway transaction ID
                     ]);

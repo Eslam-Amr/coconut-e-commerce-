@@ -32,10 +32,10 @@ class SliderService
 
             return $this->successResponsePaginated(
                 $sliders,
-                'Active sliders retrieved successfully'
+                __('messages.retrieved_successfully')
             );
         } catch (\Exception $e) {
-            return $this->errorResponse('Failed to retrieve sliders: ' . $e->getMessage());
+            return $this->errorResponse(__('messages.retrieval_failed') . ': ' . $e->getMessage());
         }
     }
 
@@ -58,12 +58,12 @@ class SliderService
                 ->first();
 
             if (!$slider) {
-                return $this->errorResponse('Slider not found', 404);
+                return $this->errorResponse(__('messages.not_found'), 404);
             }
 
-            return $this->successResponse($slider, 'Slider retrieved successfully');
+            return $this->successResponse($slider, __('messages.retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->errorResponse('Failed to retrieve slider: ' . $e->getMessage());
+            return $this->errorResponse(__('messages.retrieval_failed') . ': ' . $e->getMessage());
         }
     }
 }
