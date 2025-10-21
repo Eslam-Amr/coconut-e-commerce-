@@ -1,61 +1,536 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🛍️ **E-Commerce Platform** 🛍️
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+<div align="center">
 
-## About Laravel
+![Laravel](https://img.shields.io/badge/Laravel-11+-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
+![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?style=for-the-badge&logo=php&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-Auth-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
+![Stripe](https://img.shields.io/badge/Stripe-Payment-635BFF?style=for-the-badge&logo=stripe&logoColor=white)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+**A Modern, Scalable, and Feature-Rich E-Commerce Solution Built with Laravel 12+**
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PHP Version](https://img.shields.io/badge/PHP-8.2%2B-blue.svg)](https://php.net)
+[![Laravel Version](https://img.shields.io/badge/Laravel-11%2B-red.svg)](https://laravel.com)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+</div>
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 🌟 **Overview**
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+**E-commerce** is a comprehensive, modern e-commerce platform designed to provide a seamless shopping experience for customers while offering powerful management tools for administrators. Built with Laravel 11+ and following the latest best practices, this platform combines robust backend architecture with intelligent features like AI-powered recommendations, multi-language support, and advanced payment processing.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 🎯 **Key Highlights**
 
-## Laravel Sponsors
+- 🚀 **Laravel 12+** with modern architecture
+- 🌍 **Multi-language Support** (Arabic & English)
+- 💳 **Multiple Payment Gateways** (Stripe, Wallet)
+- 🔐 **Advanced RBAC System** with granular permissions
+- 📱 **Mobile-First API Design**
+- 📊 **Real-time Analytics** and reporting
+- 🔔 **Smart Notifications** (Email & SMS)
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+---
 
-### Premium Partners
+## 🏗️ **Architecture & Technology Stack**
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### **Backend Technologies**
+- **Framework**: Laravel 12+ (Latest)
+- **PHP Version**: 8.2+
+- **Database**: MySQL
+- **Authentication**: JWT (tymon/jwt-auth)
+- **API**: RESTful with comprehensive documentation
 
-## Contributing
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### **Third-Party Integrations**
+- **Payment Processing**: Stripe
+- **Notifications**: Email & SMS channels
+- **File Storage**: Laravel Storage
+- **Monitoring**: Laravel Telescope
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## 🚀 **Core Features**
 
-## Security Vulnerabilities
+### 👥 **User Management**
+- **Multi-role Authentication System**
+- **OTP-based Registration & Verification**
+- **Password Reset with OTP**
+- **Profile Management**
+- **Address Management**
+- **Dark Mode Support**
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 🛒 **E-Commerce Core**
+- **Product Catalog** with variants and attributes
+- **Advanced Search & Filtering**
+- **Shopping Cart** with real-time calculations
+- **Wishlist Management**
+- **Order Management** with status tracking
+- **Product Reviews & Ratings**
 
-## License
+### 💰 **Payment & Wallet System**
+- **Stripe Payment Integration**
+- **Digital Wallet System**
+- **Transaction History**
+- **Multiple Payment Methods**
+- **Secure Payment Processing**
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### 🤖 **Product Recommendations**
+- **Collaborative Filtering**
+- **Content-Based Filtering**
+- **User Behavior Analysis**
+- **Trending Products**
+- **Personalized Suggestions**
+- **Cross-selling & Up-selling**
+
+### 🎛️ **Admin Dashboard**
+- **Comprehensive Admin Panel**
+- **Role-Based Access Control (RBAC)**
+- **Product Management**
+- **Order Management**
+- **User Management**
+- **Analytics & Reports**
+- **Content Management**
+
+### 🌍 **Multi-language & Localization**
+- **Arabic & English Support**
+- **Translatable Content**
+- **RTL Support**
+- **Localized Pricing**
+- **Cultural Adaptations**
+
+---
+
+## 📋 **System Requirements**
+
+### **Server Requirements**
+- PHP 8.2 or higher
+- Composer
+- MySQL 8.0+ or PostgreSQL 13+
+- Redis (optional, for caching)
+- Node.js 18+ (for frontend assets)
+
+### **PHP Extensions**
+- BCMath
+- Ctype
+- cURL
+- DOM
+- Fileinfo
+- JSON
+- Mbstring
+- OpenSSL
+- PCRE
+- PDO
+- Tokenizer
+- XML
+
+---
+
+## 🛠️ **Installation & Setup**
+
+### **1. Clone the Repository**
+```bash
+git clone https://github.com/Eslam-Amr/coconut-e-commerce-.git
+cd coconut-e-commerce-
+```
+
+### **2. Install Dependencies**
+```bash
+# Install PHP dependencies
+composer install
+
+# Install Node.js dependencies
+npm install
+```
+
+### **3. Environment Configuration**
+```bash
+# Copy environment file
+cp .env.example .env
+
+# Generate application key
+php artisan key:generate
+
+# Configure database and other settings in .env
+```
+
+### **4. Database Setup**
+```bash
+# Run migrations
+php artisan migrate
+
+# Seed the database
+php artisan db:seed
+```
+
+### **5. Build Assets**
+```bash
+# Build frontend assets
+npm run build
+
+# Or for development
+npm run dev
+```
+
+### **6. Start the Application**
+```bash
+# Start Laravel development server
+php artisan serve
+
+# Or use the convenient dev script
+composer run dev
+```
+
+---
+
+## 🔧 **Configuration**
+
+### **Environment Variables**
+```env
+# Database
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=el_3almya
+DB_USERNAME=root
+DB_PASSWORD=
+
+# JWT Configuration
+JWT_SECRET=your-jwt-secret
+JWT_TTL=60
+
+# Stripe Configuration
+STRIPE_KEY=your-stripe-public-key
+STRIPE_SECRET=your-stripe-secret-key
+STRIPE_BASE_URL=https://api.stripe.com
+
+# Mail Configuration
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your-email@gmail.com
+MAIL_PASSWORD=your-app-password
+```
+
+---
+
+## 📚 **API Documentation**
+
+### **Authentication Endpoints**
+```
+POST /api/client/register          # User registration
+POST /api/client/login             # User login
+POST /api/client/logout            # User logout
+POST /api/client/forget-password   # Password reset request
+POST /api/client/verify-otp        # OTP verification
+```
+
+### **Product Endpoints**
+```
+GET  /api/guest/products           # Get all products
+GET  /api/guest/products/{id}      # Get product details
+GET  /api/guest/products/trending  # Get trending products
+GET  /api/guest/products/featured  # Get featured products
+GET  /api/guest/products/top-rated # Get top-rated products
+```
+
+### **Cart & Order Endpoints**
+```
+GET    /api/client/cart            # Get cart items
+POST   /api/client/cart/add        # Add item to cart
+POST   /api/client/cart/update     # Update cart item
+DELETE /api/client/cart/remove     # Remove cart item
+POST   /api/client/orders/confirm  # Confirm order
+GET    /api/client/orders          # Get user orders
+```
+
+### **Recommendation Endpoints**
+```
+GET /api/guest/recommendations           # Get general recommendations
+GET /api/client/recommendations          # Get personalized recommendations
+GET /api/guest/recommendations/top-rated # Get top-rated products
+GET /api/guest/recommendations/trending  # Get trending products
+```
+
+### **Admin Endpoints**
+```
+# Authentication
+POST /api/admin/login              # Admin login
+POST /api/admin/logout             # Admin logout
+
+# Product Management
+GET    /api/admin/products         # List products
+POST   /api/admin/products         # Create product
+PUT    /api/admin/products/{id}    # Update product
+DELETE /api/admin/products/{id}    # Delete product
+
+# User Management
+GET    /api/admin/admins           # List admins
+POST   /api/admin/admins           # Create admin
+PUT    /api/admin/admins/{id}      # Update admin
+DELETE /api/admin/admins/{id}      # Delete admin
+```
+
+---
+
+## 🎨 **User Interface**
+
+### **Client Application**
+- **Modern, Responsive Design**
+- **Mobile-First Approach**
+- **Dark/Light Mode Toggle**
+- **Intuitive Navigation**
+- **Fast Loading Times**
+- **Accessibility Compliant**
+
+### **Admin Dashboard**
+- **Comprehensive Management Interface**
+- **Real-time Data Updates**
+- **Advanced Filtering & Search**
+- **Bulk Operations**
+- **Export/Import Functionality**
+- **Analytics Dashboard**
+
+---
+
+## 🔐 **Security Features**
+
+### **Authentication & Authorization**
+- **JWT-based Authentication**
+- **Role-Based Access Control (RBAC)**
+- **Granular Permissions System**
+- **OTP Verification**
+- **Password Hashing (bcrypt)**
+
+### **Data Protection**
+- **SQL Injection Prevention**
+- **XSS Protection**
+- **CSRF Protection**
+- **Input Validation & Sanitization**
+- **Secure File Uploads**
+
+### **API Security**
+- **Rate Limiting**
+- **CORS Configuration**
+- **Request Validation**
+- **Error Handling**
+- **Logging & Monitoring**
+
+---
+
+## 🤖 **Recommendation System**
+
+### **Recommendation Algorithms**
+1. **Collaborative Filtering**
+   - User-based recommendations
+   - Item-based recommendations
+   - Matrix factorization
+
+2. **Content-Based Filtering**
+   - Product similarity
+   - Category-based recommendations
+   - Brand affinity
+
+3. **Hybrid Approach**
+   - Combined algorithms
+   - Machine learning integration
+   - Real-time personalization
+
+### **User Behavior Tracking**
+- **Product Views**
+- **Purchase History**
+- **Wishlist Interactions**
+- **Search Patterns**
+- **Session Analytics**
+
+---
+
+## 💳 **Payment System**
+
+### **Supported Payment Methods**
+- **Credit/Debit Cards** (via Stripe)
+- **Digital Wallet**
+- **Bank Transfers**
+- **Cash on Delivery**
+
+### **Payment Features**
+- **Secure Processing**
+- **Transaction History**
+- **Refund Management**
+- **Multi-currency Support**
+- **Tax Calculation**
+
+---
+
+## 🌍 **Internationalization**
+
+### **Supported Languages**
+- **Arabic** (RTL Support)
+- **English** (LTR Support)
+
+### **Localization Features**
+- **Translatable Content**
+- **Currency Localization**
+- **Date/Time Formatting**
+- **Cultural Adaptations**
+- **Regional Settings**
+
+---
+
+## 📊 **Analytics & Reporting**
+
+### **User Analytics**
+- **Registration Trends**
+- **Login Patterns**
+- **User Engagement**
+- **Geographic Distribution**
+
+### **Sales Analytics**
+- **Revenue Tracking**
+- **Order Analytics**
+- **Product Performance**
+- **Customer Behavior**
+
+### **System Analytics**
+- **Performance Metrics**
+- **Error Tracking**
+- **API Usage Statistics**
+- **Resource Utilization**
+
+---
+
+## 🧪 **Testing**
+
+### **Test Coverage**
+- **Unit Tests**
+- **Feature Tests**
+- **Integration Tests**
+- **API Tests**
+
+### **Running Tests**
+```bash
+# Run all tests
+php artisan test
+
+# Run specific test suite
+php artisan test --testsuite=Feature
+
+# Run with coverage
+php artisan test --coverage
+```
+
+---
+
+## 🚀 **Deployment**
+
+### **Production Deployment**
+```bash
+# Optimize for production
+composer install --optimize-autoloader --no-dev
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+npm run build
+
+# Set up queue workers
+php artisan queue:work
+```
+
+### **Docker Deployment**
+```bash
+# Build and run with Docker
+docker-compose up -d
+```
+
+---
+
+## 📈 **Performance Optimization**
+
+### **Caching Strategy**
+- **Redis Caching**
+- **Database Query Optimization**
+- **Asset Minification**
+- **CDN Integration**
+
+### **Database Optimization**
+- **Indexing Strategy**
+- **Query Optimization**
+- **Connection Pooling**
+- **Read Replicas**
+
+---
+
+## 🔧 **Development**
+
+### **Code Standards**
+- **PSR-12 Coding Standards**
+- **Laravel Best Practices**
+- **SOLID Principles**
+- **Clean Architecture**
+
+### **Development Tools**
+- **Laravel Pint** (Code Style)
+- **Laravel Telescope** (Debugging)
+- **Laravel Pail** (Logging)
+- **PHPUnit** (Testing)
+
+---
+
+## 📝 **Contributing**
+
+We welcome contributions! Please follow these steps:
+
+1. **Fork the repository**
+2. **Create a feature branch**
+3. **Make your changes**
+4. **Add tests for new features**
+5. **Ensure all tests pass**
+6. **Submit a pull request**
+
+### **Contribution Guidelines**
+- Follow PSR-12 coding standards
+- Write comprehensive tests
+- Update documentation
+- Use conventional commit messages
+
+---
+
+## 📄 **License**
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🆘 **Support & Contact**
+
+### **Documentation**
+- [API Documentation](docs/api.md)
+- [User Guide](docs/user-guide.md)
+- [Admin Guide](docs/admin-guide.md)
+- [Developer Guide](docs/developer-guide.md)
+
+
+
+### **Contact Information**
+- **Email**: eslamamr537@gmail.com
+
+
+---
+
+## 🙏 **Acknowledgments**
+
+- **Laravel Community** for the amazing framework
+- **TailwindCSS Team** for the utility-first CSS framework
+- **Stripe** for payment processing
+- **All Contributors** who helped make this project possible
+
+---
+
+<div align="center">
+
+**Made with ❤️ by Eslam Amr**
+
+
+
+</div>
