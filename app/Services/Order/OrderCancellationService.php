@@ -35,7 +35,9 @@ class OrderCancellationService
             DB::rollBack();
             Log::error('Order cancellation failed: ' . $e->getMessage(), [
                 'order_id' => $order->id,
-                'error' => $e->getTraceAsString()
+                'order_number' => $order->order_number,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
             return false;
         }
@@ -58,11 +60,7 @@ class OrderCancellationService
             // Restore variant stock if exists
             if ($item->product_variant_id) {
                 $variant = ProductVariant::find($item->product_variant_id);
-                if ($variant) {
-                    // Restore variant inventory
-                    ProductVariantInventory::where('product_variant_id', $variant->id)
-                        ->increment('quantity', $item->quantity);
-                }
+               $variant->increment('stock', $item->quantity);
             }
         }
     }
@@ -102,6 +100,7 @@ class OrderCancellationService
      */
     private function refundToWallet(Order $order, float $amount, string $reason): void
     {
+        // dd($order,$amount,$reason);
         $user = $order->user;
         
         // Get or create user's wallet
@@ -116,8 +115,9 @@ class OrderCancellationService
         // Create wallet transaction record
         WalletTransaction::create([
             'wallet_id' => $wallet->id,
-            'type' => 'refund',
             'amount' => $amount,
+            'user_id' => $user->id,
+            'transaction_id' => "REFUND-".time()."-".$order->id,
             'description' => "Order cancellation refund - Order #{$order->order_number}",
             'reference_id' => $order->id,
             'reference_type' => Order::class,
