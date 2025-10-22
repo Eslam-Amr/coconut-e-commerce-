@@ -12,4 +12,5 @@ class StaticPageTranslation extends Model
         'title',
         'content',
     ];
+    
 }

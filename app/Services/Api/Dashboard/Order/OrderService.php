@@ -31,7 +31,7 @@ class OrderService
 
             // Add status information to each order
             $orders->getCollection()->transform(function ($order) {
-                $order->status_info = OrderStateFactory::getStatusInfo($order->status);
+                $order->status_info = OrderStateFactory::getStatusInfo($order->status->value);
                 return $order;
             });
 
@@ -56,7 +56,7 @@ class OrderService
                 'transactions'
             ]);
 
-            $order->status_info = OrderStateFactory::getStatusInfo($order->status);
+            $order->status_info = OrderStateFactory::getStatusInfo($order->status->value);
 
             return $this->successResponse($order, 'Order retrieved successfully');
         } catch (\Exception $e) {
@@ -75,12 +75,12 @@ class OrderService
             ]);
 
             $newStatus = $request->input('status');
-            $currentState = OrderStateFactory::create($order->status);
+            $currentState = OrderStateFactory::create($order->status->value);
 
             // Check if transition is possible
             if (!$currentState->changeStatus($order, $newStatus)) {
                 return $this->errorResponse(
-                    'Cannot change order status from ' . $order->status . ' to ' . $newStatus,
+                    'Cannot change order status from ' . $order->status->value . ' to ' . $newStatus,
                     ['possible_statuses' => $currentState->getPossibleNextStatuses()],
                     422
                 );
@@ -88,7 +88,7 @@ class OrderService
 
             // Reload order with relationships
             $order->load(['user', 'items.product']);
-            $order->status_info = OrderStateFactory::getStatusInfo($order->status);
+            $order->status_info = OrderStateFactory::getStatusInfo($order->status->value);
 
             return $this->successResponse($order, 'Order status updated successfully');
         } catch (\Exception $e) {
@@ -102,21 +102,27 @@ class OrderService
     public function getStats()
     {
         try {
-            $stats = [
-                'total_orders' => Order::count(),
-                'pending_orders' => Order::where('status', OrderStatus::PENDING->value)->count(),
-                'processing_orders' => Order::where('status', OrderStatus::PROCESSING->value)->count(),
-                'shipped_orders' => Order::where('status', OrderStatus::SHIPPED->value)->count(),
-                'delivered_orders' => Order::where('status', OrderStatus::DELIVERED->value)->count(),
-                'cancelled_orders' => Order::where('status', OrderStatus::CANCELLED->value)->count(),
-                'refunded_orders' => Order::where('status', OrderStatus::REFUNDED->value)->count(),
-                'total_revenue' => Order::whereIn('status', [
-                    OrderStatus::DELIVERED->value,
-                    OrderStatus::SHIPPED->value,
-                    OrderStatus::PROCESSING->value,
-                    OrderStatus::CONFIRMED->value
-                ])->sum('total'),
-            ];
+            $stats = Order::selectRaw('
+                COUNT(*) as total_orders,
+                SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as pending_orders,
+                SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as processing_orders,
+                SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as shipped_orders,
+                SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as delivered_orders,
+                SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as cancelled_orders,
+                SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as refunded_orders,
+                SUM(CASE WHEN status IN (?, ?, ?, ?) THEN total ELSE 0 END) as total_revenue
+            ', [
+                OrderStatus::PENDING->value,
+                OrderStatus::PROCESSING->value,
+                OrderStatus::SHIPPED->value,
+                OrderStatus::DELIVERED->value,
+                OrderStatus::CANCELLED->value,
+                OrderStatus::REFUNDED->value,
+                OrderStatus::DELIVERED->value,
+                OrderStatus::SHIPPED->value,
+                OrderStatus::PROCESSING->value,
+                OrderStatus::CONFIRMED->value
+            ])->first();
 
             return $this->successResponse($stats, 'Order statistics retrieved successfully');
         } catch (\Exception $e) {

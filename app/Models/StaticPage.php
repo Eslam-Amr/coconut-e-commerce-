@@ -12,7 +12,6 @@ class StaticPage extends Model implements TranslatableContract
     use HasFactory, Translatable;
 
     protected $fillable = [
-        'slug',
     ];
 
     protected $hidden = [

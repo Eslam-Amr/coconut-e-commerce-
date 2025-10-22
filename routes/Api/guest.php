@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\App\Client\Recommendation\OptimizedRecommendationController;
+use App\Http\Controllers\Api\App\Guest\Recommendation\OptimizedRecommendationController;
 use App\Http\Controllers\Api\App\Guest\Banner\BannerController;
 use App\Http\Controllers\Api\App\Guest\Brand\BrandController;
 use App\Http\Controllers\Api\App\Guest\Category\CategoryController;

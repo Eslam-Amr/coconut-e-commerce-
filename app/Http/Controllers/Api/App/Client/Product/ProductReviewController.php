@@ -23,11 +23,9 @@ class ProductReviewController extends Controller implements HasMiddleware
         ];
     }
 
-    protected $productReviewService;
 
-    public function __construct(ProductReviewService $productReviewService)
+    public function __construct(private ProductReviewService $productReviewService)
     {
-        $this->productReviewService = $productReviewService;
     }
 
     /**

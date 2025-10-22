@@ -1,0 +1,116 @@
+{
+	"info": {
+		"_postman_id": "client-search-history-collection",
+		"name": "Client Search History",
+		"description": "API endpoints for client search history operations",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get Search History",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{client_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{client_base_url}}/search-history?per_page=15&page=1",
+					"host": [
+						"{{client_base_url}}"
+					],
+					"path": [
+						"search-history"
+					],
+					"query": [
+						{
+							"key": "per_page",
+							"value": "15",
+							"description": "Number of search history items per page"
+						},
+						{
+							"key": "page",
+							"value": "1",
+							"description": "Page number"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete All Search History",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{client_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{client_base_url}}/search-history",
+					"host": [
+						"{{client_base_url}}"
+					],
+					"path": [
+						"search-history"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Specific Search History Item",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{client_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{client_base_url}}/search-history/1",
+					"host": [
+						"{{client_base_url}}"
+					],
+					"path": [
+						"search-history",
+						"1"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "client_base_url",
+			"value": "127.0.0.1:8000/client",
+			"type": "string"
+		},
+		{
+			"key": "client_token",
+			"value": "your_client_jwt_token_here",
+			"type": "string"
+		}
+	]
+}

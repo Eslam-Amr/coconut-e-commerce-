@@ -26,11 +26,11 @@ class SliderService
                       ->orWhere('end_date', '>=', now());
                 });
 
-            // Pagination
-            $perPage = $request->integer('per_page', 15);
-            $sliders = $query->paginate($perPage);
+            // Limit
+            $limit = $request->integer('limit', 15);
+            $sliders = $query->limit($limit)->get();
 
-            return $this->successResponsePaginated(
+            return $this->successResponse(
                 $sliders,
                 __('messages.retrieved_successfully')
             );

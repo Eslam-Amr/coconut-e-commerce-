@@ -11,7 +11,7 @@ use App\Http\Controllers\Api\App\Client\Cart\CartController;
 use App\Http\Controllers\Api\App\Client\Order\OrderController;
 use App\Http\Controllers\Api\App\Client\Payment\PaymentController;
 use App\Http\Controllers\Api\App\Client\Product\ProductReviewController;
-use App\Http\Controllers\Api\App\Client\Recommendation\OptimizedRecommendationController;
+// use App\Http\Controllers\Api\App\Client\Recommendation\OptimizedRecommendationController; // moved to Guest namespace
 use App\Http\Controllers\Api\App\Client\Recommendation\InteractionRecommendationController;
 use App\Http\Controllers\Api\App\Client\SearchHistory\SearchHistoryController;
 

@@ -1,0 +1,204 @@
+{
+	"info": {
+		"_postman_id": "admin-orders-collection",
+		"name": "Admin Orders",
+		"description": "API endpoints for admin order management operations",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get All Orders",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{admin_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{admin_base_url}}/orders?per_page=15&page=1",
+					"host": [
+						"{{admin_base_url}}"
+					],
+					"path": [
+						"orders"
+					],
+					"query": [
+						{
+							"key": "per_page",
+							"value": "15",
+							"description": "Number of orders per page"
+						},
+						{
+							"key": "page",
+							"value": "1",
+							"description": "Page number"
+						},
+						{
+							"key": "search",
+							"value": "",
+							"description": "Search by order number, customer name, or email",
+							"disabled": true
+						},
+						{
+							"key": "status",
+							"value": "",
+							"description": "Filter by order status",
+							"disabled": true
+						},
+						{
+							"key": "date_from",
+							"value": "",
+							"description": "Filter orders from date (YYYY-MM-DD)",
+							"disabled": true
+						},
+						{
+							"key": "date_to",
+							"value": "",
+							"description": "Filter orders to date (YYYY-MM-DD)",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Order by ID",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{admin_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{admin_base_url}}/orders/1",
+					"host": [
+						"{{admin_base_url}}"
+					],
+					"path": [
+						"orders",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Change Order Status",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{admin_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"status\": \"shipped\",\n    \"notes\": \"Order has been shipped via DHL\"\n}"
+				},
+				"url": {
+					"raw": "{{admin_base_url}}/orders/1/change-status",
+					"host": [
+						"{{admin_base_url}}"
+					],
+					"path": [
+						"orders",
+						"1",
+						"change-status"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Order Statistics",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{admin_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{admin_base_url}}/orders-stats",
+					"host": [
+						"{{admin_base_url}}"
+					],
+					"path": [
+						"orders-stats"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Order Statuses",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{admin_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{admin_base_url}}/order-statuses",
+					"host": [
+						"{{admin_base_url}}"
+					],
+					"path": [
+						"order-statuses"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "admin_base_url",
+			"value": "127.0.0.1:8000/admin",
+			"type": "string"
+		},
+		{
+			"key": "admin_token",
+			"value": "your_admin_jwt_token_here",
+			"type": "string"
+		}
+	]
+}

@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\Dashboard\Role\RoleController;
 use App\Http\Controllers\Api\Dashboard\Permission\PermissionController;
 use App\Http\Controllers\Api\Dashboard\Order\OrderController;
 use App\Http\Controllers\Api\Dashboard\Refund\RefundController;
+use App\Http\Controllers\Api\Dashboard\StaticPage\StaticPageController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [LoginController::class, 'login']);
@@ -128,6 +129,9 @@ Route::get('refunds', [RefundController::class, 'index']);
 Route::get('refunds/{refund}', [RefundController::class, 'show']);
 Route::put('refunds/{refund}/update-status', [RefundController::class, 'updateStatus']);
 Route::get('refunds-stats', [RefundController::class, 'getStats']);
+
+// Static Page Management routes
+Route::apiResource('static-pages', StaticPageController::class);
 // Route::post('categories/{category}/toggle-active', function($category) {
 //     try {
 //         // If we received a string (ID), resolve the model

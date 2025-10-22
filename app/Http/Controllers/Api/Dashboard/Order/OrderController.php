@@ -29,22 +29,22 @@ class OrderController extends GenericCrudController implements HasMiddleware
         );
     }
 
-    /**
-     * Get paginated list of orders
-     */
-    public function index(Request $request)
-    {
-        return $this->service->index($request);
-    }
+    // /**
+    //  * Get paginated list of orders
+    //  */
+    // public function index(Request $request)
+    // {
+    //     return $this->service->index($request);
+    // }
 
-    /**
-     * Get single order details
-     */
-    public function show($id)
-    {
-        $order = Order::findOrFail($id);
-        return $this->service->show($order);
-    }
+    // /**
+    //  * Get single order details
+    //  */
+    // public function show($id)
+    // {
+    //     $order = Order::findOrFail($id);
+    //     return $this->service->show($order);
+    // }
 
     /**
      * Change order status

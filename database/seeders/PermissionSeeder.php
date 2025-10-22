@@ -117,6 +117,12 @@ class PermissionSeeder extends Seeder
             ['name' => 'sliders.update', 'description' => 'Can update sliders'],
             ['name' => 'sliders.delete', 'description' => 'Can delete sliders'],
             ['name' => 'sliders.toggle_active', 'description' => 'Can toggle slider active status'],
+
+            // Static Page Management
+            ['name' => 'static_pages.view', 'description' => 'Can view static pages'],
+            ['name' => 'static_pages.create', 'description' => 'Can create static pages'],
+            ['name' => 'static_pages.update', 'description' => 'Can update static pages'],
+            ['name' => 'static_pages.delete', 'description' => 'Can delete static pages'],
             
             // Flash Sale Management
             ['name' => 'flash_sales.view', 'description' => 'Can view flash sales'],

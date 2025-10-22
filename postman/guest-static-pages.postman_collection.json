@@ -1,0 +1,115 @@
+{
+	"info": {
+		"_postman_id": "guest-static-pages-collection",
+		"name": "Guest Static Pages",
+		"description": "API endpoints for guest static page operations",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get All Static Pages",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{guest_base_url}}/static-pages?per_page=10",
+					"host": [
+						"{{guest_base_url}}"
+					],
+					"path": [
+						"static-pages"
+					],
+					"query": [
+						{
+							"key": "per_page",
+							"value": "10",
+							"description": "Number of pages per page (default: 15)"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Static Page by Title",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{guest_base_url}}/static-pages/about-us",
+					"host": [
+						"{{guest_base_url}}"
+					],
+					"path": [
+						"static-pages",
+						"about-us"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Static Page by Title (Privacy Policy)",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{guest_base_url}}/static-pages/privacy-policy",
+					"host": [
+						"{{guest_base_url}}"
+					],
+					"path": [
+						"static-pages",
+						"privacy-policy"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Static Page by Title (Terms of Service)",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{guest_base_url}}/static-pages/terms-of-service",
+					"host": [
+						"{{guest_base_url}}"
+					],
+					"path": [
+						"static-pages",
+						"terms-of-service"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "guest_base_url",
+			"value": "127.0.0.1:8000/guest",
+			"type": "string"
+		}
+	]
+}

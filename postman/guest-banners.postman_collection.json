@@ -1,0 +1,69 @@
+{
+	"info": {
+		"_postman_id": "guest-banners-collection",
+		"name": "Guest Banners",
+		"description": "API endpoints for guest banner operations",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get All Banners",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{guest_base_url}}/banners?limit=10",
+					"host": [
+						"{{guest_base_url}}"
+					],
+					"path": [
+						"banners"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "10",
+							"description": "Number of banners to return (default: 15)"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Banner by ID",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{guest_base_url}}/banners/1",
+					"host": [
+						"{{guest_base_url}}"
+					],
+					"path": [
+						"banners",
+						"1"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "guest_base_url",
+			"value": "127.0.0.1:8000/guest",
+			"type": "string"
+		}
+	]
+}

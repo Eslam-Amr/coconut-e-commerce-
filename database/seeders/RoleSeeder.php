@@ -149,6 +149,7 @@ class RoleSeeder extends Seeder
             // Content Management
             'banners.view', 'banners.create', 'banners.update', 'banners.delete', 'banners.toggle_active',
             'sliders.view', 'sliders.create', 'sliders.update', 'sliders.delete', 'sliders.toggle_active',
+            'static_pages.view', 'static_pages.create', 'static_pages.update', 'static_pages.delete',
             
             // Sales Management
             'flash_sales.view', 'flash_sales.create', 'flash_sales.update', 'flash_sales.delete', 'flash_sales.toggle_active',
@@ -241,6 +242,8 @@ class RoleSeeder extends Seeder
             // Content Management
             'banners.view', 'banners.create', 'banners.update', 'banners.delete', 'banners.toggle_active',
             'sliders.view', 'sliders.create', 'sliders.update', 'sliders.delete', 'sliders.toggle_active',
+            'static_pages.view', 'static_pages.create', 'static_pages.update', 'static_pages.delete',
+            'static_pages.view', 'static_pages.create', 'static_pages.update', 'static_pages.delete',
             
             // Category Management (for content organization)
             'categories.view', 'categories.create', 'categories.update', 'categories.toggle_active',
@@ -362,7 +365,7 @@ class RoleSeeder extends Seeder
             'products.view',
             'categories.view', 'brands.view',
             'attributes.view', 'attribute_values.view',
-            'banners.view', 'sliders.view',
+            'banners.view', 'sliders.view', 'static_pages.view',
             'flash_sales.view', 'vouchers.view',
             'countries.view', 'cities.view', 'districts.view',
             'orders.view',
