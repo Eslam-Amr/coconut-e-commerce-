@@ -15,7 +15,7 @@ return new class extends Migration
             $table->foreignId('address_id')->constrained()->cascadeOnDelete();
             $table->decimal('subtotal', 12, 2);
             $table->decimal('discount', 12, 2)->default(0);
-            $table->decimal('shipping_fee', 12, 2)->default(0);
+            $table->decimal('vat', 12, 2)->default(0);
             $table->decimal('tax', 12, 2)->default(0);
             $table->decimal('total', 12, 2);
             $table->string('status')->default('pending');

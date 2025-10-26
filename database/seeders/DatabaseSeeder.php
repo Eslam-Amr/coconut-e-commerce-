@@ -33,6 +33,8 @@ class DatabaseSeeder extends Seeder
             StaticPageSeeder::class,
             BannerSeeder::class,
             SliderSeeder::class,
+            FlashSaleSeeder::class,
+            VoucherSeeder::class,
         ]);
 
         User::updateOrCreate(

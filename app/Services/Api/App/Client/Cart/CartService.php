@@ -12,6 +12,7 @@ use App\Models\Category;
 use App\Services\Utilities\CartCalculationService;
 use App\Services\Utilities\InteractionPointsService;
 use App\Traits\ApiResponseTrait;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -71,8 +72,9 @@ class CartService
                 }
                 // Detect active flash sale for this product or its category (pick highest discount)
                 $now = now();
+                $now=Carbon::parse($now)->toDateTimeString();
                 $flashSale = FlashSale::query()
-                    ->where('active', true)
+                    ->where('active', 1)
                     ->where('start_date', '<=', $now)
                     ->where('end_date', '>=', $now)
                     ->where(function ($q) use ($product) {
@@ -88,9 +90,16 @@ class CartService
                         }
                     })
                     ->orderByDesc('discount')
+                    // ->dd();
                     ->first();
-
-
+// dd(
+//      Product::class,
+// $product->id,
+//      Category::class,
+// $product->category_id
+// );
+// dd($flashSale,$flashSale->toSql(),$now);
+// dd($flashSale,$flashSale->toSql(),$now);
                 // Apply flash sale discount if applicable
                 $effectivePrice = $unitPrice;
                 if ($flashSale && $flashSale->discount > 0) {

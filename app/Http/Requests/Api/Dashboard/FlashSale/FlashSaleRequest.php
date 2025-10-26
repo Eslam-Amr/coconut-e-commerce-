@@ -13,7 +13,6 @@ class FlashSaleRequest extends MasterRequest
         $flashSale = $this->route('flash_sale') ?? $this->route('flashSale') ?? $this->route('flashsale');
 
         return [
-            'title' => [$requireOrSometimes, 'string', 'max:255'],
             'flashable_id' => [
                 $requireOrSometimes, 
                 'integer', 
@@ -38,6 +37,9 @@ class FlashSaleRequest extends MasterRequest
             'start_date' => [$requireOrSometimes, 'date'],
             'end_date' => [$requireOrSometimes, 'date', 'after:start_date'],
             'active' => ['sometimes', 'boolean'],
+            'ar.title' => [$requireOrSometimes, 'string', 'max:255', 'unique:flash_sale_translations,title,' . $flashSale],
+            'en.title' => [$requireOrSometimes, 'string', 'max:255', 'unique:flash_sale_translations,title,' . $flashSale],
+          
         ];
     }
 

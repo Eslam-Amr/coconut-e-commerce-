@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Socket.IO chat</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+  <style>
+    body {
+      margin: 0;
+      padding-bottom: 3rem;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    #form {
+      background: rgba(0, 0, 0, 0.15);
+      padding: 0.25rem;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      height: 3rem;
+      box-sizing: border-box;
+      backdrop-filter: blur(10px);
+    }
+
+    #input {
+      border: none;
+      padding: 0 1rem;
+      flex-grow: 1;
+      border-radius: 2rem;
+      margin: 0.25rem;
+    }
+
+    #input:focus {
+      outline: none;
+    }
+
+    #form>button {
+      background: #333;
+      border: none;
+      padding: 0 1rem;
+      margin: 0.25rem;
+      border-radius: 3px;
+      outline: none;
+      color: #fff;
+    }
+
+    #messages {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    #messages>li {
+      padding: 0.5rem 1rem;
+      margin: 0.25rem;
+      max-width: 70%;
+      border-radius: 10px;
+      clear: both;
+    }
+
+    /* My message (right side) */
+    .my-message {
+      background: #007bff;
+      color: white;
+      float: right;
+      text-align: right;
+    }
+
+    /* Received message (left side) */
+    .other-message {
+      background: #efefef;
+      color: black;
+      float: left;
+      text-align: left;
+    }
+
+    /* Custom notification styles */
+    .custom-notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #28a745;
+      color: white;
+      padding: 15px 20px;
+      border-radius: 5px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      z-index: 10000;
+      max-width: 300px;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    .custom-notification.error {
+      background: #dc3545;
+    }
+
+    .custom-notification.warning {
+      background: #ffc107;
+      color: #212529;
+    }
+
+    .custom-notification.info {
+      background: #17a2b8;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <ul id="messages"></ul>
+  <form id="form" action="">
+    <input id="input" autocomplete="off" /><button>Send</button>
+  </form>
+  <!-- Test buttons - hardcoded English text is intentional for testing purposes -->
+  <div style="position: fixed; top: 10px; right: 10px; z-index: 1000; display: flex; flex-direction: column; gap: 5px;">
+    <button id="testToastr" style="padding: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">Test Toastr</button>
+    <button id="testBracketed" style="padding: 10px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">Test [Bracketed]</button>
+    <button id="testUnknown" style="padding: 10px; background: #ffc107; color: black; border: none; border-radius: 5px; cursor: pointer;">Test Unknown</button>
+    <button id="testAppointment" style="padding: 10px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">Test Appointment</button>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+  <script>
+    // Configure toastr
+    toastr.options = {
+      "closeButton": true,
+      "debug": false,
+      "newestOnTop": true,
+      "progressBar": true,
+      "positionClass": "toast-top-right",
+      "preventDuplicates": false,
+      "onclick": null,
+      "showDuration": "300",
+      "hideDuration": "1000",
+      "timeOut": "5000",
+      "extendedTimeOut": "1000",
+      "showEasing": "swing",
+      "hideEasing": "linear",
+      "showMethod": "fadeIn",
+      "hideMethod": "fadeOut"
+    };
+
+    const socket = io();
+
+    const form = document.getElementById('form');
+    const input = document.getElementById('input');
+    const messages = document.getElementById('messages');
+    const testToastrBtn = document.getElementById('testToastr');
+    const testBracketedBtn = document.getElementById('testBracketed');
+    const testUnknownBtn = document.getElementById('testUnknown');
+    const testAppointmentBtn = document.getElementById('testAppointment');
+
+    // Custom notification function
+    function showCustomNotification(message, title = '', type = 'success') {
+      const notification = document.createElement('div');
+      notification.className = `custom-notification ${type}`;
+      
+      const titleElement = title ? `<strong>${title}</strong><br>` : '';
+      notification.innerHTML = `${titleElement}${message}`;
+      
+      document.body.appendChild(notification);
+      
+      // Auto remove after 5 seconds
+      setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+          }
+        }, 300);
+      }, 5000);
+      
+      // Click to close
+      notification.addEventListener('click', () => {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+          }
+        }, 300);
+      });
+    }
+
+    // Test notification functions
+    testToastrBtn.addEventListener('click', () => {
+      // Try toastr first, fallback to custom notification
+      try {
+        if (typeof toastr !== 'undefined' && toastr.success) {
+          toastr.success('Toastr is working!', 'Test Notification');
+        } else {
+          throw new Error('Toastr not available');
+        }
+      } catch (error) {
+        console.log('Toastr failed, using custom notification:', error);
+        showCustomNotification('Custom notification is working!', 'Test Notification', 'success');
+      }
+    });
+
+    testBracketedBtn.addEventListener('click', () => {
+      // Simulate a bracketed message
+      const testMsg = '[TEST] This is a bracketed message';
+      appendMessage(testMsg, 'other-message');
+      try {
+        if (typeof toastr !== 'undefined' && toastr.info) {
+          toastr.info(testMsg, 'New Message', {
+            timeOut: 5000,
+            extendedTimeOut: 1000
+          });
+        } else {
+          throw new Error('Toastr not available');
+        }
+      } catch (error) {
+        console.log('Toastr failed, using custom notification:', error);
+        showCustomNotification(testMsg, 'New Message', 'info');
+      }
+    });
+
+    testUnknownBtn.addEventListener('click', () => {
+      // Simulate an unknown message
+      const testMsg = 'This is an unknown message without brackets';
+      appendMessage(`[Unknown] ${testMsg}`, 'other-message');
+      try {
+        if (typeof toastr !== 'undefined' && toastr.success) {
+          toastr.success(testMsg, 'New Message', {
+            timeOut: 5000,
+            extendedTimeOut: 1000
+          });
+        } else {
+          throw new Error('Toastr not available');
+        }
+      } catch (error) {
+        console.log('Toastr failed, using custom notification:', error);
+        showCustomNotification(testMsg, 'New Message', 'success');
+      }
+    });
+
+    testAppointmentBtn.addEventListener('click', () => {
+      // Simulate the structured appointment message
+      const appointmentData = {
+        channel: 'laravel-events',
+        source: 'LARAVEL',
+        message: 'تم تعيين ma7ma ma7rous لموعد مع Dr. Robert Davis في 2025-09-23 19:30',
+        type: 'appointment_created',
+        appointment_id: 177,
+        patient_name: 'ma7ma ma7rous',
+        doctor_name: 'Dr. Robert Davis',
+        appointment_date: '2025-09-23 19:30',
+        appointment_type: 'regular',
+        status: 'pending',
+        specialization: 'ta5asos p',
+        offer_id: null
+      };
+      
+      // Directly simulate receiving this message
+      console.log('Simulating appointment message:', appointmentData);
+      
+      // Handle the structured message object
+      const messageText = appointmentData.message;
+      const messageType = appointmentData.type || 'unknown';
+      
+      // Display the message in chat
+      appendMessage(`[${appointmentData.source || 'SYSTEM'}] ${messageText}`, 'other-message');
+      
+      // Show notification based on message type
+      let notificationType = 'success';
+      let notificationTitle = 'New Message';
+      
+      if (messageType === 'appointment_created') {
+        notificationType = 'success';
+        notificationTitle = 'New Appointment';
+      } else if (messageType === 'appointment_updated') {
+        notificationType = 'info';
+        notificationTitle = 'Appointment Updated';
+      } else if (messageType === 'appointment_cancelled') {
+        notificationType = 'warning';
+        notificationTitle = 'Appointment Cancelled';
+      }
+      
+      try {
+        if (typeof toastr !== 'undefined') {
+          if (notificationType === 'success' && toastr.success) {
+            toastr.success(messageText, notificationTitle, {
+              timeOut: 8000,
+              extendedTimeOut: 2000
+            });
+          } else if (notificationType === 'info' && toastr.info) {
+            toastr.info(messageText, notificationTitle, {
+              timeOut: 8000,
+              extendedTimeOut: 2000
+            });
+          } else if (notificationType === 'warning' && toastr.warning) {
+            toastr.warning(messageText, notificationTitle, {
+              timeOut: 8000,
+              extendedTimeOut: 2000
+            });
+          }
+        } else {
+          throw new Error('Toastr not available');
+        }
+      } catch (error) {
+        console.log('Toastr failed, using custom notification:', error);
+        showCustomNotification(messageText, notificationTitle, notificationType);
+      }
+    });
+
+    // form.addEventListener('submit', (e) => {
+    //   e.preventDefault();
+    //   if (input.value) {
+    //     appendMessage(`[ME] ${input.value}`, 'my-message');
+
+    //     socket.emit('chat message', input.value);
+    //     input.value = ' ';
+    //   }
+    // });
+    form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  if (input.value.trim()) {
+    appendMessage(`[ME] ${input.value}`, 'my-message');
+
+    try {
+      // Send message to Laravel API
+    //   const response = await fetch('http://127.0.0.1:8000/api/send-to-node', {
+    //     method: 'POST',
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //       'Accept': 'application/json',
+    //       'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') // if needed
+    //     },
+    //     body: JSON.stringify({
+    //       message: input.value,
+    //       source: "NODEJS"
+    //     })
+    //   });
+    fetch('http://127.0.0.1:8000/api/send-to-node', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+  },
+  body: JSON.stringify({
+    message: input.value,
+    source: "NODEJS"
+  })
+})
+
+        socket.emit('chat message', input.value);
+
+    //   const data = await response.json();
+    //   console.log('Server response:', data);
+
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
+
+    input.value = ''; 
+  }
+});
+
+
+    // socket.on('chat message', (msg) => {
+    //   if (msg.includes('[') && msg.includes(']')) {
+    //     // Check if the message is from Node.js and change it to [ME]
+    //     if (msg.startsWith('[NODEJS]')) {
+    //       const messageText = msg.replace('[NODEJS]', '[ME]');
+    //       appendMessage(messageText, 'my-message');
+    //     } else {
+    //       appendMessage(msg, 'other-message');
+    //     }
+    //   } else {
+    //     appendMessage(`[Unknown] ${msg}`, 'other-message');
+    //   }
+    // });
+    socket.on('chat message', (data) => {
+      console.log('Received data:', data);
+      
+      // Handle structured message objects
+      if (typeof data === 'object' && data.message) {
+        const messageText = data.message;
+        const messageType = data.type || 'unknown';
+        
+        // Display the message in chat
+        appendMessage(`[${data.source || 'SYSTEM'}] ${messageText}`, 'other-message');
+        
+        // Show notification based on message type
+        let notificationType = 'success';
+        let notificationTitle = 'New Message';
+        
+        if (messageType === 'appointment_created') {
+          notificationType = 'success';
+          notificationTitle = 'New Appointment';
+        } else if (messageType === 'appointment_updated') {
+          notificationType = 'info';
+          notificationTitle = 'Appointment Updated';
+        } else if (messageType === 'appointment_cancelled') {
+          notificationType = 'warning';
+          notificationTitle = 'Appointment Cancelled';
+        }
+        
+        try {
+          if (typeof toastr !== 'undefined') {
+            if (notificationType === 'success' && toastr.success) {
+              toastr.success(messageText, notificationTitle, {
+                timeOut: 8000,
+                extendedTimeOut: 2000
+              });
+            } else if (notificationType === 'info' && toastr.info) {
+              toastr.info(messageText, notificationTitle, {
+                timeOut: 8000,
+                extendedTimeOut: 2000
+              });
+            } else if (notificationType === 'warning' && toastr.warning) {
+              toastr.warning(messageText, notificationTitle, {
+                timeOut: 8000,
+                extendedTimeOut: 2000
+              });
+            }
+          } else {
+            throw new Error('Toastr not available');
+          }
+        } catch (error) {
+          console.log('Toastr failed, using custom notification:', error);
+          showCustomNotification(messageText, notificationTitle, notificationType);
+        }
+        
+        return;
+      }
+      
+      // Handle string messages (legacy support)
+      const msg = String(data);
+      
+      if (msg.startsWith('[NODEJS]')) {
+        const messageText = msg.replace('[NODEJS]', '[ME]');
+        appendMessage(messageText, 'my-message');
+      } else if (msg.includes('[') && msg.includes(']')) {
+        appendMessage(msg, 'other-message');
+        // Show notification for bracketed messages too
+        try {
+          if (typeof toastr !== 'undefined' && toastr.success) {
+            toastr.info(msg, 'New Message', {
+              timeOut: 5000,
+              extendedTimeOut: 1000
+            });
+          } else {
+            throw new Error('Toastr not available');
+          }
+        } catch (error) {
+          console.log('Toastr failed, using custom notification:', error);
+          showCustomNotification(msg, 'New Message', 'info');
+        }
+      } else {
+        // Show notification for unknown messages
+        try {
+          if (typeof toastr !== 'undefined' && toastr.success) {
+            toastr.success(msg, 'New Message', {
+              timeOut: 5000,
+              extendedTimeOut: 1000
+            });
+          } else {
+            throw new Error('Toastr not available');
+          }
+        } catch (error) {
+          console.log('Toastr failed, using custom notification:', error);
+          showCustomNotification(msg, 'New Message', 'success');
+        }
+        appendMessage(`[Unknown] ${msg}`, 'other-message');
+        console.log(msg);        
+      }
+    });
+
+    function appendMessage(msg, className) {
+      const item = document.createElement('li');
+      item.textContent = msg;
+      item.classList.add(className);
+      messages.appendChild(item);
+      messages.scrollTop = messages.scrollHeight;
+    }
+  </script>
+</body>
+
+</html>

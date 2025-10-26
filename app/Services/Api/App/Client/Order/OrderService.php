@@ -10,7 +10,6 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\FlashSale;
-use App\Models\FlashSaleItem;
 use App\Models\Settings;
 use App\Models\Transaction;
 use App\Models\Voucher;
@@ -127,8 +126,17 @@ class OrderService
         $longitude = $address->longitude;
         $latitude = $address->latitude;
 
-        $shippingPrice = $this->calculateShippingCost($latitude, $longitude); // Get shipping price from cart
-        $total = $subtotal - $discount; // Total without shipping
+        $shippingPrice = $this->calculateShippingCost($latitude, $longitude);
+        
+        // Get settings for tax and VAT rates
+        $settings = Settings::current();
+        
+        // Calculate tax and VAT on subtotal (before discount)
+        $taxAmount = $subtotal * $settings->tax_rate / 100;
+        $vatAmount = $subtotal * $settings->vat_rate / 100;
+        
+        // Calculate final total: subtotal - discount + shipping + tax + VAT
+        $total = ($subtotal - $discount) + $shippingPrice + $taxAmount + $vatAmount;
 
         // Determine payment status
         if ($paymentStatus) {
@@ -146,12 +154,12 @@ class OrderService
             'status' => 'pending',
             'subtotal' => $subtotal,
             'discount' => $discount,
-            'shipping_price' => $shippingPrice, // Store shipping price separately
-            'total' => $total, // Total without shipping
-            // 'currency' => $request->currency ?? 'USD',
+            'shipping_price' => $shippingPrice,
+            'tax' => $taxAmount,
+            'vat' => $vatAmount,
+            'total' => $total, // Complete total including shipping, tax, and VAT
             'payment_method' => $request->payment_method,
             'payment_status' => $finalPaymentStatus,
-            // 'shipping_status' => 'pending'
         ]);
     }
 
@@ -232,8 +240,8 @@ class OrderService
     {
         foreach ($cart->items as $item) {
             if ($item->flash_sale_id) {
-                FlashSaleItem::where('flash_sale_id', $item->flash_sale_id)
-                    ->where('product_id', $item->product_id)
+                // Update the count directly in the flash_sales table
+                FlashSale::where('id', $item->flash_sale_id)
                     ->increment('count', $item->quantity);
             }
         }
@@ -358,22 +366,31 @@ class OrderService
             return $item->price * $item->quantity;
         });
 
-        // Get shipping price from cart
+        // Get shipping price - use order's shipping price if available, otherwise calculate
         if ($order) {
             $shippingPrice = $order->shipping_price ?? 0;
         } else {
-            $shippingPrice = $cart->shipping_price ?? 0;
+            // Calculate shipping price for cart
+            $user = Auth::user();
+            $addressId = request()->address_id ?? $user->default_address_id ?? null;
+            
+            if ($addressId) {
+                $address = \App\Models\Address::find($addressId);
+                $shippingPrice = $this->calculateShippingCost($address->latitude ?? null, $address->longitude ?? null);
+            } else {
+                $shippingPrice = 0;
+            }
         }
         
         // Get settings for tax and VAT rates
         $settings = Settings::current();
         
-        // Calculate VAT and tax on subtotal
-        $vatAmount = $subtotal * $settings->vat_rate / 100;
+        // Calculate tax and VAT on subtotal (before discount)
         $taxAmount = $subtotal * $settings->tax_rate / 100;
+        $vatAmount = $subtotal * $settings->vat_rate / 100;
         
-        // Calculate paid amount: subtotal - discount + shipping + VAT + tax
-        $paidAmount = ($subtotal - $discount) + $shippingPrice + $vatAmount + $taxAmount;
+        // Calculate paid amount: subtotal - discount + shipping + tax + VAT
+        $paidAmount = ($subtotal - $discount) + $shippingPrice + $taxAmount + $vatAmount;
         
         return round($paidAmount, 2);
     }
@@ -410,15 +427,20 @@ class OrderService
             $paidAmount = $cart ? $this->calculatePaidAmount($cart, $order->discount ?? 0, $order) : $paymentValidation['amount'];
         }
 
+        // Calculate tax and VAT on the order subtotal (before discount)
+        $orderSubtotal = $order->subtotal;
+        $taxAmount = $orderSubtotal * $setting->tax_rate / 100;
+        $vatAmount = $orderSubtotal * $setting->vat_rate / 100;
+
         Transaction::create([
             'transaction_id' => $transactionId,
             'order_id' => $order->id,
-            'amount' => $paymentValidation['amount'], // Order total without shipping/tax/VAT
-            'paid_amount' => $paidAmount, // Complete amount to be paid
+            'amount' => $order->subtotal - $order->discount, // Order amount after discount (without shipping/tax/VAT)
+            'paid_amount' => $paidAmount, // Complete amount to be paid (including everything)
             'status' => $finalStatus,
             'payment_method' => $this->mapPaymentMethod($paymentMethod),
-            'tax' => $paymentValidation['amount'] * $setting->tax_rate / 100, // You can calculate tax here
-            'vat' => $paymentValidation['amount'] * $setting->vat_rate / 100, // You can calculate VAT here
+            'tax' => $taxAmount,
+            'vat' => $vatAmount,
             'tax_percentage' => $setting->tax_rate,
             'vat_percentage' => $setting->vat_rate,
         ]);
@@ -625,18 +647,16 @@ class OrderService
 
                     // Restore flash sale counts if applicable
                     if ($orderItem->flash_sale_id) {
-                        $flashSaleItem = FlashSaleItem::where('flash_sale_id', $orderItem->flash_sale_id)
-                            ->where('product_id', $orderItem->product_id)
-                            ->first();
-
-                        if ($flashSaleItem) {
-                            $flashSaleItem->decrement('count', $orderItem->quantity);
+                        $flashSale = FlashSale::find($orderItem->flash_sale_id);
+                        
+                        if ($flashSale) {
+                            $flashSale->decrement('count', $orderItem->quantity);
 
                             Log::info('Flash sale count restored due to order failure', [
                                 'flash_sale_id' => $orderItem->flash_sale_id,
                                 'product_id' => $orderItem->product_id,
                                 'quantity_restored' => $orderItem->quantity,
-                                'new_count' => $flashSaleItem->fresh()->count,
+                                'new_count' => $flashSale->fresh()->count,
                                 'order_id' => $orderId,
                                 'reason' => $reason
                             ]);

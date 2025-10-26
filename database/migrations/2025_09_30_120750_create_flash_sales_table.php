@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('flash_sales', function (Blueprint $table) {
             $table->id();
-            $table->string('title');
+            // $table->string('title');
             // Polymorphic target: can point to products or categories
             $table->morphs('flashable');
 

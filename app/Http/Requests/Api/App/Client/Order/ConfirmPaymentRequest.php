@@ -8,7 +8,6 @@ use App\Models\Cart;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\FlashSale;
-use App\Models\FlashSaleItem;
 use App\Models\OrderItem;
 use App\Models\Voucher;
 use App\Models\VoucherUsage;
@@ -63,7 +62,7 @@ class ConfirmPaymentRequest extends MasterRequest
 
         $errors = [];
         $now = now();
-
+// dd($cart);
         foreach ($cart->items as $item) {
             // Check if flash sale is still active
             if ($item->flash_sale_id) {
@@ -77,11 +76,7 @@ class ConfirmPaymentRequest extends MasterRequest
                 }
 
                 // Check flash sale limits
-                $flashSaleItem = FlashSaleItem::where('flash_sale_id', $flashSale->id)
-                    ->where('product_id', $item->product_id)
-                    ->first();
-
-                if ($flashSaleItem) {
+                if ($flashSale->max_limit) {
                     $totalOrdered = OrderItem::whereHas('order', function($q) use ($flashSale) {
                         $q->where('created_at', '>=', $flashSale->start_date)
                           ->where('created_at', '<=', $flashSale->end_date);
@@ -90,8 +85,8 @@ class ConfirmPaymentRequest extends MasterRequest
                     ->where('flash_sale_id', $flashSale->id)
                     ->sum('quantity');
 
-                    if (($totalOrdered + $item->quantity) > $flashSaleItem->max_limit) {
-                        $available = $flashSaleItem->max_limit - $totalOrdered;
+                    if (($totalOrdered + $item->quantity) > $flashSale->max_limit) {
+                        $available = $flashSale->max_limit - $totalOrdered;
                         $errors[] = "Flash sale limit exceeded for '{$item->product->name}'. Available: {$available}";
                     }
                 }
@@ -177,6 +172,18 @@ class ConfirmPaymentRequest extends MasterRequest
         $paymentMethod = $this->input('payment_method');
         $user = $this->user();
         $cart = Cart::where('user_id', $user->id)->with(['items.product', 'items.productVariant', 'items.flashSale'])->first();
+
+        // Check if cart exists
+        if (!$cart) {
+            $validator->errors()->add('cart', 'No cart found for this user');
+            return;
+        }
+
+        // Check if cart has items
+        if (!$cart->items || $cart->items->isEmpty()) {
+            $validator->errors()->add('cart', 'Cart is empty');
+            return;
+        }
 
         // Calculate total amount
         $subtotal = $cart->items->sum(function($item) {
