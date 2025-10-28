@@ -56,16 +56,18 @@ class OrderObserver
             })->get();
 
             if ($superAdmins->isNotEmpty()) {
-                // Send notification to all super_admin users
-                // Notification::send($superAdmins, new OrderCreatedNotification($order, ['database']));
-                Notification::send($superAdmins, new OrderCreatedNotification($order, ['database', 'redis']));
+                // Send notification to each admin based on their notification preference
+                foreach ($superAdmins as $admin) {
+                    $channels = ['database'];
+                    
+                    // Add Redis channel if admin has notification enabled
+                    if ($admin->notification == 1 || $admin->notification === true) {
+                        $channels[] = 'redis';
+                    }
+                    
+                    $admin->notify(new OrderCreatedNotification($order, $channels));
+                }
                 
-                Log::info('Order creation notification sent to super admins', [
-                    'order_id' => $order->id,
-                    'order_number' => $order->order_number,
-                    'user_name' => $order->user->name,
-                    'admin_count' => $superAdmins->count()
-                ]);
             }
         } catch (\Exception $e) {
             Log::error('Failed to notify admins about new order', [
@@ -116,14 +118,6 @@ class OrderObserver
                 $channels
             ));
 
-            Log::info('Order status change notification sent to user', [
-                'order_id' => $order->id,
-                'order_number' => $order->order_number,
-                'user_id' => $order->user_id,
-                'old_status' => $oldStatus,
-                'new_status' => $newStatus,
-                'channels' => $channels
-            ]);
         } catch (\Exception $e) {
             Log::error('Failed to notify user about status change', [
                 'order_id' => $order->id,

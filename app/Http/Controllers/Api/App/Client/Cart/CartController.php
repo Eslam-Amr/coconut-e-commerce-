@@ -3,6 +3,12 @@
 namespace App\Http\Controllers\Api\App\Client\Cart;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\App\Client\Cart\AddToCartRequest;
+use App\Http\Requests\App\Client\Cart\CalculateCartTotalRequest;
+use App\Http\Requests\App\Client\Cart\DecrementCartItemRequest;
+use App\Http\Requests\App\Client\Cart\IncrementCartItemRequest;
+use App\Http\Requests\App\Client\Cart\RemoveCartItemRequest;
+use App\Http\Requests\App\Client\Cart\UpdateCartItemQuantityRequest;
 use App\Services\Api\App\Client\Cart\CartService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -25,38 +31,38 @@ class CartController extends Controller implements HasMiddleware
         return $this->cartService->getCart($request);
     }
 
-    public function add(Request $request)
+    public function add(AddToCartRequest $request)
     {
-        return $this->cartService->add($request);
+        return $this->cartService->add($request->validated());
     }
 
-    public function increment(Request $request)
+    public function increment(IncrementCartItemRequest $request)
     {
-        return $this->cartService->increment($request);
+        return $this->cartService->increment($request->validated());
     }
 
-    public function decrement(Request $request)
+    public function decrement(DecrementCartItemRequest $request)
     {
-        return $this->cartService->decrement($request);
+        return $this->cartService->decrement($request->validated());
     }
 
-    public function updateQuantity(Request $request)
+    public function updateQuantity(UpdateCartItemQuantityRequest $request)
     {
-        return $this->cartService->updateQuantity($request);
+        return $this->cartService->updateQuantity($request->validated());
     }
 
-    public function remove(Request $request)
+    public function remove(RemoveCartItemRequest $request)
     {
-        return $this->cartService->remove($request);
+        return $this->cartService->remove($request->validated());
     }
 
     /**
      * Calculate cart total with shipping, VAT, and tax
      * Uses user's default address if no coordinates provided
      */
-    public function calculateTotal(Request $request)
+    public function calculateTotal(CalculateCartTotalRequest $request)
     {
-        return $this->cartService->calculateTotal($request);
+        return $this->cartService->calculateTotal($request->validated());
     }
 }
 

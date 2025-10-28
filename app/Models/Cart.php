@@ -15,15 +15,19 @@ class Cart extends Model
         'user_id',
         'subtotal',
         'discount',
-        'total',
+        'vat_amount',
+        'tax_amount',
         'shipping_price',
+        'total',
     ];
 
     protected $casts = [
         'subtotal' => 'decimal:2',
         'discount' => 'decimal:2',
-        'total' => 'decimal:2',
+        'vat_amount' => 'decimal:2',
+        'tax_amount' => 'decimal:2',
         'shipping_price' => 'decimal:2',
+        'total' => 'decimal:2',
     ];
 
     public function user(): BelongsTo

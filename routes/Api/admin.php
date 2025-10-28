@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\Dashboard\Permission\PermissionController;
 use App\Http\Controllers\Api\Dashboard\Order\OrderController;
 use App\Http\Controllers\Api\Dashboard\Refund\RefundController;
 use App\Http\Controllers\Api\Dashboard\StaticPage\StaticPageController;
+use App\Http\Controllers\Api\Dashboard\DashboardStatisticsController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [LoginController::class, 'login']);
@@ -132,6 +133,26 @@ Route::get('refunds-stats', [RefundController::class, 'getStats']);
 
 // Static Page Management routes
 Route::apiResource('static-pages', StaticPageController::class);
+
+// Dashboard Statistics routes
+Route::get('statistics', [DashboardStatisticsController::class, 'getStatistics']);
+Route::get('statistics/sales-analytics', [DashboardStatisticsController::class, 'getSalesAnalytics']);
+
+// Focused Statistics Endpoints (Faster)
+Route::get('statistics/orders', [DashboardStatisticsController::class, 'getOrdersStatistics']);
+Route::get('statistics/profit', [DashboardStatisticsController::class, 'getProfitStatistics']);
+Route::get('statistics/users', [DashboardStatisticsController::class, 'getUsersStatistics']);
+Route::get('statistics/products', [DashboardStatisticsController::class, 'getProductsStatistics']);
+Route::get('statistics/revenue', [DashboardStatisticsController::class, 'getRevenueStatistics']);
+Route::get('statistics/overview', [DashboardStatisticsController::class, 'getOverviewStatistics']);
+
+// Ultra-Fast LITE Statistics Endpoints (Essential Data Only)
+Route::get('statistics/orders/lite', [DashboardStatisticsController::class, 'getOrdersStatisticsLite']);
+Route::get('statistics/profit/lite', [DashboardStatisticsController::class, 'getProfitStatisticsLite']);
+Route::get('statistics/users/lite', [DashboardStatisticsController::class, 'getUsersStatisticsLite']);
+Route::get('statistics/products/lite', [DashboardStatisticsController::class, 'getProductsStatisticsLite']);
+Route::get('statistics/revenue/lite', [DashboardStatisticsController::class, 'getRevenueStatisticsLite']);
+Route::get('statistics/overview/lite', [DashboardStatisticsController::class, 'getOverviewStatisticsLite']);
 // Route::post('categories/{category}/toggle-active', function($category) {
 //     try {
 //         // If we received a string (ID), resolve the model

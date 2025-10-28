@@ -43,112 +43,18 @@ class CartService
         }
     }
 
-    public function add(Request $request)
+    public function add(array $validated)
     {
-        $validated = $request->validate([
-            'product_id' => ['required', 'integer', 'exists:products,id'],
-            'product_variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
-            'quantity' => ['nullable', 'integer', 'min:1'],
-        ]);
-
         try {
             $userId = Auth::id();
             $quantityToAdd = (int)($validated['quantity'] ?? 1);
 
             return DB::transaction(function () use ($userId, $validated, $quantityToAdd) {
                 $cart = $this->getOrCreateUserCart($userId);
-
-                $product = Product::query()->where('id', $validated['product_id'])->where('active', true)->firstOrFail();
-
-                $variantId = $validated['product_variant_id'] ?? null;
-                $unitPrice = $product->base_price; // fallback
-
-                if ($variantId) {
-                    $variant = ProductVariant::query()->where('id', $variantId)->where('active', true)->firstOrFail();
-                    if ($variant->product_id !== $product->id) {
-                        return $this->errorResponse(__('messages.variant_mismatch'), [], 400);
-                    }
-                    $unitPrice = $variant->price ?? $unitPrice;
-                }
-                // Detect active flash sale for this product or its category (pick highest discount)
-                $now = now();
-                $now=Carbon::parse($now)->toDateTimeString();
-                $flashSale = FlashSale::query()
-                    ->where('active', 1)
-                    ->where('start_date', '<=', $now)
-                    ->where('end_date', '>=', $now)
-                    ->where(function ($q) use ($product) {
-                        $q->where(function ($q2) use ($product) {
-                            $q2->where('flashable_type', Product::class)
-                                ->where('flashable_id', $product->id);
-                        });
-                        if (!is_null($product->category_id)) {
-                            $q->orWhere(function ($q3) use ($product) {
-                                $q3->where('flashable_type', Category::class)
-                                    ->where('flashable_id', $product->category_id);
-                            });
-                        }
-                    })
-                    ->orderByDesc('discount')
-                    // ->dd();
-                    ->first();
-// dd(
-//      Product::class,
-// $product->id,
-//      Category::class,
-// $product->category_id
-// );
-// dd($flashSale,$flashSale->toSql(),$now);
-// dd($flashSale,$flashSale->toSql(),$now);
-                // Apply flash sale discount if applicable
-                $effectivePrice = $unitPrice;
-                if ($flashSale && $flashSale->discount > 0) {
-                    $effectivePrice = round(max(0, $unitPrice * (1 - ((float)$flashSale->discount / 100))), 2);
-                }
-
-                // Check current cart quantity for this item
-                $existingItem = CartItem::query()
-                    ->where('cart_id', $cart->id)
-                    ->where('product_id', $product->id)
-                    ->when($variantId, fn($q) => $q->where('product_variant_id', $variantId))
-                    ->when(!$variantId, fn($q) => $q->whereNull('product_variant_id'))
-                    ->when($flashSale, fn($q) => $q->where('flash_sale_id', $flashSale->id))
-                    ->when(!$flashSale, fn($q) => $q->whereNull('flash_sale_id'))
-                    ->first();
-
-                $currentCartQuantity = $existingItem ? $existingItem->quantity : 0;
-                $requestedTotalQuantity = $currentCartQuantity + $quantityToAdd;
-
-                // Validate stock availability
-                $availableStock = $this->getAvailableStock($product, $variantId);
-
-                if ($requestedTotalQuantity > $availableStock) {
-                    return $this->errorResponse(
-                        __('messages.insufficient_stock'),
-                        [
-                            'available_stock' => $availableStock,
-                            'requested_quantity' => $requestedTotalQuantity,
-                            'current_cart_quantity' => $currentCartQuantity,
-                            'trying_to_add' => $quantityToAdd
-                        ],
-                        422
-                    );
-                }
-
-                // Enforce flash sale max limit per cart/user if present
-                if ($flashSale && !empty($flashSale->max_limit) && is_numeric($flashSale->max_limit)) {
-                    $maxLimit = (int)$flashSale->max_limit;
-                    $currentFlashQty = $existingItem ? (int)$existingItem->quantity : 0;
-                    if ($currentFlashQty + $quantityToAdd > $maxLimit) {
-                        $allowed = max(0, $maxLimit - $currentFlashQty);
-                        return $this->errorResponse(__('messages.flash_sale_limit_exceeded'), [
-                            'max_limit' => $maxLimit,
-                            'current_in_cart' => $currentFlashQty,
-                            'trying_to_add' => $quantityToAdd,
-                            'allowed_remaining' => $allowed,
-                        ], 422);
-                    }
-                }
+                [$product, $variantId, $unitPrice] = $this->resolveProductVariantAndPrice((int)$validated['product_id'], $validated['product_variant_id'] ?? null);
+                $flashSale = $this->getActiveFlashSale($product);
+                $effectivePrice = $this->calculateEffectivePrice($unitPrice, $flashSale);
+                $existingItem = $this->findCartItemInContext($cart, $product, $variantId, $flashSale);
 
                 if ($existingItem) {
                     $existingItem->quantity += $quantityToAdd;
@@ -165,29 +71,22 @@ class CartService
                     ]);
                 }
 
+                // eager load user to avoid extra query inside recalculate
+                $cart->load('user');
                 $this->recalculateCartTotals($cart);
 
                 // Record interaction points for adding to cart
                 $this->interactionService->recordInteraction($userId, $validated['product_id'], 'view');
-
-                // $cart->load(['items.product.translations', 'items.product.brand.translations', 'items.product.category.translations', 'items.productVariant']);
-
+                // $this->loadCartRelations($cart);
                 return $this->successResponse($cart, __('messages.added_to_cart'));
             });
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            throw $e;
         } catch (\Exception $e) {
             return $this->serverErrorResponse(__('messages.cart_add_failed'), ['error' => $e->getMessage()]);
         }
     }
 
-    public function increment(Request $request)
+    public function increment(array $validated)
     {
-        $validated = $request->validate([
-            'cart_item_id' => ['required', 'integer', 'exists:cart_items,id'],
-            'by' => ['nullable', 'integer', 'min:1']
-        ]);
-
         try {
             $by = (int)($validated['by'] ?? 1);
             return DB::transaction(function () use ($validated, $by) {
@@ -200,6 +99,15 @@ class CartService
                 $item->load(['product', 'productVariant']);
                 $product = $item->product;
                 $variantId = $item->product_variant_id;
+
+
+                if ($variantId) {
+                    $variant = ProductVariant::query()->where('id', $variantId)->where('active', true)->firstOrFail();
+                    if ($variant->product_id !== $product->id) {
+                        return $this->errorResponse(__('messages.variant_mismatch'), [], 400);
+                    }
+                }
+
 
                 // Check stock availability
                 $availableStock = $this->getAvailableStock($product, $variantId);
@@ -222,24 +130,16 @@ class CartService
                 $item->save();
 
                 $this->recalculateCartTotals($cart);
-
-                $cart->load(['items.product.translations', 'items.product.brand.translations', 'items.product.category.translations', 'items.productVariant']);
+                // $this->loadCartRelations($cart);
                 return $this->successResponse($cart, 'Cart item incremented');
             });
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            throw $e;
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to increment item', ['error' => $e->getMessage()]);
         }
     }
 
-    public function decrement(Request $request)
+    public function decrement(array $validated)
     {
-        $validated = $request->validate([
-            'cart_item_id' => ['required', 'integer', 'exists:cart_items,id'],
-            'by' => ['nullable', 'integer', 'min:1']
-        ]);
-
         try {
             $by = (int)($validated['by'] ?? 1);
             return DB::transaction(function () use ($validated, $by) {
@@ -258,24 +158,16 @@ class CartService
                 }
 
                 $this->recalculateCartTotals($cart);
-
-                $cart->load(['items.product.translations', 'items.product.brand.translations', 'items.product.category.translations', 'items.productVariant']);
+                // $this->loadCartRelations($cart);
                 return $this->successResponse($cart, 'Cart item decremented');
             });
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            throw $e;
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to decrement item', ['error' => $e->getMessage()]);
         }
     }
 
-    public function updateQuantity(Request $request)
+    public function updateQuantity(array $validated)
     {
-        $validated = $request->validate([
-            'cart_item_id' => ['required', 'integer', 'exists:cart_items,id'],
-            'quantity' => ['required', 'integer', 'min:0']
-        ]);
-
         try {
             return DB::transaction(function () use ($validated) {
                 $item = CartItem::query()->findOrFail($validated['cart_item_id']);
@@ -312,23 +204,16 @@ class CartService
                 }
 
                 $this->recalculateCartTotals($cart);
-
-                $cart->load(['items.product.translations', 'items.product.brand.translations', 'items.product.category.translations', 'items.productVariant']);
+                // $this->loadCartRelations($cart);
                 return $this->successResponse($cart, 'Cart item quantity updated');
             });
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            throw $e;
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to update quantity', ['error' => $e->getMessage()]);
         }
     }
 
-    public function remove(Request $request)
+    public function remove(array $validated)
     {
-        $validated = $request->validate([
-            'cart_item_id' => ['required', 'integer', 'exists:cart_items,id']
-        ]);
-
         try {
             return DB::transaction(function () use ($validated) {
                 $item = CartItem::query()->findOrFail($validated['cart_item_id']);
@@ -339,12 +224,9 @@ class CartService
                 $item->delete();
 
                 $this->recalculateCartTotals($cart);
-
-                $cart->load(['items.product.translations', 'items.product.brand.translations', 'items.product.category.translations', 'items.productVariant']);
+                $this->loadCartRelations($cart);
                 return $this->successResponse($cart, 'Cart item removed');
             });
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            throw $e;
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to remove item', ['error' => $e->getMessage()]);
         }
@@ -354,7 +236,7 @@ class CartService
      * Calculate cart total with shipping, VAT, and tax
      * Uses user's default address if no address_id provided
      */
-    public function calculateTotal(Request $request)
+    public function calculateTotal(array $validated)
     {
         try {
             $user = Auth::user();
@@ -362,18 +244,12 @@ class CartService
                 return $this->errorResponse('Unauthorized', [], 401);
             }
 
-            $validated = $request->validate([
-                'address_id' => ['nullable', 'integer', 'exists:addresses,id'],
-            ]);
-
             $result = $this->calculationService->calculateCartTotalByAddress(
                 $user->id,
                 $validated['address_id'] ?? null
             );
 
             return $this->successResponse($result, 'Cart total calculated successfully');
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            throw $e;
         } catch (\Exception $e) {
             return $this->serverErrorResponse('Failed to calculate cart total', ['error' => $e->getMessage()]);
         }
@@ -392,12 +268,24 @@ class CartService
     {
         $subtotal = (float) CartItem::query()->where('cart_id', $cart->id)->sum(DB::raw('quantity * price'));
         $discount = (float) ($cart->discount ?? 0);
+        
+        // Calculate VAT and tax on subtotal
+        $vatAmount = $this->calculationService->calculateVAT($subtotal);
+        $taxAmount = $this->calculationService->calculateTax($subtotal);
+        
+        // Calculate shipping cost
         $address = Address::find($cart->user->default_address_id);
-        $shippingPrice = (float) ($cart->shipping_price!=0 ? $cart->shipping_price : $this->calculationService->calculateShippingCost($address->latitude, $address->longitude));
+        $shippingPrice = (float) ($cart->shipping_price != 0 ? $cart->shipping_price : $this->calculationService->calculateShippingCost($address?->latitude, $address?->longitude));
+        
+        // Calculate final total: subtotal - discount + VAT + tax + shipping
+        $total = max(0, $subtotal - $discount + $vatAmount + $taxAmount + $shippingPrice);
         
         $cart->subtotal = $subtotal;
-        $cart->total = max(0, $subtotal - $discount); // Total without shipping
-        $cart->shipping_price = $shippingPrice; // Store shipping price separately
+        $cart->discount = $discount;
+        $cart->vat_amount = $vatAmount;
+        $cart->tax_amount = $taxAmount;
+        $cart->shipping_price = $shippingPrice;
+        $cart->total = $total;
         $cart->save();
     }
 
@@ -425,5 +313,67 @@ class CartService
             // If no variant, return product total quantity
             return $product->total_quantity;
         }
+    }
+
+    private function resolveProductVariantAndPrice(int $productId, ?int $variantId): array
+    {
+        $product = Product::query()->where('id', $productId)->where('active', true)->firstOrFail();
+        $unitPrice = $product->base_price;
+        if ($variantId) {
+            $variant = ProductVariant::query()->where('id', $variantId)->where('active', true)->firstOrFail();
+           
+            $unitPrice = $variant->price ?? $unitPrice;
+            return [$product, $variantId, $unitPrice];
+        }
+        return [$product, null, $unitPrice];
+    }
+
+    private function getActiveFlashSale(Product $product): ?FlashSale
+    {
+        $now = Carbon::parse(now())->toDateTimeString();
+        // Cache per product+category+time window for one minute to reduce duplicate queries within a request burst
+        return FlashSale::query()
+            ->where('active', 1)
+            ->where('start_date', '<=', $now)
+            ->where('end_date', '>=', $now)
+            ->where(function ($q) use ($product) {
+                $q->where(function ($q2) use ($product) {
+                    $q2->where('flashable_type', Product::class)
+                        ->where('flashable_id', $product->id);
+                });
+                if (!is_null($product->category_id)) {
+                    $q->orWhere(function ($q3) use ($product) {
+                        $q3->where('flashable_type', Category::class)
+                            ->where('flashable_id', $product->category_id);
+                    });
+                }
+            })
+            ->orderByDesc('discount')
+            ->first();
+    }
+
+    private function calculateEffectivePrice(float $unitPrice, ?FlashSale $flashSale): float
+    {
+        if (!$flashSale || $flashSale->discount <= 0) {
+            return $unitPrice;
+        }
+        return round(max(0, $unitPrice * (1 - ((float)$flashSale->discount / 100))), 2);
+    }
+
+    private function findCartItemInContext(Cart $cart, Product $product, ?int $variantId, ?FlashSale $flashSale): ?CartItem
+    {
+        return CartItem::query()
+            ->where('cart_id', $cart->id)
+            ->where('product_id', $product->id)
+            ->when($variantId, fn($q) => $q->where('product_variant_id', $variantId))
+            ->when(!$variantId, fn($q) => $q->whereNull('product_variant_id'))
+            ->when($flashSale, fn($q) => $q->where('flash_sale_id', $flashSale->id))
+            ->when(!$flashSale, fn($q) => $q->whereNull('flash_sale_id'))
+            ->first();
+    }
+
+    private function loadCartRelations(Cart $cart): void
+    {
+        $cart->load(['items.product.translations', 'items.product.brand.translations', 'items.product.category.translations', 'items.productVariant']);
     }
 }

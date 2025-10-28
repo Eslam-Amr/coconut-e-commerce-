@@ -248,7 +248,7 @@ class CartCalculationService
     /**
      * Calculate VAT amount
      */
-    private function calculateVAT(float $subtotal): float
+    public function calculateVAT(float $subtotal): float
     {
         return $subtotal * $this->settings->vat_rate_decimal;
     }
@@ -256,7 +256,7 @@ class CartCalculationService
     /**
      * Calculate tax amount
      */
-    private function calculateTax(float $subtotal): float
+    public function calculateTax(float $subtotal): float
     {
         return $subtotal * $this->settings->tax_rate_decimal;
     }

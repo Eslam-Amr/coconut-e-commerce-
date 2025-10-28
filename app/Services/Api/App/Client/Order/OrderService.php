@@ -46,8 +46,19 @@ class OrderService
             $cart = Cart::where('user_id', $user->id)->with(['items.product', 'items.productVariant', 'items.flashSale'])->first();
 
             if (!$cart || $cart->items->isEmpty()) {
+
                 return $this->errorResponse(__('messages.cart_empty'), [], 400);
             }
+             // Step 1: Lock the cart and related products
+            //  $cart = $this->getCartWithLockedProducts($user->id);
+            
+            //  if (!$cart || $cart->items->isEmpty()) {
+            //      throw new \Exception(__('messages.cart_empty'));
+            //  }
+ 
+            //  // Step 2: Validate stock with locked products
+            //  $this->validateStockWithLock($cart);
+ 
 
             // Get voucher validation data
             $voucherValidation = $this->getVoucherValidation($request->voucher_code, $user->id, $cart);
@@ -834,4 +845,70 @@ class OrderService
         return $earthRadius * $c;
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
+ * Get cart with locked products to prevent race conditions
+ */
+private function getCartWithLockedProducts($userId)
+{
+    return Cart::where('user_id', $userId)
+        ->with(['items' => function($query) {
+            $query->with(['product' => function($q) {
+                $q->lockForUpdate(); // Lock product rows
+            }, 'productVariant' => function($q) {
+                $q->lockForUpdate(); // Lock variant rows
+            }, 'flashSale' => function($q) {
+                $q->lockForUpdate(); // Lock flash sale rows
+            }]);
+        }])
+        ->lockForUpdate() // Lock cart row
+        ->first();
+}
+
+/**
+ * Validate stock with locked products
+ */
+private function validateStockWithLock(Cart $cart)
+{
+    foreach ($cart->items as $cartItem) {
+        if ($cartItem->product_variant_id) {
+            // Variants are already locked from the with() clause
+            $variant = $cartItem->productVariant;
+            if (!$variant || $variant->stock < $cartItem->quantity) {
+                throw new \Exception("Insufficient stock for variant of product: {$cartItem->product->name}");
+            }
+
+            $product = $cartItem->product;
+            if (!$product || $product->total_quantity < $cartItem->quantity) {
+                throw new \Exception("Insufficient stock for product: {$cartItem->product->name}");
+            }
+        } else {
+            $product = $cartItem->product;
+            if (!$product || $product->total_quantity < $cartItem->quantity) {
+                throw new \Exception("Insufficient stock for product: {$cartItem->product->name}");
+            }
+        }
+    }
+}
 }
