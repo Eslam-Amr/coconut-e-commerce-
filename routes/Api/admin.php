@@ -22,7 +22,6 @@ use App\Http\Controllers\Api\Dashboard\Admin\AdminController;
 use App\Http\Controllers\Api\Dashboard\Role\RoleController;
 use App\Http\Controllers\Api\Dashboard\Permission\PermissionController;
 use App\Http\Controllers\Api\Dashboard\Order\OrderController;
-use App\Http\Controllers\Api\Dashboard\Refund\RefundController;
 use App\Http\Controllers\Api\Dashboard\StaticPage\StaticPageController;
 use App\Http\Controllers\Api\Dashboard\DashboardStatisticsController;
 use Illuminate\Support\Facades\Route;
@@ -125,11 +124,6 @@ Route::put('orders/{order}/change-status', [OrderController::class, 'changeStatu
 Route::get('orders-stats', [OrderController::class, 'getStats']);
 Route::get('order-statuses', [OrderController::class, 'getStatuses']);
 
-// Refund Management routes
-Route::get('refunds', [RefundController::class, 'index']);
-Route::get('refunds/{refund}', [RefundController::class, 'show']);
-Route::put('refunds/{refund}/update-status', [RefundController::class, 'updateStatus']);
-Route::get('refunds-stats', [RefundController::class, 'getStats']);
 
 // Static Page Management routes
 Route::apiResource('static-pages', StaticPageController::class);

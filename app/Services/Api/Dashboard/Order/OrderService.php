@@ -109,7 +109,6 @@ class OrderService
                 SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as shipped_orders,
                 SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as delivered_orders,
                 SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as cancelled_orders,
-                SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as refunded_orders,
                 SUM(CASE WHEN status IN (?, ?, ?, ?) THEN total ELSE 0 END) as total_revenue
             ', [
                 OrderStatus::PENDING->value,
@@ -117,7 +116,6 @@ class OrderService
                 OrderStatus::SHIPPED->value,
                 OrderStatus::DELIVERED->value,
                 OrderStatus::CANCELLED->value,
-                OrderStatus::REFUNDED->value,
                 OrderStatus::DELIVERED->value,
                 OrderStatus::SHIPPED->value,
                 OrderStatus::PROCESSING->value,

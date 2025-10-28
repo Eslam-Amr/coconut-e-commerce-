@@ -60,12 +60,6 @@ class WalletService
     public function chargeWallet(Request $request)
     {
         try {
-            // Validate request
-            $request->validate([
-                'amount' => 'required|numeric|min:1|max:10000',
-                'currency' => 'required|string|in:USD,EUR,GBP'
-            ]);
-
             $userId = Auth::id();
             $amount = $request->amount;
             $currency = $request->currency;

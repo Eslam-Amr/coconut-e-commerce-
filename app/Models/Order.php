@@ -68,8 +68,4 @@ class Order extends Model
         return $this->hasMany(Transaction::class);
     }
 
-    public function refundedMoney(): HasOne
-    {
-        return $this->hasOne(RefundedMoney::class);
-    }
 }

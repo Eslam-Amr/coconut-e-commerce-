@@ -8,7 +8,6 @@ use App\Services\Order\States\ConfirmedOrderState;
 use App\Services\Order\States\DeliveredOrderState;
 use App\Services\Order\States\PendingOrderState;
 use App\Services\Order\States\ProcessingOrderState;
-use App\Services\Order\States\RefundedOrderState;
 use App\Services\Order\States\ShippedOrderState;
 
 class OrderStateFactory
@@ -25,7 +24,6 @@ class OrderStateFactory
             OrderStatus::SHIPPED => new ShippedOrderState(),
             OrderStatus::DELIVERED => new DeliveredOrderState(),
             OrderStatus::CANCELLED => new CancelledOrderState(),
-            OrderStatus::REFUNDED => new RefundedOrderState(),
         };
     }
 

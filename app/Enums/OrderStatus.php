@@ -10,7 +10,6 @@ enum OrderStatus: string
     case SHIPPED = 'shipped';
     case DELIVERED = 'delivered';
     case CANCELLED = 'cancelled';
-    case REFUNDED = 'refunded';
 
     /**
      * Get all status values
@@ -32,7 +31,6 @@ enum OrderStatus: string
             self::SHIPPED => 'Shipped',
             self::DELIVERED => 'Delivered',
             self::CANCELLED => 'Cancelled',
-            self::REFUNDED => 'Refunded',
         };
     }
 
@@ -48,7 +46,6 @@ enum OrderStatus: string
             self::SHIPPED => 'orange',
             self::DELIVERED => 'green',
             self::CANCELLED => 'red',
-            self::REFUNDED => 'gray',
         };
     }
 
@@ -62,9 +59,8 @@ enum OrderStatus: string
             self::CONFIRMED => in_array($newStatus, [self::PROCESSING, self::CANCELLED]),
             self::PROCESSING => in_array($newStatus, [self::SHIPPED, self::CANCELLED]),
             self::SHIPPED => in_array($newStatus, [self::DELIVERED, self::CANCELLED]),
-            self::DELIVERED => in_array($newStatus, [self::REFUNDED]),
+            self::DELIVERED => false, // Delivered orders cannot be changed
             self::CANCELLED => false, // Cannot change from cancelled
-            self::REFUNDED => false, // Cannot change from refunded
         };
     }
 
@@ -78,9 +74,8 @@ enum OrderStatus: string
             self::CONFIRMED => [self::PROCESSING, self::CANCELLED],
             self::PROCESSING => [self::SHIPPED, self::CANCELLED],
             self::SHIPPED => [self::DELIVERED, self::CANCELLED],
-            self::DELIVERED => [self::REFUNDED],
+            self::DELIVERED => [],
             self::CANCELLED => [],
-            self::REFUNDED => [],
         };
     }
 }

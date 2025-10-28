@@ -75,6 +75,7 @@ class OrderPaymentController extends Controller
                     $transaction->update([
                         'transaction_id' => $sessionId // Store actual payment gateway transaction ID
                     ]);
+                    $order->update(['payment_status' => 'completed']);
                     
                     // Order is already completed, just confirm it
                     // $order->update([

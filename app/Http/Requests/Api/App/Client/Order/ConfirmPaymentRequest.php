@@ -41,91 +41,33 @@ class ConfirmPaymentRequest extends MasterRequest
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            $this->validateCart($validator);
-            $this->validateVoucher($validator);
-            $this->validatePaymentMethod($validator);
+            // Keep request validation lightweight and IO-cheap.
+            // Heavy validations (stock/limits/wallet amount) are done under DB locks in the service layer.
             $this->validateAddress($validator);
+            $this->validateVoucherExists($validator);
+            // $this->validateCartExistsAndHasItems($validator);
+            $this->validatePaymentMethodBasic($validator);
         });
     }
 
     /**
      * Validate cart items for order confirmation
      */
-    private function validateCart($validator)
-    {
-        $user = $this->user();
-        $cart = Cart::where('user_id', $user->id)->with(['items.product', 'items.productVariant', 'items.flashSale'])->first();
+    // private function validateCartExistsAndHasItems($validator)
+    // {
+    //     $user = $this->user();
+    //     $cart = Cart::where('user_id', $user->id)->withCount('items')->first();
         
-        if (!$cart || $cart->items->isEmpty()) {
-            $validator->errors()->add('cart', 'Cart is empty');
-            return;
-        }
-
-        $errors = [];
-        $now = now();
-// dd($cart);
-        foreach ($cart->items as $item) {
-            // Check if flash sale is still active
-            if ($item->flash_sale_id) {
-                $flashSale = FlashSale::find($item->flash_sale_id);
-                
-                if (!$flashSale || !$flashSale->active || 
-                    $flashSale->start_date > $now || 
-                    $flashSale->end_date < $now) {
-                    $errors[] = "Flash sale for product '{$item->product->name}' has expired";
-                    continue;
-                }
-
-                // Check flash sale limits
-                if ($flashSale->max_limit) {
-                    $totalOrdered = OrderItem::whereHas('order', function($q) use ($flashSale) {
-                        $q->where('created_at', '>=', $flashSale->start_date)
-                          ->where('created_at', '<=', $flashSale->end_date);
-                    })
-                    ->where('product_id', $item->product_id)
-                    ->where('flash_sale_id', $flashSale->id)
-                    ->sum('quantity');
-
-                    if (($totalOrdered + $item->quantity) > $flashSale->max_limit) {
-                        $available = $flashSale->max_limit - $totalOrdered;
-                        $errors[] = "Flash sale limit exceeded for '{$item->product->name}'. Available: {$available}";
-                    }
-                }
-            }
-
-            // Check stock availability
-            if ($item->product_variant_id) {
-                // Check variant stock from product_variants table
-                $variant = ProductVariant::find($item->product_variant_id);
-
-                if (!$variant) {
-                    $errors[] = "Product variant not found for '{$item->product->name}'";
-                } elseif ($variant->stock < $item->quantity) {
-                    $errors[] = "Insufficient stock for variant of '{$item->product->name}'. Available: {$variant->stock}, Requested: {$item->quantity}";
-                }
-            } else {
-                // Check regular product stock from products table
-                $product = Product::find($item->product_id);
-
-                if (!$product) {
-                    $errors[] = "Product not found for '{$item->product->name}'";
-                } elseif ($product->total_quantity < $item->quantity) {
-                    $errors[] = "Insufficient stock for '{$item->product->name}'. Available: {$product->total_quantity}, Requested: {$item->quantity}";
-                }
-            }
-        }
-
-        if (!empty($errors)) {
-            foreach ($errors as $error) {
-                $validator->errors()->add('cart', $error);
-            }
-        }
-    }
+    //     if (!$cart || $cart->items_count === 0) {
+    //         $validator->errors()->add('cart', 'Cart is empty');
+    //         return;
+    //     }
+    // }
 
     /**
      * Validate voucher code
      */
-    private function validateVoucher($validator)
+    private function validateVoucherExists($validator)
     {
         $voucherCode = $this->input('voucher_code');
         if (!$voucherCode) {
@@ -133,7 +75,7 @@ class ConfirmPaymentRequest extends MasterRequest
         }
 
         $user = $this->user();
-        $cart = Cart::where('user_id', $user->id)->with(['items.product', 'items.productVariant', 'items.flashSale'])->first();
+        $cart = Cart::where('user_id', $user->id)->withCount('items')->first();
 
         $voucher = Voucher::where('code', $voucherCode)
             ->where('active', true)
@@ -145,89 +87,25 @@ class ConfirmPaymentRequest extends MasterRequest
             $validator->errors()->add('voucher_code', 'Invalid or expired voucher code');
             return;
         }
-
-        // Check usage limits
-        if ($voucher->usage_limit && $voucher->used_count >= $voucher->usage_limit) {
-            $validator->errors()->add('voucher_code', 'Voucher usage limit exceeded');
-            return;
-        }
-
-        // Check per-user usage limit
-        if ($voucher->usage_limit_per_user) {
-            $userUsageCount = VoucherUsage::where('voucher_id', $voucher->id)
-                ->where('user_id', $user->id)
-                ->count();
-
-            if ($userUsageCount >= $voucher->usage_limit_per_user) {
-                $validator->errors()->add('voucher_code', 'You have reached the maximum usage limit for this voucher');
-                return;
-            }
-        }
     }
 
     /**
      * Validate payment method
      */
-    private function validatePaymentMethod($validator)
+    private function validatePaymentMethodBasic($validator)
     {
         $paymentMethod = $this->input('payment_method');
         $user = $this->user();
-        $cart = Cart::where('user_id', $user->id)->with(['items.product', 'items.productVariant', 'items.flashSale'])->first();
+        $cart = Cart::where('user_id', $user->id)->withCount('items')->first();
 
-        // Check if cart exists
-        if (!$cart) {
-            $validator->errors()->add('cart', 'No cart found for this user');
-            return;
-        }
-
-        // Check if cart has items
-        if (!$cart->items || $cart->items->isEmpty()) {
+        if (!$cart || $cart->items_count === 0) {
             $validator->errors()->add('cart', 'Cart is empty');
             return;
         }
 
-        // Calculate total amount
-        $subtotal = $cart->items->sum(function($item) {
-            return $item->price * $item->quantity;
-        });
-
-        // Calculate discount if voucher is provided
-        $discount = 0;
-        if ($this->input('voucher_code')) {
-            $voucher = Voucher::where('code', $this->input('voucher_code'))
-                ->where('active', true)
-                ->where('start_date', '<=', now())
-                ->where('end_date', '>=', now())
-                ->first();
-            
-            if ($voucher) {
-                $discount = min($voucher->discount, $subtotal);
-            }
-        }
-
-        $total = $subtotal - $discount;
-
-        switch ($paymentMethod) {
-            case 'wallet':
-                $wallet = Wallet::where('user_id', $user->id)->first();
-                if (!$wallet || $wallet->balance < $total) {
-                    $validator->errors()->add('payment_method', 'Insufficient wallet balance');
-                }
-                break;
-
-            case 'payment_gateway':
-                // Payment gateway validation - just check if amount is valid
-                if ($total <= 0) {
-                    $validator->errors()->add('payment_method', 'Invalid payment amount');
-                }
-                break;
-
-            case 'cash':
-                // Cash on delivery is always valid
-                break;
-
-            default:
-                $validator->errors()->add('payment_method', 'Invalid payment method');
+        // Only basic syntactic validation here; balances and totals are validated in service under lock
+        if (!in_array($paymentMethod, ['cash', 'wallet', 'payment_gateway'])) {
+            $validator->errors()->add('payment_method', 'Invalid payment method');
         }
     }
 

@@ -18,6 +18,7 @@ use App\Models\Wallet;
 use App\Models\WalletTransaction;
 use App\Services\Utilities\OrderPaymentService;
 use App\Traits\ApiResponseTrait;
+use App\Jobs\PaymentGatewayTimeoutJob;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -27,11 +28,10 @@ class OrderService
 {
     use ApiResponseTrait;
 
-    protected $paymentService;
+     
 
-    public function __construct(OrderPaymentService $paymentService)
+    public function __construct(protected OrderPaymentService $paymentService)
     {
-        $this->paymentService = $paymentService;
     }
 
     /**
@@ -42,49 +42,51 @@ class OrderService
         try {
             $user = $request->user();
 
-            // Get user's cart
-            $cart = Cart::where('user_id', $user->id)->with(['items.product', 'items.productVariant', 'items.flashSale'])->first();
-
-            if (!$cart || $cart->items->isEmpty()) {
-
-                return $this->errorResponse(__('messages.cart_empty'), [], 400);
-            }
-             // Step 1: Lock the cart and related products
-            //  $cart = $this->getCartWithLockedProducts($user->id);
-            
-            //  if (!$cart || $cart->items->isEmpty()) {
-            //      throw new \Exception(__('messages.cart_empty'));
-            //  }
- 
-            //  // Step 2: Validate stock with locked products
-            //  $this->validateStockWithLock($cart);
- 
-
-            // Get voucher validation data
-            $voucherValidation = $this->getVoucherValidation($request->voucher_code, $user->id, $cart);
-
-            // Get payment validation data
-            $paymentValidation = $this->getPaymentValidation($request->payment_method, $user->id, $cart, $voucherValidation['discount'] ?? 0);
-
-            // Handle payment gateway separately
+            // For non-gateway payments we handle everything here under a DB transaction + row locks
             if ($request->payment_method === 'payment_gateway') {
-                return $this->processPaymentGatewayOrder($user, $cart, $request, $voucherValidation, $paymentValidation);
+                // Delegate to payment-gateway flow which will manage its own transaction/locking
+                return $this->processPaymentGatewayOrder($user, null, $request, null, null);
             }
 
             DB::beginTransaction();
 
+            // Lock cart and related rows to avoid race conditions
+            $cart = $this->getCartWithLockedProducts($user->id);
+
+            if (!$cart || $cart->items->isEmpty()) {
+                DB::rollBack();
+                return $this->errorResponse(__('messages.cart_empty'), [], 400);
+            }
+
+            // Validate stock while rows are locked
+            $this->validateStockWithLock($cart);
+
+            // Get voucher validation data
+            $voucherValidation = $this->getVoucherValidation($request->voucher_code, $user->id, $cart);
+            if ($request->voucher_code && (!$voucherValidation['valid'] ?? false) === false) {
+                DB::rollBack();
+                return $this->errorResponse($voucherValidation['message'] ?? __('messages.invalid_voucher'), [], 422);
+            }
+
+            // Get payment validation data
+            $paymentValidation = $this->getPaymentValidation($request->payment_method, $user->id, $cart, $voucherValidation['discount'] ?? 0);
+
             try {
-                // Calculate paid amount once at the beginning
-                $paidAmount = $this->calculatePaidAmount($cart, $voucherValidation['discount'] ?? 0);
+                // Resolve address and settings once (avoid duplicates)
+                $addressId = $request->address_id ?? $user->default_address_id;
+                $address = Address::find($addressId);
+                $settings = Settings::current();
+                $shippingPrice = $this->calculateShippingCost($address->latitude ?? null, $address->longitude ?? null, $settings);
+                $paidAmount = $this->calculatePaidAmount($cart, $voucherValidation['discount'] ?? 0, null, $settings, $shippingPrice);
                 
                 // Create order
-                $order = $this->createOrder($user, $cart, $request, $voucherValidation['discount'] ?? 0);
+                $order = $this->createOrder($user, $cart, $request, $voucherValidation['discount'] ?? 0, null, $settings, $address, $shippingPrice);
 
                 // Create order items and update stock
                 $this->createOrderItems($order, $cart);
 
                 // Create transaction record with pre-calculated paid amount
-                $this->createTransaction($order, $request->payment_method, $paymentValidation, null, $cart, $paidAmount);
+                $this->createTransaction($order, $request->payment_method, $paymentValidation, null, $cart, $paidAmount, $settings);
 
                 // Process voucher usage if applicable
                 if ($request->voucher_code && $voucherValidation['voucher']) {
@@ -93,7 +95,10 @@ class OrderService
 
                 // Process wallet payment if applicable
                 if ($request->payment_method === 'wallet') {
-                    $this->processWalletPayment($user->id, $paidAmount);
+                    $processWalletPayment = $this->processWalletPayment($user->id, $paidAmount);
+                    if ($processWalletPayment instanceof \Illuminate\Http\JsonResponse) {
+                        return $processWalletPayment;
+                    }
                 }
 
                 // Update flash sale counts
@@ -126,21 +131,23 @@ class OrderService
     /**
      * Create order record
      */
-    private function createOrder($user, Cart $cart, Request $request, $discount = 0, $paymentStatus = null)
+    private function createOrder($user, Cart $cart, Request $request, $discount = 0, $paymentStatus = null, ?Settings $settings = null, ?Address $address = null, ?float $precomputedShipping = null)
     {
         $subtotal = $cart->items->sum(function ($item) {
             return $item->price * $item->quantity;
         });
 
         $addressId = $request->address_id ?? $user->default_address_id;
-        $address = Address::find($addressId);
+        $address = $address ?: Address::find($addressId);
         $longitude = $address->longitude;
         $latitude = $address->latitude;
-
-        $shippingPrice = $this->calculateShippingCost($latitude, $longitude);
+        
+        $shippingPrice = $precomputedShipping !== null
+            ? $precomputedShipping
+            : $this->calculateShippingCost($latitude, $longitude);
         
         // Get settings for tax and VAT rates
-        $settings = Settings::current();
+        $settings = $settings ?: Settings::current();
         
         // Calculate tax and VAT on subtotal (before discount)
         $taxAmount = $subtotal * $settings->tax_rate / 100;
@@ -191,10 +198,9 @@ class OrderService
                 // 'total_price' => $cartItem->price * $cartItem->quantity
             ]);
 
-            // Update stock
+            // Update stock using already eager-loaded relations (locked earlier)
             if ($cartItem->product_variant_id) {
-                // Update variant stock from product_variants table
-                $variant = ProductVariant::find($cartItem->product_variant_id);
+                $variant = $cartItem->productVariant; // from locked eager load
                 if ($variant && $variant->stock >= $cartItem->quantity) {
                     $oldStock = $variant->stock;
                     $variant->decrement('stock', $cartItem->quantity);
@@ -206,8 +212,8 @@ class OrderService
                     //     'quantity_decremented' => $cartItem->quantity,
                     //     'new_stock' => $variant->fresh()->stock
                     // ]);
-                    // Update regular product stock from products table
-                    $product = Product::find($cartItem->product_id);
+                    // Update regular product stock from products relation
+                    $product = $cartItem->product; // from locked eager load
                     if ($product && $product->total_quantity >= $cartItem->quantity) {
                         $oldStock = $product->total_quantity;
                         $product->decrement('total_quantity', $cartItem->quantity);
@@ -225,8 +231,8 @@ class OrderService
                     throw new \Exception("Insufficient stock for variant of product ID: {$cartItem->product_id}");
                 }
             } else {
-                // Update regular product stock from products table
-                $product = Product::find($cartItem->product_id);
+                // Update regular product stock from products relation
+                $product = $cartItem->product; // from locked eager load
                 if ($product && $product->total_quantity >= $cartItem->quantity) {
                     $oldStock = $product->total_quantity;
                     $product->decrement('total_quantity', $cartItem->quantity);
@@ -337,6 +343,21 @@ class OrderService
             return ['valid' => false, 'message' => 'Invalid or expired voucher code'];
         }
 
+        // Enforce global usage limit
+        if ($voucher->usage_limit && $voucher->used_count >= $voucher->usage_limit) {
+            return ['valid' => false, 'message' => 'Voucher usage limit exceeded'];
+        }
+
+        // Enforce per-user usage limit
+        if ($voucher->usage_limit_per_user) {
+            $userUsageCount = VoucherUsage::where('voucher_id', $voucher->id)
+                ->where('user_id', $userId)
+                ->count();
+            if ($userUsageCount >= $voucher->usage_limit_per_user) {
+                return ['valid' => false, 'message' => 'You have reached the maximum usage limit for this voucher'];
+            }
+        }
+
         // Calculate discount amount
         $subtotal = $cart->items->sum(function ($item) {
             return $item->price * $item->quantity;
@@ -371,7 +392,7 @@ class OrderService
     /**
      * Calculate complete order total including shipping, tax, and VAT
      */
-    private function calculatePaidAmount(Cart $cart, $discount = 0, Order $order = null)
+    private function calculatePaidAmount(Cart $cart, $discount = 0, Order $order = null, ?Settings $settings = null, ?float $precomputedShipping = null)
     {
         $subtotal = $cart->items->sum(function ($item) {
             return $item->price * $item->quantity;
@@ -382,19 +403,23 @@ class OrderService
             $shippingPrice = $order->shipping_price ?? 0;
         } else {
             // Calculate shipping price for cart
-            $user = Auth::user();
-            $addressId = request()->address_id ?? $user->default_address_id ?? null;
-            
-            if ($addressId) {
-                $address = \App\Models\Address::find($addressId);
-                $shippingPrice = $this->calculateShippingCost($address->latitude ?? null, $address->longitude ?? null);
+            if ($precomputedShipping !== null) {
+                $shippingPrice = $precomputedShipping;
             } else {
-                $shippingPrice = 0;
+                $user = Auth::user();
+                $addressId = request()->address_id ?? $user->default_address_id ?? null;
+                
+                if ($addressId) {
+                    $address = \App\Models\Address::find($addressId);
+                    $shippingPrice = $this->calculateShippingCost($address->latitude ?? null, $address->longitude ?? null, $settings);
+                } else {
+                    $shippingPrice = 0;
+                }
             }
         }
         
         // Get settings for tax and VAT rates
-        $settings = Settings::current();
+        $settings = $settings ?: Settings::current();
         
         // Calculate tax and VAT on subtotal (before discount)
         $taxAmount = $subtotal * $settings->tax_rate / 100;
@@ -409,9 +434,9 @@ class OrderService
     /**
      * Create transaction record
      */
-    private function createTransaction(Order $order, $paymentMethod, $paymentValidation, $status = null, Cart $cart = null, $paidAmount = null)
+    private function createTransaction(Order $order, $paymentMethod, $paymentValidation, $status = null, Cart $cart = null, $paidAmount = null, ?Settings $settings = null)
     {
-        $setting = Settings::current();
+        $setting = $settings ?: Settings::current();
         
         // Determine transaction ID based on payment method
         if ($paymentMethod === 'payment_gateway') {
@@ -494,13 +519,16 @@ class OrderService
     private function processWalletPayment($userId, $amount)
     {
         $wallet = Wallet::where('user_id', $userId)->first();
-
+        
         if ($wallet) {
             // Deduct amount from wallet
             $oldBalance = $wallet->balance;
             if ($oldBalance < $amount) {
+                // dd('Insufficient wallet balance');
+                
                 return $this->errorResponse('Insufficient wallet balance', [], 400);
             }
+            // dd($userId, $amount);
             $wallet->decrement('balance', $amount);
             // $wallet->update(['last_change' => -$amount]);
 
@@ -523,11 +551,35 @@ class OrderService
     private function processPaymentGatewayOrder($user, $cart, $request, $voucherValidation, $paymentValidation)
     {
         try {
+            DB::beginTransaction();
+
+            // Lock cart and related rows, then validate stock
+            $lockedCart = $this->getCartWithLockedProducts($user->id);
+            if (!$lockedCart || $lockedCart->items->isEmpty()) {
+                DB::rollBack();
+                return $this->errorResponse(__('messages.cart_empty'), [], 400);
+            }
+            $this->validateStockWithLock($lockedCart);
+
+            // Compute voucher/payment validations under the lock
+            $voucherValidation = $this->getVoucherValidation($request->voucher_code, $user->id, $lockedCart);
+            if ($request->voucher_code && (!$voucherValidation['valid'] ?? false) === false) {
+                DB::rollBack();
+                return $this->errorResponse($voucherValidation['message'] ?? __('messages.invalid_voucher'), [], 422);
+            }
+            $paymentValidation = $this->getPaymentValidation($request->payment_method, $user->id, $lockedCart, $voucherValidation['discount'] ?? 0);
+
+            // Resolve address and settings once
+            $addressId = $request->address_id ?? $user->default_address_id;
+            $address = Address::find($addressId);
+            $settings = Settings::current();
+            $shippingPrice = $this->calculateShippingCost($address->latitude ?? null, $address->longitude ?? null);
+
             // Calculate paid amount once at the beginning
-            $paidAmount = $this->calculatePaidAmount($cart, $voucherValidation['discount'] ?? 0);
+            $paidAmount = $this->calculatePaidAmount($lockedCart, $voucherValidation['discount'] ?? 0, null, $settings, $shippingPrice);
             
-            // Create order with completed payment status for payment gateway
-            $order = $this->createOrder($user, $cart, $request, $voucherValidation['discount'] ?? 0, 'completed');
+            // Create order with pending payment status for payment gateway
+            $order = $this->createOrder($user, $lockedCart, $request, $voucherValidation['discount'] ?? 0, 'pending', $settings, $address, $shippingPrice);
 
             // Log::info('Payment gateway order created', [
             //     'order_id' => $order->id,
@@ -537,10 +589,10 @@ class OrderService
             // ]);
 
             // Create order items and update stock
-            $this->createOrderItems($order, $cart);
+            $this->createOrderItems($order, $lockedCart);
 
             // Create transaction record with pre-calculated paid amount
-            $this->createTransaction($order, $request->payment_method, $paymentValidation, null, $cart, $paidAmount);
+            $this->createTransaction($order, $request->payment_method, $paymentValidation, null, $lockedCart, $paidAmount, $settings);
 
             // Process voucher usage if applicable
             if ($request->voucher_code && $voucherValidation['voucher']) {
@@ -548,11 +600,17 @@ class OrderService
             }
 
             // Update flash sale counts
-            $this->updateFlashSaleCounts($cart);
+            $this->updateFlashSaleCounts($lockedCart);
 
             // Clear cart
-            $cart->items()->delete();
-            $cart->delete();
+            $lockedCart->items()->delete();
+            $lockedCart->delete();
+
+            // Commit DB changes before calling external payment provider
+            DB::commit();
+
+            // Dispatch delayed job to handle payment timeout (1 hour)
+            PaymentGatewayTimeoutJob::dispatch($order->id)->delay(now()->addHour());
 
             // Prepare payment request
             $paymentRequest = new Request([
@@ -605,6 +663,8 @@ class OrderService
                 ], 400);
             }
         } catch (\Exception $e) {
+            // Ensure transaction is rolled back if still active
+            DB::rollBack();
             return $this->errorResponse('Failed to process payment gateway order: ' . $e->getMessage(), [], 500);
         }
     }
@@ -663,14 +723,6 @@ class OrderService
                         if ($flashSale) {
                             $flashSale->decrement('count', $orderItem->quantity);
 
-                            Log::info('Flash sale count restored due to order failure', [
-                                'flash_sale_id' => $orderItem->flash_sale_id,
-                                'product_id' => $orderItem->product_id,
-                                'quantity_restored' => $orderItem->quantity,
-                                'new_count' => $flashSale->fresh()->count,
-                                'order_id' => $orderId,
-                                'reason' => $reason
-                            ]);
                         }
                     }
                 }
@@ -726,15 +778,6 @@ class OrderService
                             'balance_after' => $wallet->fresh()->balance
                         ]);
 
-                        Log::info('Wallet balance restored due to order failure', [
-                            'wallet_id' => $wallet->id,
-                            'user_id' => $order->user_id,
-                            'old_balance' => $oldBalance,
-                            'refund_amount' => $order->total,
-                            'new_balance' => $wallet->fresh()->balance,
-                            'order_id' => $orderId,
-                            'reason' => $reason
-                        ]);
                     }
                 }
 
@@ -803,9 +846,9 @@ class OrderService
     }
 
 
-    public function calculateShippingCost(?float $userLatitude, ?float $userLongitude): float
+    public function calculateShippingCost(?float $userLatitude, ?float $userLongitude, ?Settings $settings = null): float
     {
-        $setting = Settings::current();
+        $setting = $settings ?: Settings::current();
         if (!$userLatitude || !$userLongitude) {
             // Return fixed shipping cost if no user location provided
             return 00.00; // Default shipping cost
@@ -891,7 +934,25 @@ private function getCartWithLockedProducts($userId)
  */
 private function validateStockWithLock(Cart $cart)
 {
+    $now = now();
     foreach ($cart->items as $cartItem) {
+        // Flash sale validity and limits
+        if ($cartItem->flash_sale_id) {
+            $flashSale = $cartItem->flashSale; // locked from eager load
+            if (!$flashSale || !$flashSale->active || $flashSale->start_date > $now || $flashSale->end_date < $now) {
+                throw new \Exception("Flash sale for product '{$cartItem->product->name}' has expired or is inactive");
+            }
+
+            if ($flashSale->max_limit) {
+                // Use locked flashSale->count to enforce cap atomically
+                $currentCount = (int) $flashSale->count;
+                if (($currentCount + $cartItem->quantity) > (int) $flashSale->max_limit) {
+                    $available = max(0, ((int) $flashSale->max_limit) - $currentCount);
+                    throw new \Exception("Flash sale limit exceeded for '{$cartItem->product->name}'. Available: {$available}");
+                }
+            }
+        }
+
         if ($cartItem->product_variant_id) {
             // Variants are already locked from the with() clause
             $variant = $cartItem->productVariant;

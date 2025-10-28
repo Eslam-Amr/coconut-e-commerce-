@@ -7,7 +7,6 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\ProductVariantInventory;
-use App\Models\RefundedMoney;
 use App\Models\Wallet;
 use App\Models\WalletTransaction;
 use Illuminate\Support\Facades\DB;
@@ -73,26 +72,9 @@ class OrderCancellationService
         $paymentMethod = $order->payment_method;
         $amount = $order->total;
 
-        switch ($paymentMethod) {
-            case 'wallet':
-                $this->refundToWallet($order, $amount, $reason);
-                break;
-            
-            case 'visa':
-            case 'payment_gateway':
-                $this->createRefundRecord($order, $amount, $paymentMethod, $reason);
-                break;
-            
-            case 'cash':
-            case 'cash_on_delivery':
-                // No refund needed for cash payments
-                break;
-            
-            default:
-                // Create refund record for unknown payment methods
-                $this->createRefundRecord($order, $amount, $paymentMethod, $reason);
-                break;
-        }
+        if($paymentMethod === 'payment_gateway' || $paymentMethod === 'wallet') 
+            $this->refundToWallet($order, $amount, $reason);
+         
     }
 
     /**
@@ -100,8 +82,8 @@ class OrderCancellationService
      */
     private function refundToWallet(Order $order, float $amount, string $reason): void
     {
-        // dd($order,$amount,$reason);
         $user = $order->user;
+        $paymentMethod = $order->payment_method;
         
         // Get or create user's wallet
         $wallet = Wallet::firstOrCreate(
@@ -112,85 +94,21 @@ class OrderCancellationService
         // Add amount to wallet balance
         $wallet->increment('balance', $amount);
 
+        // Create appropriate description based on payment method
+        $description = $paymentMethod === 'wallet' 
+            ? "Order cancellation refund (Wallet) - Order #{$order->order_number}"
+            : "Order cancellation refund (Payment Gateway) - Order #{$order->order_number}";
+
         // Create wallet transaction record
         WalletTransaction::create([
             'wallet_id' => $wallet->id,
             'amount' => $amount,
             'user_id' => $user->id,
             'transaction_id' => "REFUND-".time()."-".$order->id,
-            'description' => "Order cancellation refund - Order #{$order->order_number}",
+            'description' => $description,
             'reference_id' => $order->id,
             'reference_type' => Order::class,
         ]);
 
-        // Create refunded money record
-        RefundedMoney::create([
-            'order_id' => $order->id,
-            'user_id' => $user->id,
-            'amount' => $amount,
-            'payment_method' => 'wallet',
-            'reason' => $reason,
-            'status' => 'completed',
-            'notes' => 'Refunded to user wallet',
-            'processed_at' => now(),
-        ]);
-    }
-
-    /**
-     * Create refund record for external payment methods
-     */
-    private function createRefundRecord(Order $order, float $amount, string $paymentMethod, string $reason): void
-    {
-        RefundedMoney::create([
-            'order_id' => $order->id,
-            'user_id' => $order->user_id,
-            'amount' => $amount,
-            'payment_method' => $paymentMethod,
-            'reason' => $reason,
-            'status' => 'pending',
-            'notes' => 'Refund processing required',
-        ]);
-    }
-
-    /**
-     * Get refund statistics
-     */
-    public function getRefundStats(): array
-    {
-        return [
-            'total_refunds' => RefundedMoney::count(),
-            'pending_refunds' => RefundedMoney::where('status', 'pending')->count(),
-            'completed_refunds' => RefundedMoney::where('status', 'completed')->count(),
-            'failed_refunds' => RefundedMoney::where('status', 'failed')->count(),
-            'total_refunded_amount' => RefundedMoney::where('status', 'completed')->sum('amount'),
-            'pending_refunded_amount' => RefundedMoney::where('status', 'pending')->sum('amount'),
-        ];
-    }
-
-    /**
-     * Update refund status
-     */
-    public function updateRefundStatus(int $refundId, string $status, string $notes = null): bool
-    {
-        try {
-            $refund = RefundedMoney::findOrFail($refundId);
-            
-            $updateData = ['status' => $status];
-            
-            if ($status === 'completed') {
-                $updateData['processed_at'] = now();
-            }
-            
-            if ($notes) {
-                $updateData['notes'] = $notes;
-            }
-            
-            $refund->update($updateData);
-            
-            return true;
-        } catch (\Exception $e) {
-            Log::error('Failed to update refund status: ' . $e->getMessage());
-            return false;
-        }
     }
 }

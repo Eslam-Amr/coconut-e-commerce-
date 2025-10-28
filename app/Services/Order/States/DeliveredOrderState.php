@@ -22,9 +22,7 @@ class DeliveredOrderState implements OrderStateInterface
 
     public function getPossibleNextStatuses(): array
     {
-        return [
-            OrderStatus::REFUNDED->value,
-        ];
+        return [];
     }
 
     public function getStatusDisplayName(): string
@@ -39,6 +37,6 @@ class DeliveredOrderState implements OrderStateInterface
 
     private function canTransitionTo(OrderStatus $newStatus): bool
     {
-        return $newStatus === OrderStatus::REFUNDED;
+        return false; // Delivered orders cannot be changed to any other status
     }
 }

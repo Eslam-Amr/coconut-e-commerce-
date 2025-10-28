@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\App\client\wallet;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\App\Client\Wallet\ChargeWalletRequest;
 use App\Services\Api\App\Client\Wallet\WalletService;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
@@ -34,7 +35,7 @@ class WalletController extends Controller implements HasMiddleware
     /**
      * Charge wallet using payment gateway
      */
-    public function chargeWallet(Request $request)
+    public function chargeWallet(ChargeWalletRequest $request)
     {
         return $this->walletService->chargeWallet($request);
     }
