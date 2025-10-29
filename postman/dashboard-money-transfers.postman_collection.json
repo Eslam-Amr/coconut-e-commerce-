@@ -1,0 +1,71 @@
+{
+  "info": {
+    "name": "Dashboard - Money Transfers",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Admin dashboard endpoints to manage money transfers: list, show, update status."
+  },
+  "item": [
+    {
+      "name": "List Money Transfers",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+        ],
+        "url": {
+          "raw": "{{admin_base_url}}/money-transfers?status=&per_page=15",
+          "host": [ "{{admin_base_url}}" ],
+          "path": [  "money-transfers" ],
+          "query": [
+            { "key": "status", "value": "" },
+            { "key": "per_page", "value": "15" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Show Money Transfer",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+        ],
+        "url": {
+          "raw": "{{admin_base_url}}/money-transfers/{{transferId}}",
+          "host": [ "{{admin_base_url}}" ],
+          "path": [  "money-transfers", "{{transferId}}" ]
+        }
+      }
+    },
+    {
+      "name": "Update Transfer Status",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+        ],
+        "url": {
+          "raw": "{{admin_base_url}}/money-transfers/{{transferId}}/status",
+          "host": [ "{{admin_base_url}}" ],
+          "path": [  "money-transfers", "{{transferId}}", "status" ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"completed\"\n}"
+        },
+        "description": "Allowed statuses: completed, failed, cancelled (only from pending)."
+      }
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "admin_token", "value": "" },
+    { "key": "transferId", "value": "1" }
+  ]
+}
+
+

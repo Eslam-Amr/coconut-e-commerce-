@@ -137,6 +137,10 @@ class PermissionSeeder extends Seeder
             ['name' => 'vouchers.update', 'description' => 'Can update vouchers'],
             ['name' => 'vouchers.delete', 'description' => 'Can delete vouchers'],
             ['name' => 'vouchers.toggle_active', 'description' => 'Can toggle voucher active status'],
+
+            // Money Transfer Management
+            ['name' => 'money_transfers.view', 'description' => 'Can view money transfers'],
+            ['name' => 'money_transfers.update_status', 'description' => 'Can update money transfer status'],
             
             // Location Management
             ['name' => 'countries.view', 'description' => 'Can view countries'],

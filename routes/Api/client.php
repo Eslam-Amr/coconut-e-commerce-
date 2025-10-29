@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\App\Client\Product\ProductReviewController;
 // use App\Http\Controllers\Api\App\Client\Recommendation\OptimizedRecommendationController; // moved to Guest namespace
 use App\Http\Controllers\Api\App\Client\Recommendation\InteractionRecommendationController;
 use App\Http\Controllers\Api\App\Client\SearchHistory\SearchHistoryController;
+use App\Http\Controllers\Api\App\Client\MoneyTransfer\MoneyTransferController;
 
 
 
@@ -103,3 +104,9 @@ Route::match(['GET','POST'],'/payment/callback', [PaymentController::class, 'cal
 Route::get('/search-history', [SearchHistoryController::class, 'index']);
 Route::delete('/search-history', [SearchHistoryController::class, 'delete']); // Delete all
 Route::delete('/search-history/{id}', [SearchHistoryController::class, 'delete']); // Delete specific
+
+// Money Transfer routes
+Route::post('/money-transfers', [MoneyTransferController::class, 'createTransfer']);
+Route::get('/money-transfers', [MoneyTransferController::class, 'getAllTransfers']);
+Route::get('/money-transfers/{transferId}', [MoneyTransferController::class, 'getTransferDetails']);
+Route::post('/money-transfers/{transferId}/cancel', [MoneyTransferController::class, 'cancelTransfer']);

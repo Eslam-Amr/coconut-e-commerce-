@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\Dashboard\Admin\AdminController;
 use App\Http\Controllers\Api\Dashboard\Role\RoleController;
 use App\Http\Controllers\Api\Dashboard\Permission\PermissionController;
 use App\Http\Controllers\Api\Dashboard\Order\OrderController;
+use App\Http\Controllers\Api\Dashboard\MoneyTransfer\MoneyTransferController;
 use App\Http\Controllers\Api\Dashboard\StaticPage\StaticPageController;
 use App\Http\Controllers\Api\Dashboard\DashboardStatisticsController;
 use Illuminate\Support\Facades\Route;
@@ -72,18 +73,6 @@ Route::post('products/{product}/attributes/bulk-assign', [ProductAttributeContro
 Route::delete('products/{product}/attributes/remove-all', [ProductAttributeController::class, 'removeAll']);
 Route::get('products/{product}/available-attributes', [ProductAttributeController::class, 'getAvailableAttributes']);
 
-// Variant Attribute Management routes
-// Route::post('products/{product}/create-variants', function ($productId, VariantAttributeService $service, Request $request) {
-//     return $service->createVariantsForCombinations($productId, $request->all());
-// });
-// Route::post('products/{product}/validate-combinations', function ($productId, VariantAttributeService $service, Request $request) {
-//     return $service->validateVariantCombinations($productId, $request->input('combinations', []));
-// });
-// Route::get('products/{product}/variant-summary', function ($productId, VariantAttributeService $service) {
-//     return $service->getVariantSummary($productId);
-// });
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 // Voucher routes
 Route::apiResource('vouchers', VoucherController::class);
 Route::put('vouchers/{voucher}/toggle-active', [VoucherController::class, 'toggleActive']);
@@ -124,6 +113,11 @@ Route::put('orders/{order}/change-status', [OrderController::class, 'changeStatu
 Route::get('orders-stats', [OrderController::class, 'getStats']);
 Route::get('order-statuses', [OrderController::class, 'getStatuses']);
 
+// Money Transfer Management routes
+Route::get('money-transfers', [MoneyTransferController::class, 'index']);
+Route::get('money-transfers/{transfer}', [MoneyTransferController::class, 'show']);
+Route::put('money-transfers/{transfer}', [MoneyTransferController::class, 'update']);
+
 
 // Static Page Management routes
 Route::apiResource('static-pages', StaticPageController::class);
@@ -147,29 +141,3 @@ Route::get('statistics/users/lite', [DashboardStatisticsController::class, 'getU
 Route::get('statistics/products/lite', [DashboardStatisticsController::class, 'getProductsStatisticsLite']);
 Route::get('statistics/revenue/lite', [DashboardStatisticsController::class, 'getRevenueStatisticsLite']);
 Route::get('statistics/overview/lite', [DashboardStatisticsController::class, 'getOverviewStatisticsLite']);
-// Route::post('categories/{category}/toggle-active', function($category) {
-//     try {
-//         // If we received a string (ID), resolve the model
-//         if (is_string($category)) {
-//             $category = \App\Models\Category::findOrFail($category);
-//         }
-        
-//         $category->update([
-//             'active' => !$category->active,
-//         ]);
-        
-//         $category->load(['parent', 'children']);
-        
-//         return response()->json([
-//             'success' => true,
-//             'message' => 'Category status toggled successfully',
-//             'data' => $category
-//         ]);
-//     } catch (\Exception $e) {
-//         return response()->json([
-//             'success' => false,
-//             'message' => 'Failed to toggle category status',
-//             'error' => $e->getMessage()
-//         ], 500);
-//     }
-// });

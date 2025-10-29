@@ -6,6 +6,7 @@ use App\Interfaces\PaymentGatewayInterface;
 use App\Models\Admin;
 use App\Models\Media;
 use App\Models\Order;
+use App\Models\MoneyTransfer;
 use App\Models\ProductReview;
 use App\Models\ProductVariant;
 use App\Models\User;
@@ -18,6 +19,7 @@ use App\Observers\MediaObserver;
 use App\Observers\OrderObserver;
 use App\Observers\ProductReviewObserver;
 use App\Observers\ProductVariantObserver;
+use App\Observers\MoneyTransferObserver;
 use App\Observers\UserObserver;
 use App\Observers\WishlistObserver;
 use App\Services\Utilities\StripePaymentService;
@@ -54,6 +56,7 @@ class AppServiceProvider extends ServiceProvider
         ProductReview::observe(ProductReviewObserver::class);
         Order::observe(OrderObserver::class);
         ProductVariant::observe(ProductVariantObserver::class);
+        MoneyTransfer::observe(MoneyTransferObserver::class);
 
         Notification::extend('email', function ($app) {
             return new EmailChannel;

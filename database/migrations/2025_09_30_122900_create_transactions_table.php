@@ -14,7 +14,7 @@ return new class extends Migration
             $table->foreignId('order_id')->constrained('orders')->cascadeOnDelete();
             $table->decimal('amount', 12, 2);
             // $table->string('currency', 3)->default('USD');
-            $table->enum('status', ['pending', 'completed', 'failed', 'cancelled', 'refunded']);
+            $table->enum('status', ['pending', 'completed', 'failed', 'cancelled', '']);
             $table->enum('payment_method', ['credit_card', 'debit_card', 'paypal', 'bank_transfer', 'cash_on_delivery', 'wallet']);
             // $table->string('gateway_transaction_id')->nullable();
             // $table->json('gateway_response')->nullable();
