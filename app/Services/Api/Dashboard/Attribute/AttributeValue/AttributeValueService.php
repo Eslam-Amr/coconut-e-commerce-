@@ -37,12 +37,12 @@ class AttributeValueService
 
             return $this->successResponsePaginated(
                 $attributeValues, 
-                'Attribute values retrieved successfully',
+                __('messages.attribute_values_retrieved_successfully'),
                 200,
                 AttributeValueResource::class
             );
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve attribute values', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -55,9 +55,9 @@ class AttributeValueService
             $attributeValue = AttributeValue::create($data);
             $attributeValue->load(['attribute']);
 
-            return $this->successResponse($attributeValue, 'Attribute value created successfully', 201);
+            return $this->successResponse($attributeValue, __('messages.attribute_value_created'), 201);
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to create attribute value', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.creation_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -69,9 +69,9 @@ class AttributeValueService
         try {
             $attributeValue->load(['attribute', 'translations', 'attribute.translations']);
 
-            return $this->successResponse(new AttributeValueResource($attributeValue), 'Attribute value retrieved successfully');
+            return $this->successResponse(new AttributeValueResource($attributeValue), __('messages.attribute_value_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve attribute value', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -84,9 +84,9 @@ class AttributeValueService
             $attributeValue->update($data);
             $attributeValue->load(['attribute.translations', 'translations']);
 
-            return $this->successResponse($attributeValue, 'Attribute value updated successfully');
+            return $this->successResponse($attributeValue, __('messages.attribute_value_updated_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to update attribute value', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.update_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -98,14 +98,14 @@ class AttributeValueService
         try {
             // Check if attribute value is being used by product variants
             if ($attributeValue->productVariants()->count() > 0) {
-                return $this->badRequestResponse('Cannot delete attribute value that is being used by product variants');
+                return $this->badRequestResponse(__('messages.cannot_delete_attribute_value_used_by_variants'));
             }
 
             $attributeValue->delete();
 
-            return $this->successNotDataResponse('Attribute value deleted successfully');
+            return $this->successNotDataResponse(__('messages.attribute_value_deleted_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to delete attribute value', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.deletion_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -136,10 +136,10 @@ class AttributeValueService
 
             return $this->successResponse(
                 AttributeValueResource::collection($attributeValues),
-                'Attribute values retrieved successfully'
+                __('messages.attribute_values_retrieved_successfully')
             );
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve attribute values', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 }

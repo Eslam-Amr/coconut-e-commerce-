@@ -29,9 +29,9 @@ class BrandService
             $perPage = $request->integer('per_page', 15);
             $brands = $query->paginate($perPage);
 
-            return $this->successResponse($brands, 'Brands retrieved successfully');
+            return $this->successResponse($brands, __('messages.brands_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve brands', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -40,9 +40,9 @@ class BrandService
         try {
             $brand = Brand::create($data);
             $brand->load(['translations', 'media']);
-            return $this->successResponse($brand, 'Brand created successfully', 201);
+            return $this->successResponse($brand, __('messages.brand_created'), 201);
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to create brand', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.creation_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -50,9 +50,9 @@ class BrandService
     {
         try {
             $brand->load(['translations', 'media']);
-            return $this->successResponse($brand, 'Brand retrieved successfully');
+            return $this->successResponse($brand, __('messages.brand_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve brand', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -61,9 +61,9 @@ class BrandService
         try {
             $brand->update($data);
             $brand->load(['translations', 'media']);
-            return $this->successResponse($brand, 'Brand updated successfully');
+            return $this->successResponse($brand, __('messages.brand_updated_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to update brand', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.update_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -71,13 +71,13 @@ class BrandService
     {
         try {
             if ($brand->products()->count() > 0) {
-                return $this->errorResponse('Cannot delete brand with products', 422);
+                return $this->errorResponse(__('messages.cannot_delete_brand_with_products'), 422);
             }
 
             $brand->delete();
-            return $this->successResponse(null, 'Brand deleted successfully');
+            return $this->successResponse(null, __('messages.brand_deleted_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to delete brand', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.deletion_failed'), ['error' => $e->getMessage()]);
         }
     }
 }

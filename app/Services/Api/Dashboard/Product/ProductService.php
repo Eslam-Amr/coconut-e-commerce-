@@ -62,9 +62,9 @@ class ProductService
 			$perPage = $request->integer('per_page', 15);
 			$products = $query->paginate($perPage);
 
-			return $this->successResponse($products, 'Products retrieved successfully');
+			return $this->successResponse($products, __('messages.products_retrieved_successfully'));
 		} catch (\Exception $e) {
-			return $this->serverErrorResponse('Failed to retrieve products', ['error' => $e->getMessage()]);
+			return $this->serverErrorResponse(__('messages.failed_to_retrieve_products'), ['error' => $e->getMessage()]);
 		}
 	}
 
@@ -82,9 +82,9 @@ class ProductService
 				'productAttributes.attribute.translations',
 				'productAttributes.attributeValue.translations'
 			]);
-			return $this->successResponse($product, 'Product created successfully', 201);
+			return $this->successResponse($product, __('messages.product_created'), 201);
 		} catch (\Exception $e) {
-			return $this->serverErrorResponse('Failed to create product', ['error' => $e->getMessage()]);
+			return $this->serverErrorResponse(__('messages.creation_failed'), ['error' => $e->getMessage()]);
 		}
 	}
 
@@ -101,9 +101,9 @@ class ProductService
 				'productAttributes.attribute.translations',
 				'productAttributes.attributeValue.translations'
 			]);
-			return $this->successResponse($product, 'Product retrieved successfully');
+			return $this->successResponse($product, __('messages.product_retrieved_successfully'));
 		} catch (\Exception $e) {
-			return $this->serverErrorResponse('Failed to retrieve product', ['error' => $e->getMessage()]);
+			return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
 		}
 	}
 
@@ -121,9 +121,9 @@ class ProductService
 				'productAttributes.attribute.translations',
 				'productAttributes.attributeValue.translations'
 			]);
-			return $this->successResponse($product, 'Product updated successfully');
+			return $this->successResponse($product, __('messages.product_updated_successfully'));
 		} catch (\Exception $e) {
-			return $this->serverErrorResponse('Failed to update product', ['error' => $e->getMessage()]);
+			return $this->serverErrorResponse(__('messages.update_failed'), ['error' => $e->getMessage()]);
 		}
 	}
 
@@ -132,9 +132,9 @@ class ProductService
 		try {
 			// Add business rule checks here if needed
 			$product->delete();
-			return $this->successResponse(null, 'Product deleted successfully');
+			return $this->successResponse(null, __('messages.product_deleted_successfully'));
 		} catch (\Exception $e) {
-			return $this->serverErrorResponse('Failed to delete product', ['error' => $e->getMessage()]);
+			return $this->serverErrorResponse(__('messages.deletion_failed'), ['error' => $e->getMessage()]);
 		}
 	}
 }

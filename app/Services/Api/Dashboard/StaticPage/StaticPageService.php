@@ -37,9 +37,9 @@ class StaticPageService
             $perPage = $request->get('per_page', 15);
             $staticPages = $query->paginate($perPage);
 
-            return $this->successResponse($staticPages, 'Static pages retrieved successfully');
+            return $this->successResponse($staticPages, __('messages.static_pages_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve static pages', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -51,9 +51,9 @@ class StaticPageService
         try {
             $staticPage = StaticPage::create($data);
             $staticPage->load(['translations']);
-            return $this->successResponse($staticPage, 'Static page created successfully', 201);
+            return $this->successResponse($staticPage, __('messages.static_page_created'), 201);
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to create static page', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.creation_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -64,9 +64,9 @@ class StaticPageService
     {
         try {
             $staticPage->load(['translations']);
-            return $this->successResponse($staticPage, 'Static page retrieved successfully');
+            return $this->successResponse($staticPage, __('messages.static_page_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve static page', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -78,9 +78,9 @@ class StaticPageService
         try {
             $staticPage->update($data);
             $staticPage->load(['translations']);
-            return $this->successResponse($staticPage, 'Static page updated successfully');
+            return $this->successResponse($staticPage, __('messages.static_page_updated_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to update static page', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.update_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -91,9 +91,9 @@ class StaticPageService
     {
         try {
             $staticPage->delete();
-            return $this->successResponse(null, 'Static page deleted successfully');
+            return $this->successResponse(null, __('messages.static_page_deleted_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to delete static page', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.deletion_failed'), ['error' => $e->getMessage()]);
         }
     }
 }

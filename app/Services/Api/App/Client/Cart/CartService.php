@@ -115,7 +115,7 @@ class CartService
 
                 if ($newQuantity > $availableStock) {
                     return $this->errorResponse(
-                        'Insufficient stock available',
+                        __('messages.insufficient_stock_available'),
                         [
                             'available_stock' => $availableStock,
                             'current_quantity' => $item->quantity,
@@ -131,10 +131,10 @@ class CartService
 
                 $this->recalculateCartTotals($cart);
                 // $this->loadCartRelations($cart);
-                return $this->successResponse($cart, 'Cart item incremented');
+                return $this->successResponse($cart, __('messages.cart_item_incremented'));
             });
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to increment item', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.failed_to_increment_item'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -159,10 +159,10 @@ class CartService
 
                 $this->recalculateCartTotals($cart);
                 // $this->loadCartRelations($cart);
-                return $this->successResponse($cart, 'Cart item decremented');
+                return $this->successResponse($cart, __('messages.cart_item_decremented'));
             });
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to decrement item', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.failed_to_decrement_item'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -190,7 +190,7 @@ class CartService
 
                     if ($newQuantity > $availableStock) {
                         return $this->errorResponse(
-                            'Insufficient stock available',
+                            __('messages.insufficient_stock_available'),
                             [
                                 'available_stock' => $availableStock,
                                 'requested_quantity' => $newQuantity
@@ -205,10 +205,10 @@ class CartService
 
                 $this->recalculateCartTotals($cart);
                 // $this->loadCartRelations($cart);
-                return $this->successResponse($cart, 'Cart item quantity updated');
+                return $this->successResponse($cart, __('messages.cart_item_quantity_updated'));
             });
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to update quantity', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.failed_to_update_quantity'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -225,10 +225,10 @@ class CartService
 
                 $this->recalculateCartTotals($cart);
                 $this->loadCartRelations($cart);
-                return $this->successResponse($cart, 'Cart item removed');
+                return $this->successResponse($cart, __('messages.cart_item_removed'));
             });
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to remove item', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.failed_to_remove_item'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -249,9 +249,9 @@ class CartService
                 $validated['address_id'] ?? null
             );
 
-            return $this->successResponse($result, 'Cart total calculated successfully');
+            return $this->successResponse($result, __('messages.cart_total_calculated_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to calculate cart total', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.failed_to_calculate_cart_total'), ['error' => $e->getMessage()]);
         }
     }
 

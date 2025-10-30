@@ -35,9 +35,9 @@ class OrderService
                 return $order;
             });
 
-            return $this->successResponse($orders, 'Orders retrieved successfully');
+            return $this->successResponse($orders, __('messages.orders_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve orders', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.failed_to_retrieve_orders'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -58,9 +58,9 @@ class OrderService
 
             $order->status_info = OrderStateFactory::getStatusInfo($order->status->value);
 
-            return $this->successResponse($order, 'Order retrieved successfully');
+            return $this->successResponse($order, __('messages.order_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve order', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.failed_to_retrieve_order'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -90,9 +90,9 @@ class OrderService
             $order->load(['user', 'items.product']);
             $order->status_info = OrderStateFactory::getStatusInfo($order->status->value);
 
-            return $this->successResponse($order, 'Order status updated successfully');
+            return $this->successResponse($order, __('messages.order_status_updated_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to update order status', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.failed_to_update_order_status'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -122,9 +122,9 @@ class OrderService
                 OrderStatus::CONFIRMED->value
             ])->first();
 
-            return $this->successResponse($stats, 'Order statistics retrieved successfully');
+            return $this->successResponse($stats, __('messages.order_statistics_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve order statistics', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.failed_to_retrieve_order_statistics'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -139,9 +139,9 @@ class OrderService
                 $statuses[] = OrderStateFactory::getStatusInfo($status);
             }
 
-            return $this->successResponse($statuses, 'Order statuses retrieved successfully');
+            return $this->successResponse($statuses, __('messages.order_statuses_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve order statuses', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.failed_to_retrieve_order_statuses'), ['error' => $e->getMessage()]);
         }
     }
 

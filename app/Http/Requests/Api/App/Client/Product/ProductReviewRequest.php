@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api\App\Client\Product;
 
+use App\Enums\OrderStatus;
 use App\Http\Requests\Api\MasterRequest;
 use App\Traits\BilingualValidationTrait;
 use Illuminate\Contracts\Validation\Validator;
@@ -69,7 +70,7 @@ class ProductReviewRequest extends MasterRequest
 
         // Check if user has completed an order containing this product
         $hasCompletedOrder = \App\Models\Order::where('user_id', $user->id)
-            ->where('status', 'completed')
+            ->where('status', OrderStatus::DELIVERED->value)
             ->whereHas('items', function ($query) use ($productId) {
                 $query->where('product_id', $productId);
             })
@@ -77,7 +78,7 @@ class ProductReviewRequest extends MasterRequest
 
         if (!$hasCompletedOrder) {
             
-            $validator->errors()->add('product_id', 'You can only review products that you have purchased and received (completed orders)');
+            $validator->errors()->add('product_id', __('messages.you_can_only_review_products_that_you_have_purchased_and_received_completed_orders'));
         }
 
         // Check if user already reviewed this product (only for create, not update)
@@ -88,7 +89,7 @@ class ProductReviewRequest extends MasterRequest
                 ->exists();
 
             if ($existingReview) {
-                $validator->errors()->add('product_id', 'You have already reviewed this product');
+                $validator->errors()->add('product_id', __('messages.you_have_already_reviewed_this_product'));
             }
         }
     }

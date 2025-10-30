@@ -28,12 +28,12 @@ class MoneyTransferService
             $wallet = Wallet::where('user_id', $userId)->first();
             
             if (!$wallet) {
-                return $this->errorResponse('Wallet not found. Please create a wallet first.', [], 404);
+                return $this->errorResponse(__('messages.wallet_not_found_create_first'), [], 404);
             }
 
             // Check if wallet has sufficient balance
             if ($wallet->balance < $amount) {
-                return $this->errorResponse('Insufficient wallet balance. Available balance: ' . $wallet->balance, [], 400);
+                return $this->errorResponse(__('messages.insufficient_wallet_balance_available', ['balance' => $wallet->balance]), [], 400);
             }
 
             DB::beginTransaction();
@@ -67,7 +67,7 @@ class MoneyTransferService
                 DB::commit();
 
                 return $this->successResponse([
-                    'message' => 'Money transfer request created successfully.',
+                    'message' => __('messages.money_transfer_request_created'),
                     'transfer' => $transfer->load(['user', 'wallet']),
                 ]);
 
@@ -77,7 +77,7 @@ class MoneyTransferService
             }
 
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to create money transfer request', [
+            return $this->serverErrorResponse(__('messages.failed_to_create_money_transfer_request'), [
                 'error' => $e->getMessage()
             ]);
         }
@@ -108,7 +108,7 @@ class MoneyTransferService
             ]);
 
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve money transfers', [
+            return $this->serverErrorResponse(__('messages.failed_to_retrieve_money_transfers'), [
                 'error' => $e->getMessage()
             ]);
         }
@@ -128,7 +128,7 @@ class MoneyTransferService
                 ->first();
 
             if (!$transfer) {
-                return $this->errorResponse('Money transfer not found.', [], 404);
+                return $this->errorResponse(__('messages.money_transfer_not_found'), [], 404);
             }
 
             return $this->successResponse([
@@ -136,7 +136,7 @@ class MoneyTransferService
             ]);
 
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve money transfer details', [
+            return $this->serverErrorResponse(__('messages.failed_to_retrieve_money_transfer_details'), [
                 'error' => $e->getMessage()
             ]);
         }
@@ -155,11 +155,11 @@ class MoneyTransferService
                 ->first();
 
             if (!$transfer) {
-                return $this->errorResponse('Money transfer not found.', [], 404);
+                return $this->errorResponse(__('messages.money_transfer_not_found'), [], 404);
             }
 
             if ($transfer->status !== 'pending') {
-                return $this->errorResponse('Only pending transfers can be cancelled.', [], 400);
+                return $this->errorResponse(__('messages.only_pending_transfers_can_be_cancelled'), [], 400);
             }
 
             DB::beginTransaction();
@@ -186,7 +186,7 @@ class MoneyTransferService
                 DB::commit();
 
                 return $this->successResponse([
-                    'message' => 'Money transfer cancelled successfully.',
+                    'message' => __('messages.money_transfer_cancelled_successfully'),
                     'transfer' => $transfer->fresh(),
                 ]);
 
@@ -196,7 +196,7 @@ class MoneyTransferService
             }
 
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to cancel money transfer', [
+            return $this->serverErrorResponse(__('messages.failed_to_cancel_money_transfer'), [
                 'error' => $e->getMessage()
             ]);
         }

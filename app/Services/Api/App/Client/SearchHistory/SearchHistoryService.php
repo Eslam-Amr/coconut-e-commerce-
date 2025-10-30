@@ -38,9 +38,9 @@ class SearchHistoryService
                     ->paginate($perPage);
             }
 
-            return $this->successResponse($searchHistory, 'Search history retrieved successfully');
+            return $this->successResponse($searchHistory, __('messages.search_history_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve search history', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.failed_to_retrieve_search_history'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -59,18 +59,18 @@ class SearchHistoryService
                     ->first();
 
                 if (!$searchHistory) {
-                    return $this->notFoundResponse('Search history item not found');
+                    return $this->notFoundResponse(__('messages.search_history_item_not_found'));
                 }
 
                 $searchHistory->delete();
-                return $this->successResponse(null, 'Search history item deleted successfully');
+                return $this->successResponse(null, __('messages.search_history_item_deleted_successfully'));
             } else {
                 // Delete all user's search history
                 SearchHistory::where('user_id', $userId)->delete();
-                return $this->successResponse(null, 'All search history cleared successfully');
+                return $this->successResponse(null, __('messages.all_search_history_cleared_successfully'));
             }
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to delete search history', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.failed_to_delete_search_history'), ['error' => $e->getMessage()]);
         }
     }
 }

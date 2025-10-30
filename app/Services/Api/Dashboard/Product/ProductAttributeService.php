@@ -50,9 +50,9 @@ class ProductAttributeService
             $perPage = $request->integer('per_page', 15);
             $productAttributes = $query->paginate($perPage);
 
-            return $this->successResponse($productAttributes, 'Product attributes retrieved successfully');
+            return $this->successResponse($productAttributes, __('messages.product_attributes_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve product attributes', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -68,24 +68,24 @@ class ProductAttributeService
                 ->first();
 
             if ($existing) {
-                return $this->errorResponse('This attribute value is already assigned to the product', 422);
+                return $this->errorResponse(__('messages.attribute_value_already_assigned'), 422);
             }
 
             // Validate that the attribute belongs to the product's category
             $product = Product::with('category')->find($data['product_id']);
             if (!$product || !$product->category) {
-                return $this->errorResponse('Product or category not found', 404);
+                return $this->errorResponse(__('messages.product_or_category_not_found'), 404);
             }
 
             $attribute = Attribute::find($data['attribute_id']);
             if (!$attribute) {
-                return $this->errorResponse('Attribute does not belong to the product category', 422);
+                return $this->errorResponse(__('messages.attribute_not_belong_to_category'), 422);
             }
 
             // Validate that the attribute value belongs to the attribute
             $attributeValue = AttributeValue::find($data['attribute_value_id']);
             if (!$attributeValue || $attributeValue->attribute_id !== $attribute->id) {
-                return $this->errorResponse('Attribute value does not belong to the specified attribute', 422);
+                return $this->errorResponse(__('messages.attribute_value_not_belong_to_attribute'), 422);
             }
 
             $productAttribute = ProductAttribute::create($data);
@@ -97,10 +97,10 @@ class ProductAttributeService
             ]);
 
             DB::commit();
-            return $this->successResponse($productAttribute, 'Product attribute created successfully', 201);
+            return $this->successResponse($productAttribute, __('messages.product_attribute_created'), 201);
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->serverErrorResponse('Failed to create product attribute', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.creation_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -114,9 +114,9 @@ class ProductAttributeService
                 'attributeValue.translations'
             ]);
 
-            return $this->successResponse($productAttribute, 'Product attribute retrieved successfully');
+            return $this->successResponse($productAttribute, __('messages.product_attribute_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve product attribute', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -133,24 +133,24 @@ class ProductAttributeService
                 ->first();
 
             if ($existing) {
-                return $this->errorResponse('This attribute value is already assigned to the product', 422);
+                return $this->errorResponse(__('messages.attribute_value_already_assigned'), 422);
             }
 
             // Validate that the attribute belongs to the product's category
             $product = Product::with('category')->find($data['product_id']);
             if (!$product || !$product->category) {
-                return $this->errorResponse('Product or category not found', 404);
+                return $this->errorResponse(__('messages.product_or_category_not_found'), 404);
             }
 
             $attribute = Attribute::find($data['attribute_id']);
             if (!$attribute) {
-                return $this->errorResponse('Attribute does not belong to the product category', 422);
+                return $this->errorResponse(__('messages.attribute_not_belong_to_category'), 422);
             }
 
             // Validate that the attribute value belongs to the attribute
             $attributeValue = AttributeValue::find($data['attribute_value_id']);
             if (!$attributeValue || $attributeValue->attribute_id !== $attribute->id) {
-                return $this->errorResponse('Attribute value does not belong to the specified attribute', 422);
+                return $this->errorResponse(__('messages.attribute_value_not_belong_to_attribute'), 422);
             }
 
             $productAttribute->update($data);
@@ -162,10 +162,10 @@ class ProductAttributeService
             ]);
 
             DB::commit();
-            return $this->successResponse($productAttribute, 'Product attribute updated successfully');
+            return $this->successResponse($productAttribute, __('messages.product_attribute_updated_successfully'));
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->serverErrorResponse('Failed to update product attribute', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.update_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -173,9 +173,9 @@ class ProductAttributeService
     {
         try {
             $productAttribute->delete();
-            return $this->successResponse(null, 'Product attribute deleted successfully');
+            return $this->successResponse(null, __('messages.product_attribute_deleted_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to delete product attribute', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.deletion_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -184,7 +184,7 @@ class ProductAttributeService
         try {
             $product = Product::find($productId);
             if (!$product) {
-                return $this->errorResponse('Product not found', 404);
+                return $this->errorResponse(__('messages.not_found'), 404);
             }
 
             $query = ProductAttribute::with([
@@ -198,9 +198,9 @@ class ProductAttributeService
 
             $productAttributes = $query->get();
 
-            return $this->successResponse($productAttributes, 'Product attributes retrieved successfully');
+            return $this->successResponse($productAttributes, __('messages.product_attributes_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve product attributes', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -211,11 +211,11 @@ class ProductAttributeService
 
             $product = Product::with('category')->find($productId);
             if (!$product || !$product->category) {
-                return $this->errorResponse('Product or category not found', 404);
+                return $this->errorResponse(__('messages.product_or_category_not_found'), 404);
             }
 
             if (!isset($data['attributes']) || !is_array($data['attributes'])) {
-                return $this->errorResponse('Attributes array is required', 422);
+                return $this->errorResponse(__('messages.attributes_array_required'), 422);
             }
 
             $attributes = $data['attributes'];
@@ -223,7 +223,7 @@ class ProductAttributeService
 
             foreach ($attributes as $attributeData) {
                 if (!isset($attributeData['attribute_id']) || !isset($attributeData['attribute_value_id'])) {
-                    return $this->errorResponse('Each attribute must have attribute_id and attribute_value_id', 422);
+                    return $this->errorResponse(__('messages.attribute_must_have_ids'), 422);
                 }
 
                 $attributeId = $attributeData['attribute_id'];
@@ -264,10 +264,10 @@ class ProductAttributeService
             ])->whereIn('id', $productAttributeIds)->get();
 
             DB::commit();
-            return $this->successResponse($productAttributes, 'Product attributes assigned successfully', 201);
+            return $this->successResponse($productAttributes, __('messages.product_attributes_assigned_successfully'), 201);
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->serverErrorResponse('Failed to assign product attributes', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.creation_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -276,14 +276,14 @@ class ProductAttributeService
         try {
             $product = Product::find($productId);
             if (!$product) {
-                return $this->errorResponse('Product not found', 404);
+                return $this->errorResponse(__('messages.not_found'), 404);
             }
 
             $deletedCount = ProductAttribute::where('product_id', $productId)->delete();
 
-            return $this->successResponse(['deleted_count' => $deletedCount], 'All product attributes removed successfully');
+            return $this->successResponse(['deleted_count' => $deletedCount], __('messages.all_product_attributes_removed'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to remove product attributes', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.deletion_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -292,7 +292,7 @@ class ProductAttributeService
         try {
             $product = Product::with('category')->find($productId);
             if (!$product || !$product->category) {
-                return $this->errorResponse('Product or category not found', 404);
+                return $this->errorResponse(__('messages.product_or_category_not_found'), 404);
             }
 
             // Get all attributes for the product's category
@@ -311,9 +311,9 @@ class ProductAttributeService
                 return in_array($attribute->id, $assignedAttributeIds);
             });
 
-            return $this->successResponse($availableAttributes, 'Available attributes retrieved successfully');
+            return $this->successResponse($availableAttributes, __('messages.available_attributes_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve available attributes', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 }

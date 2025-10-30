@@ -18,7 +18,7 @@ class RegisterService
     {
         return DB::transaction(function () use ($data) {
             $user = User::create($data);
-            return $this->successResponse($user, 'success');
+            return $this->successResponse($user, __('messages.success'));
         });
     }
     
@@ -29,7 +29,7 @@ class RegisterService
         Notification::route('sms', $data['phone'])
             ->notify(new OtpNotification($otp, null, $data['phone'], ['sms']));
 
-        return $this->successResponse($otp, 'OTP sent to sms.');
+        return $this->successResponse($otp, __('messages.otp_sent_to_sms'));
     }
     public function verifyOtp($data)
     {

@@ -43,9 +43,9 @@ class ProductService
 
             $products = $query->paginate($perPage);
 
-            return $this->successResponse($products, 'Products retrieved successfully');
+            return $this->successResponse($products, __('messages.products_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve products', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -166,7 +166,7 @@ class ProductService
         try {
             // Check if product is active and in stock
             if (!$product->active || $product->total_quantity <= 0) {
-                return $this->notFoundResponse('Product not available');
+                return $this->notFoundResponse(__('messages.not_found'));
             }
 
             $product->load([
@@ -181,9 +181,9 @@ class ProductService
             ->loadAvg('reviews', 'rating')
             ->loadCount(['orderItems', 'wishlists', 'reviews']);
 
-            return $this->successResponse($product, 'Product retrieved successfully');
+            return $this->successResponse($product, __('messages.product_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve product', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -204,9 +204,9 @@ class ProductService
                 ->loadAvg('reviews', 'rating')
                 ->loadCount(['orderItems', 'wishlists', 'reviews']);
 
-            return $this->successResponse($recommended, 'Recommendations retrieved successfully');
+            return $this->successResponse($recommended, __('messages.recommendations_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve recommendations', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -221,9 +221,9 @@ class ProductService
 
             $products = $this->recommendationService->getTrendingProducts($limit);
 
-            return $this->successResponse($products, 'Trending products retrieved successfully');
+            return $this->successResponse($products, __('messages.trending_products_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve trending products', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -238,9 +238,9 @@ class ProductService
 
             $products = $this->recommendationService->getFeaturedProducts($limit);
 
-            return $this->successResponse($products, 'Featured products retrieved successfully');
+            return $this->successResponse($products, __('messages.featured_products_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve featured products', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -255,9 +255,9 @@ class ProductService
 
             $products = $this->recommendationService->getMostOrderedProducts($limit);
 
-            return $this->successResponse($products, 'Most ordered products retrieved successfully');
+            return $this->successResponse($products, __('messages.most_ordered_products_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve most ordered products', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -272,9 +272,9 @@ class ProductService
 
             $products = $this->recommendationService->getTopRatedProducts($limit);
 
-            return $this->successResponse($products, 'Top rated products retrieved successfully');
+            return $this->successResponse($products, __('messages.top_rated_products_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve top rated products', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
     /**
@@ -288,9 +288,9 @@ class ProductService
 
             $products = $this->recommendationService->getRelatedProducts($product, $limit);
 
-            return $this->successResponse($products, 'Related products retrieved successfully');
+            return $this->successResponse($products, __('messages.related_products_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve related products', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 

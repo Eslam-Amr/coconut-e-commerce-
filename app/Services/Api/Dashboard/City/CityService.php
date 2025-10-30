@@ -33,9 +33,9 @@ class CityService
             $perPage = $request->integer('per_page', 15);
             $cities = $query->paginate($perPage);
 
-            return $this->successResponse($cities, 'Cities retrieved successfully');
+            return $this->successResponse($cities, __('messages.cities_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve cities', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -50,10 +50,10 @@ class CityService
             $city->load(['country', 'translations']);
             DB::commit();
 
-            return $this->successResponse($city, 'City created successfully', 201);
+            return $this->successResponse($city, __('messages.city_created'), 201);
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->serverErrorResponse('Failed to create city', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.creation_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -61,9 +61,9 @@ class CityService
     {
         try {
             $city->load(['country', 'translations', 'districts']);
-            return $this->successResponse($city, 'City retrieved successfully');
+            return $this->successResponse($city, __('messages.city_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve city', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -77,10 +77,10 @@ class CityService
             $city->load(['country', 'translations']);
             DB::commit();
 
-            return $this->successResponse($city, 'City updated successfully');
+            return $this->successResponse($city, __('messages.city_updated_successfully'));
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->serverErrorResponse('Failed to update city', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.update_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -89,13 +89,13 @@ class CityService
         try {
             // Check if city has districts
             if ($city->districts()->count() > 0) {
-                return $this->errorResponse('Cannot delete city with districts', 422);
+                return $this->errorResponse(__('messages.cannot_delete_city_with_districts'), 422);
             }
 
             $city->delete();
-            return $this->successResponse(null, 'City deleted successfully');
+            return $this->successResponse(null, __('messages.city_deleted_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to delete city', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.deletion_failed'), ['error' => $e->getMessage()]);
         }
     }
 }

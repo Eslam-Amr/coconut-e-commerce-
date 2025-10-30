@@ -93,22 +93,17 @@ class WalletService
             $paymentResult = $this->paymentService->sendPayment($paymentRequest);
 
             if ($paymentResult['success']) {
-                return $this->successResponse('Payment initiated successfully', [
+                return $this->successResponse( [
                     'payment_url' => $paymentResult['url'],
                     'wallet_transaction_id' => $walletTransaction->id
-                ]);
+                ], __('messages.payment_initiated_successfully'));
             } else {
                 // Update transaction status to failed
                 $walletTransaction->update(['status' => 'failed']);
 
-                Log::error('Wallet payment initiation failed', [
-                    'user_id' => $userId,
-                    'amount' => $amount,
-                    'wallet_transaction_id' => $walletTransaction->id,
-                    'payment_result' => $paymentResult
-                ]);
+       
 
-                return $this->errorResponse('Payment initiation failed', [
+                return $this->errorResponse(__('messages.payment_initiation_failed'), [
                     'wallet_transaction_id' => $walletTransaction->id
                 ], 400);
             }
@@ -129,23 +124,23 @@ class WalletService
 
             $wallet = Wallet::where('user_id', $userId)->first();
             if (!$wallet) {
-                return $this->errorResponse('Wallet not found', [], 404);
+                return $this->errorResponse(__('messages.wallet_not_found'), [], 404);
             }
 
             $transactions = WalletTransaction::where('wallet_id', $wallet->id)
                 ->orderBy('created_at', 'desc')
                 ->paginate(15);
 
-            return $this->successResponse(__('messages.retrieved_successfully'), [
+            return $this->successResponse([
                 'wallet' => [
                     'id' => $wallet->id,
                     'balance' => $wallet->balance,
                     'created_at' => $wallet->created_at
                 ],
                 'transactions' => $transactions
-            ]);
+            ], __('messages.retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve wallet information', [
+            return $this->serverErrorResponse(__('messages.failed_to_retrieve_wallet_information'), [
                 'error' => $e->getMessage()
             ]);
         }
@@ -161,7 +156,7 @@ class WalletService
 
             $wallet = Wallet::where('user_id', $userId)->first();
             if (!$wallet) {
-                return $this->errorResponse('Wallet not found', [], 404);
+                return $this->errorResponse(__('messages.wallet_not_found'), [], 404);
             }
 
             $transaction = WalletTransaction::where('wallet_id', $wallet->id)
@@ -169,12 +164,12 @@ class WalletService
                 ->first();
 
             if (!$transaction) {
-                return $this->errorResponse('Transaction not found', [], 404);
+                return $this->errorResponse(__('messages.transaction_not_found'), [], 404);
             }
 
-            return $this->successResponse(__('messages.retrieved_successfully'), $transaction);
+            return $this->successResponse($transaction, __('messages.retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve transaction details', [
+            return $this->serverErrorResponse(__('messages.failed_to_retrieve_transaction_details'), [
                 'error' => $e->getMessage()
             ]);
         }

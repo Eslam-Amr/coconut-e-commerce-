@@ -52,9 +52,9 @@ class SliderService
             $perPage = $request->get('per_page', 15);
             $sliders = $query->paginate($perPage);
 
-            return $this->successResponse($sliders, 'Sliders retrieved successfully');
+            return $this->successResponse($sliders, __('messages.sliders_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve sliders', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -80,12 +80,9 @@ class SliderService
             return $slider;
 
         });
-        return $this->successResponse($slider, __('messages.sliders.created'), 201);
-        // return $this->successResponse(SliderResource::make($slider), __('messages.sliders.created'), 201);
-       
-            return $this->successResponse($slider, 'Slider created successfully', 201);
+        return $this->successResponse($slider, __('messages.slider_created'), 201);
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to create slider', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.creation_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -96,9 +93,9 @@ class SliderService
     {
         try {
             $slider->load(['translations','media']);
-            return $this->successResponse($slider, 'Slider retrieved successfully');
+            return $this->successResponse($slider, __('messages.slider_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve slider', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -110,9 +107,9 @@ class SliderService
         try {
             $slider->update($data);
             $slider->load(['translations']);
-            return $this->successResponse($slider, 'Slider updated successfully');
+            return $this->successResponse($slider, __('messages.slider_updated_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to update slider', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.update_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -123,9 +120,9 @@ class SliderService
     {
         try {
             $slider->delete();
-            return $this->successResponse(null, 'Slider deleted successfully');
+            return $this->successResponse(null, __('messages.slider_deleted_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to delete slider', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.deletion_failed'), ['error' => $e->getMessage()]);
         }
     }
 

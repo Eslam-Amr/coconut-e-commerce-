@@ -53,9 +53,9 @@ class CategoryService
             $perPage = $request->get('per_page', 15);
             $categories = $query->paginate($perPage);
 
-            return $this->successResponse($categories, 'Categories retrieved successfully');
+            return $this->successResponse($categories, __('messages.categories_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve categories', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -67,9 +67,9 @@ class CategoryService
         try {
             $category = Category::create($data);
             $category->load(['parent.translations', 'children.translations', 'translations']);
-            return $this->successResponse($category, 'Category created successfully', 201);
+            return $this->successResponse($category, __('messages.category_created'), 201);
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to create category', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.creation_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -80,9 +80,9 @@ class CategoryService
     {
         try {
             $category->load(['parent.translations', 'children.translations', 'products', 'attributes', 'translations']);
-            return $this->successResponse($category, 'Category retrieved successfully');
+            return $this->successResponse($category, __('messages.category_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve category', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -95,9 +95,9 @@ class CategoryService
         try {
             $category->update($data);
             $category->load(['parent.translations', 'children.translations', 'products', 'translations']);
-            return $this->successResponse($category, 'Category updated successfully');
+            return $this->successResponse($category, __('messages.category_updated_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to update category', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.update_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -109,23 +109,23 @@ class CategoryService
         try {
             // Check if category has children
             if ($category->children()->count() > 0) {
-                return $this->errorResponse('Cannot delete category with subcategories', 422);
+                return $this->errorResponse(__('messages.cannot_delete_category_with_subcategories'), 422);
             }
 
             // Check if category has products
             if ($category->products()->count() > 0) {
-                return $this->errorResponse('Cannot delete category with products', 422);
+                return $this->errorResponse(__('messages.cannot_delete_category_with_products'), 422);
             }
 
             // Check if category has attributes
             if ($category->attributes()->count() > 0) {
-                return $this->errorResponse('Cannot delete category with attributes', 422);
+                return $this->errorResponse(__('messages.cannot_delete_category_with_attributes'), 422);
             }
 
             $category->delete();
-            return $this->successResponse(null, 'Category deleted successfully');
+            return $this->successResponse(null, __('messages.category_deleted_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to delete category', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.deletion_failed'), ['error' => $e->getMessage()]);
         }
     }
 }

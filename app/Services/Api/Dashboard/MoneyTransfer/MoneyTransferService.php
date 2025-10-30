@@ -26,7 +26,7 @@ class MoneyTransferService
                 'transfers' => $query->paginate($perPage)
             ]);
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to list money transfers', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.failed_to_list_money_transfers'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -36,7 +36,7 @@ class MoneyTransferService
             $transfer->load(['user', 'wallet']);
             return $this->successResponse(['transfer' => $transfer]);
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to get money transfer', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.failed_to_get_money_transfer'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -47,16 +47,16 @@ class MoneyTransferService
         try {
             $newStatus = $data['status'] ?? null;
             if ($newStatus === null) {
-                return $this->errorResponse('Status is required', [], 422);
+                return $this->errorResponse(__('messages.status_required'), [], 422);
             }
 
             $allowed = ['completed','failed','cancelled'];
             if (!in_array($newStatus, $allowed, true)) {
-                return $this->errorResponse('Invalid status', [], 422);
+                return $this->errorResponse(__('messages.invalid_status'), [], 422);
             }
 
             if ($transfer->status !== 'pending') {
-                return $this->errorResponse('Only pending transfers can be updated', [], 400);
+                return $this->errorResponse(__('messages.only_pending_transfers_can_be_updated'), [], 400);
             }
 
             DB::transaction(function () use ($transfer, $newStatus) {
@@ -81,11 +81,11 @@ class MoneyTransferService
             });
 
             return $this->successResponse([
-                'message' => 'Transfer status updated',
+                'message' => __('messages.transfer_status_updated'),
                 'transfer' => $transfer->fresh()
             ]);
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to update transfer status', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.failed_to_update_transfer_status'), ['error' => $e->getMessage()]);
         }
     }
 }

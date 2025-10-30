@@ -40,9 +40,9 @@ class VoucherService
             $perPage = $request->integer('per_page', 15);
             $vouchers = $query->paginate($perPage);
 
-            return $this->successResponse($vouchers, 'Vouchers retrieved successfully');
+            return $this->successResponse($vouchers, __('messages.vouchers_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve vouchers', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -50,18 +50,18 @@ class VoucherService
     {
         try {
             $voucher = Voucher::create($data);
-            return $this->successResponse($voucher, 'Voucher created successfully', 201);
+            return $this->successResponse($voucher, __('messages.voucher_created'), 201);
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to create voucher', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.creation_failed'), ['error' => $e->getMessage()]);
         }
     }
 
     public function show(Voucher $voucher)
     {
         try {
-            return $this->successResponse($voucher, 'Voucher retrieved successfully');
+            return $this->successResponse($voucher, __('messages.voucher_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve voucher', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -69,9 +69,9 @@ class VoucherService
     {
         try {
             $voucher->update($data);
-            return $this->successResponse($voucher, 'Voucher updated successfully');
+            return $this->successResponse($voucher, __('messages.voucher_updated_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to update voucher', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.update_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -79,9 +79,9 @@ class VoucherService
     {
         try {
             $voucher->delete();
-            return $this->successResponse(null, 'Voucher deleted successfully');
+            return $this->successResponse(null, __('messages.voucher_deleted_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to delete voucher', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.deletion_failed'), ['error' => $e->getMessage()]);
         }
     }
 }

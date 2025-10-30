@@ -33,10 +33,10 @@ class AttributeService
 
             return $this->successResponsePaginated(
                 AttributeResource::collection($attributes), 
-                'Attributes retrieved successfully'
+                __('messages.attributes_retrieved_successfully')
             );
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve attributes', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -51,11 +51,11 @@ class AttributeService
 
             return $this->successResponse(
                 new AttributeResource($attribute), 
-                'Attribute created successfully', 
+                __('messages.attribute_created'), 
                 201
             );
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to create attribute', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.creation_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -69,10 +69,10 @@ class AttributeService
 
             return $this->successResponse(
                 new AttributeResource($attribute), 
-                'Attribute retrieved successfully'
+                __('messages.attribute_retrieved_successfully')
             );
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve attribute', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -87,10 +87,10 @@ class AttributeService
 
             return $this->successResponse(
                 new AttributeResource($attribute), 
-                'Attribute updated successfully'
+                __('messages.attribute_updated_successfully')
             );
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to update attribute', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.update_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -102,14 +102,14 @@ class AttributeService
         try {
             // Check if attribute has values
             if ($attribute->values()->count() > 0) {
-                return $this->badRequestResponse('Cannot delete attribute with existing values');
+                return $this->badRequestResponse(__('messages.cannot_delete_attribute_with_values'));
             }
 
             $attribute->delete();
 
-            return $this->successNotDataResponse('Attribute deleted successfully');
+            return $this->successNotDataResponse(__('messages.attribute_deleted_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to delete attribute', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.deletion_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -139,10 +139,10 @@ class AttributeService
 
             return $this->successResponse(
                 AttributeResource::collection($attributes),
-                'Attributes with values retrieved successfully'
+                __('messages.attributes_with_values_retrieved_successfully')
             );
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve attributes with values', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -160,9 +160,9 @@ class AttributeService
                 'total_attributes' => $totalAttributes,
                 'attributes_with_values' => $attributesWithValues,
                 'attributes_without_values' => $attributesWithoutValues,
-            ], 'Attribute statistics retrieved successfully');
+            ], __('messages.attribute_statistics_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve attribute statistics', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 }

@@ -43,9 +43,9 @@ class DistrictService
             $perPage = $request->integer('per_page', 15);
             $districts = $query->paginate($perPage);
 
-            return $this->successResponse($districts, 'Districts retrieved successfully');
+            return $this->successResponse($districts, __('messages.districts_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve districts', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -74,10 +74,10 @@ class DistrictService
             $district->load(['city.country', 'city.translations', 'translations']);
             DB::commit();
 
-            return $this->successResponse($district, 'District created successfully', 201);
+            return $this->successResponse($district, __('messages.district_created'), 201);
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->serverErrorResponse('Failed to create district', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.creation_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -85,9 +85,9 @@ class DistrictService
     {
         try {
             $district->load(['city.country', 'city.translations', 'translations']);
-            return $this->successResponse($district, 'District retrieved successfully');
+            return $this->successResponse($district, __('messages.district_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve district', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -116,10 +116,10 @@ class DistrictService
             $district->load(['city.country', 'city.translations', 'translations']);
             DB::commit();
 
-            return $this->successResponse($district, 'District updated successfully');
+            return $this->successResponse($district, __('messages.district_updated_successfully'));
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->serverErrorResponse('Failed to update district', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.update_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -127,9 +127,9 @@ class DistrictService
     {
         try {
             $district->delete();
-            return $this->successResponse(null, 'District deleted successfully');
+            return $this->successResponse(null, __('messages.district_deleted_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to delete district', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.deletion_failed'), ['error' => $e->getMessage()]);
         }
     }
 }

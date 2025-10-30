@@ -29,19 +29,48 @@ return [
     'retrieved_successfully' => 'تم استرجاع المورد بنجاح',
     'list_retrieved_successfully' => 'تم استرجاع الموارد بنجاح',
 
-    // Authentication
+    // Authentication (nested structure)
+    'login' => [
+        'successful' => 'تم تسجيل الدخول بنجاح',
+        'failed' => 'فشل تسجيل الدخول',
+        'not_verified' => 'الحساب غير محقق',
+        'inactive_account' => 'الحساب غير نشط',
+    ],
+
+    'auth' => [
+        'user_not_found' => 'المستخدم غير موجود',
+        'unauthenticated' => 'مطلوب تسجيل الدخول',
+        'logout' => [
+            'success' => 'تم تسجيل الخروج بنجاح',
+            'failed' => 'فشل تسجيل الخروج',
+        ],
+        'forgot_password' => [
+            'success' => 'تم إرسال رابط إعادة تعيين كلمة المرور بنجاح',
+        ],
+        'password_reset' => [
+            'success' => 'تم إعادة تعيين كلمة المرور بنجاح',
+        ],
+        'otp' => [
+            'verified' => 'تم التحقق من الرمز بنجاح',
+            'invalid' => 'الرمز غير صالح أو منتهي الصلاحية',
+        ],
+    ],
+
+    // Legacy authentication keys (for backward compatibility)
     'login_successful' => 'تم تسجيل الدخول بنجاح',
     'logout_successful' => 'تم تسجيل الخروج بنجاح',
     'registration_successful' => 'تم التسجيل بنجاح',
     'password_reset_successful' => 'تم إعادة تعيين كلمة المرور بنجاح',
     'email_verification_sent' => 'تم إرسال رسالة التحقق من البريد الإلكتروني',
     'phone_verification_sent' => 'تم إرسال رسالة التحقق من الهاتف',
+    'otp_sent_to_sms' => 'تم إرسال رمز التحقق إلى الرسائل القصيرة',
     'otp_verified' => 'تم التحقق من الرمز بنجاح',
     'otp_expired' => 'انتهت صلاحية الرمز',
     'otp_invalid' => 'الرمز غير صالح',
     'account_verified' => 'تم التحقق من الحساب بنجاح',
     'password_changed' => 'تم تغيير كلمة المرور بنجاح',
     'profile_updated' => 'تم تحديث الملف الشخصي بنجاح',
+    'success' => 'نجح',
 
     // Validation messages
     'required' => 'هذا الحقل مطلوب',
@@ -68,12 +97,39 @@ return [
     'phone_or_email_required' => 'رقم الهاتف أو البريد الإلكتروني مطلوب',
     'password_required' => 'كلمة المرور مطلوبة',
     'phone_required' => 'رقم الهاتف مطلوب',
+    'permission' => 'الصلاحية',
+    'role' => 'الدور',
+    'amount' => 'المبلغ',
+    'currency' => 'العملة',
+    'invalid_voucher' => 'رمز القسيمة غير صالح',
+    
+    // Product review messages
+    'user_not_found' => 'المستخدم غير موجود',
+    'product_not_found' => 'المنتج غير موجود',
+    'you_can_only_review_products_that_you_have_purchased_and_received_completed_orders' => 'يمكنك تقييم المنتجات التي اشتريتها واستلمتها فقط (طلبات مكتملة)',
+    'user_can_review_this_product' => 'يمكن للمستخدم تقييم هذا المنتج',
+    'error_checking_review_eligibility' => 'خطأ أثناء التحقق من أهلية التقييم',
     
     // Service-specific messages
     'cart_empty' => 'السلة فارغة',
     'order_confirmation_failed' => 'فشل في تأكيد الطلب',
     'order_processing_failed' => 'فشل في معالجة الطلب',
     'order_confirmed' => 'تم تأكيد الطلب بنجاح',
+    'orders_retrieved_successfully' => 'تم استرجاع الطلبات بنجاح',
+    'order_retrieved_successfully' => 'تم استرجاع الطلب بنجاح',
+    'order_status_updated_successfully' => 'تم تحديث حالة الطلب بنجاح',
+    'order_statistics_retrieved_successfully' => 'تم استرجاع إحصائيات الطلبات بنجاح',
+    'order_statuses_retrieved_successfully' => 'تم استرجاع حالات الطلبات بنجاح',
+    'failed_to_retrieve_orders' => 'فشل في استرجاع الطلبات',
+    'failed_to_retrieve_order' => 'فشل في استرجاع الطلب',
+    'failed_to_update_order_status' => 'فشل في تحديث حالة الطلب',
+    'failed_to_retrieve_order_statistics' => 'فشل في استرجاع إحصائيات الطلبات',
+    'failed_to_retrieve_order_statuses' => 'فشل في استرجاع حالات الطلبات',
+    'cannot_cancel_completed_order' => 'لا يمكن إلغاء طلب مكتمل',
+    'order_already_cancelled' => 'الطلب ملغى بالفعل',
+    'order_cancelled_successfully' => 'تم إلغاء الطلب بنجاح',
+    'failed_to_cancel_order' => 'فشل في إلغاء الطلب',
+    'insufficient_wallet_balance' => 'رصيد المحفظة غير كافي',
     'retrieval_failed' => 'فشل في استرجاع البيانات',
     'creation_failed' => 'فشل في الإنشاء',
     'update_failed' => 'فشل في التحديث',
@@ -82,9 +138,20 @@ return [
     'no_cart_found' => 'لم يتم العثور على سلة',
     'variant_mismatch' => 'المتغير لا ينتمي للمنتج',
     'insufficient_stock' => 'المخزون غير كافي',
+    'insufficient_stock_available' => 'المخزون غير كافي',
     'flash_sale_limit_exceeded' => 'تم تجاوز حد العرض السريع',
     'added_to_cart' => 'تم إضافة العنصر للسلة بنجاح',
     'cart_add_failed' => 'فشل في إضافة العنصر للسلة',
+    'cart_item_incremented' => 'تم زيادة عدد العنصر في السلة',
+    'cart_item_decremented' => 'تم تقليل عدد العنصر في السلة',
+    'cart_item_quantity_updated' => 'تم تحديث كمية العنصر في السلة',
+    'cart_item_removed' => 'تم إزالة العنصر من السلة',
+    'cart_total_calculated_successfully' => 'تم حساب إجمالي السلة بنجاح',
+    'failed_to_increment_item' => 'فشل في زيادة العنصر',
+    'failed_to_decrement_item' => 'فشل في تقليل العنصر',
+    'failed_to_update_quantity' => 'فشل في تحديث الكمية',
+    'failed_to_remove_item' => 'فشل في إزالة العنصر',
+    'failed_to_calculate_cart_total' => 'فشل في حساب إجمالي السلة',
     'cannot_deactivate_self' => 'لا يمكنك إلغاء تفعيل حسابك الخاص',
     'phone_exists' => 'رقم الهاتف غير مسجل',
     'email_exists' => 'البريد الإلكتروني غير مسجل',
@@ -104,8 +171,15 @@ return [
     'order_cancelled' => 'تم إلغاء الطلب بنجاح',
     'payment_successful' => 'تم الدفع بنجاح',
     'payment_failed' => 'فشل في الدفع',
+    'payment_initiated_successfully' => 'تم بدء عملية الدفع بنجاح',
+    'payment_initiation_failed' => 'فشل في بدء عملية الدفع',
     'refund_processed' => 'تم معالجة الاسترداد بنجاح',
+    'wishlist_retrieved_successfully' => 'تم استرجاع قائمة الأمنيات بنجاح',
     'wishlist_updated' => 'تم تحديث قائمة الأمنيات بنجاح',
+    'wishlist_add_failed' => 'فشل في الإضافة إلى قائمة الأمنيات',
+    'wishlist_retrieval_failed' => 'فشل في استرجاع قائمة الأمنيات',
+    'product_added_to_wishlist' => 'تم إضافة المنتج إلى قائمة الأمنيات بنجاح',
+    'product_removed_from_wishlist' => 'تم إزالة المنتج من قائمة الأمنيات بنجاح',
     'review_submitted' => 'تم إرسال التقييم بنجاح',
     'rating_submitted' => 'تم إرسال التقييم بنجاح',
 
@@ -116,53 +190,143 @@ return [
     'invalid_file_type' => 'نوع الملف غير صالح',
     'upload_failed' => 'فشل في رفع الملف',
 
-    // Notification messages
+    // Notification messages (nested structure)
+    'notifications' => [
+        'retrieved' => 'تم استرجاع الإشعارات بنجاح',
+        'not_found' => 'الإشعار غير موجود',
+        'already_read' => 'الإشعار محدد كمقروء بالفعل',
+        'marked_as_read' => 'تم تمييز الإشعار كمقروء',
+        'all_marked_as_read' => 'تم تمييز جميع :count إشعار كمقروء',
+        'deleted' => 'تم حذف الإشعار بنجاح',
+    ],
+
+    // Legacy notification keys (for backward compatibility)
     'notification_sent' => 'تم إرسال الإشعار بنجاح',
     'notification_marked_read' => 'تم تمييز الإشعار كمقروء',
     'notifications_cleared' => 'تم مسح الإشعارات بنجاح',
 
-    // Settings messages
+    // Settings messages (nested structure)
+    'settings' => [
+        'language_changed' => 'تم تغيير اللغة بنجاح',
+        'language_change_failed' => 'فشل في تغيير اللغة',
+        'notification_toggled' => 'تم تحديث إعدادات الإشعارات بنجاح',
+        'notification_toggle_failed' => 'فشل في تحديث إعدادات الإشعارات',
+        'dark_mode_toggled' => 'تم تحديث إعدادات الوضع الداكن بنجاح',
+        'dark_mode_toggle_failed' => 'فشل في تحديث إعدادات الوضع الداكن',
+        'incorrect_current_password' => 'كلمة المرور الحالية غير صحيحة',
+        'password_changed' => 'تم تغيير كلمة المرور بنجاح',
+        'phone_change_requested' => 'تم إرسال رمز التحقق لتغيير رقم الهاتف بنجاح',
+        'phone_changed' => 'تم تغيير رقم الهاتف بنجاح',
+        'incorrect_password_for_deletion' => 'كلمة المرور غير صحيحة لحذف الحساب',
+        'account_deleted' => 'تم حذف الحساب بنجاح',
+        'profile_updated' => 'تم تحديث الملف الشخصي بنجاح',
+        'profile_data_retrieved' => 'تم استرجاع بيانات الملف الشخصي بنجاح',
+    ],
+
+    // Legacy settings keys (for backward compatibility)
     'settings_updated' => 'تم تحديث الإعدادات بنجاح',
     'language_changed' => 'تم تغيير اللغة بنجاح',
     'theme_changed' => 'تم تغيير المظهر بنجاح',
     'privacy_settings_updated' => 'تم تحديث إعدادات الخصوصية بنجاح',
 
     // Admin messages
+    'admins_retrieved_successfully' => 'تم استرجاع المديرين بنجاح',
     'admin_created' => 'تم إنشاء المدير بنجاح',
+    'admin_retrieved_successfully' => 'تم استرجاع المدير بنجاح',
     'admin_updated' => 'تم تحديث المدير بنجاح',
     'admin_deleted' => 'تم حذف المدير بنجاح',
+    'available_roles_retrieved_successfully' => 'تم استرجاع الأدوار المتاحة بنجاح',
+    'available_permissions_retrieved_successfully' => 'تم استرجاع الصلاحيات المتاحة بنجاح',
     'role_assigned' => 'تم تعيين الدور بنجاح',
     'permission_granted' => 'تم منح الصلاحية بنجاح',
     'permission_revoked' => 'تم سحب الصلاحية بنجاح',
+    'role_removed_successfully' => 'تم إزالة الدور بنجاح',
+    'direct_permission_removed_successfully' => 'تم إزالة الصلاحية المباشرة بنجاح',
+    'admins_retrieved_successfully' => 'تم استرجاع المديرين بنجاح',
+    'admin_retrieved_successfully' => 'تم استرجاع المدير بنجاح',
+    'admin_updated_successfully' => 'تم تحديث المدير بنجاح',
+    'admin_deleted_successfully' => 'تم حذف المدير بنجاح',
+    'cannot_delete_last_super_admin' => 'لا يمكن حذف آخر مدير فائق الصلاحيات',
+    'admin_has_no_role_assigned' => 'لا يوجد دور مخصص للمدير',
+    'permission_not_found_in_admin_role' => 'لم يتم العثور على الصلاحية في دور المدير',
+    'failed_to_assign_role' => 'فشل في تعيين الدور',
+    'failed_to_remove_role' => 'فشل في إزالة الدور',
+    'failed_to_revoke_permission' => 'فشل في سحب الصلاحية',
+    'failed_to_remove_direct_permission' => 'فشل في إزالة الصلاحية المباشرة',
+    
+    // Search history messages
+    'search_history_retrieved_successfully' => 'تم استرجاع سجل البحث بنجاح',
+    'search_history_item_not_found' => 'عنصر سجل البحث غير موجود',
+    'search_history_item_deleted_successfully' => 'تم حذف عنصر سجل البحث بنجاح',
+    'all_search_history_cleared_successfully' => 'تم مسح سجل البحث بالكامل بنجاح',
+    'failed_to_retrieve_search_history' => 'فشل في استرجاع سجل البحث',
+    'failed_to_delete_search_history' => 'فشل في حذف سجل البحث',
 
     // Product messages
+    'products_retrieved_successfully' => 'تم استرجاع المنتجات بنجاح',
     'product_created' => 'تم إنشاء المنتج بنجاح',
+    'product_retrieved_successfully' => 'تم استرجاع المنتج بنجاح',
     'product_updated' => 'تم تحديث المنتج بنجاح',
     'product_deleted' => 'تم حذف المنتج بنجاح',
     'product_published' => 'تم نشر المنتج بنجاح',
     'product_unpublished' => 'تم إلغاء نشر المنتج بنجاح',
+    'recommendations_retrieved_successfully' => 'تم استرجاع التوصيات بنجاح',
+    'trending_products_retrieved_successfully' => 'تم استرجاع المنتجات الرائجة بنجاح',
+    'featured_products_retrieved_successfully' => 'تم استرجاع المنتجات المميزة بنجاح',
+    'most_ordered_products_retrieved_successfully' => 'تم استرجاع المنتجات الأكثر طلباً بنجاح',
+    'top_rated_products_retrieved_successfully' => 'تم استرجاع المنتجات الأعلى تقييماً بنجاح',
+    'related_products_retrieved_successfully' => 'تم استرجاع المنتجات ذات الصلة بنجاح',
+    'product_variants_retrieved_successfully' => 'تم استرجاع متغيرات المنتج بنجاح',
+    'product_variant_created_successfully' => 'تم إنشاء متغير المنتج بنجاح',
+    'product_variant_retrieved_successfully' => 'تم استرجاع متغير المنتج بنجاح',
+    'product_variant_with_attributes_retrieved_successfully' => 'تم استرجاع متغير المنتج مع الخصائص بنجاح',
+    'product_variant_updated_successfully' => 'تم تحديث متغير المنتج بنجاح',
+    'product_variant_deleted_successfully' => 'تم حذف متغير المنتج بنجاح',
     'variant_created' => 'تم إنشاء متغير المنتج بنجاح',
     'variant_updated' => 'تم تحديث متغير المنتج بنجاح',
     'variant_deleted' => 'تم حذف متغير المنتج بنجاح',
+    'variants_created_successfully' => 'تم إنشاء المتغيرات بنجاح',
+    'variant_summary_retrieved_successfully' => 'تم استرجاع ملخص المتغيرات بنجاح',
+    'product_attributes_retrieved_successfully' => 'تم استرجاع خصائص المنتج بنجاح',
+    'product_attribute_created_successfully' => 'تم إنشاء خاصية المنتج بنجاح',
+    'product_attribute_retrieved_successfully' => 'تم استرجاع خاصية المنتج بنجاح',
+    'product_attribute_updated_successfully' => 'تم تحديث خاصية المنتج بنجاح',
+    'product_attribute_deleted_successfully' => 'تم حذف خاصية المنتج بنجاح',
+    'available_attributes_retrieved_successfully' => 'تم استرجاع الخصائص المتاحة بنجاح',
 
     // Category messages
+    'categories_retrieved_successfully' => 'تم استرجاع الفئات بنجاح',
     'category_created' => 'تم إنشاء الفئة بنجاح',
+    'category_retrieved_successfully' => 'تم استرجاع الفئة بنجاح',
     'category_updated' => 'تم تحديث الفئة بنجاح',
     'category_deleted' => 'تم حذف الفئة بنجاح',
 
     // Brand messages
+    'brands_retrieved_successfully' => 'تم استرجاع العلامات التجارية بنجاح',
     'brand_created' => 'تم إنشاء العلامة التجارية بنجاح',
+    'brand_retrieved_successfully' => 'تم استرجاع العلامة التجارية بنجاح',
     'brand_updated' => 'تم تحديث العلامة التجارية بنجاح',
     'brand_deleted' => 'تم حذف العلامة التجارية بنجاح',
 
     // Banner messages
+    'banners_retrieved_successfully' => 'تم استرجاع البانرات بنجاح',
     'banner_created' => 'تم إنشاء البانر بنجاح',
+    'banner_retrieved_successfully' => 'تم استرجاع البانر بنجاح',
     'banner_updated' => 'تم تحديث البانر بنجاح',
     'banner_deleted' => 'تم حذف البانر بنجاح',
     'banner_activated' => 'تم تفعيل البانر بنجاح',
     'banner_deactivated' => 'تم إلغاء تفعيل البانر بنجاح',
 
-    // Slider messages
+    // Slider messages (nested structure)
+    'sliders' => [
+        'created' => 'تم إنشاء السلايدر بنجاح',
+        'updated' => 'تم تحديث السلايدر بنجاح',
+        'deleted' => 'تم حذف السلايدر بنجاح',
+        'activated' => 'تم تفعيل السلايدر بنجاح',
+        'deactivated' => 'تم إلغاء تفعيل السلايدر بنجاح',
+    ],
+
+    // Legacy slider keys (for backward compatibility)
     'slider_created' => 'تم إنشاء السلايدر بنجاح',
     'slider_updated' => 'تم تحديث السلايدر بنجاح',
     'slider_deleted' => 'تم حذف السلايدر بنجاح',
@@ -170,19 +334,30 @@ return [
     'slider_deactivated' => 'تم إلغاء تفعيل السلايدر بنجاح',
 
     // Static page messages
+    'static_pages_retrieved_successfully' => 'تم استرجاع الصفحات الثابتة بنجاح',
     'static_page_created' => 'تم إنشاء الصفحة الثابتة بنجاح',
+    'static_page_retrieved_successfully' => 'تم استرجاع الصفحة الثابتة بنجاح',
     'static_page_updated' => 'تم تحديث الصفحة الثابتة بنجاح',
     'static_page_deleted' => 'تم حذف الصفحة الثابتة بنجاح',
+    'failed_to_create_static_page' => 'فشل في إنشاء الصفحة الثابتة',
+    'failed_to_retrieve_static_pages' => 'فشل في استرجاع الصفحات الثابتة',
+    'failed_to_retrieve_static_page' => 'فشل في استرجاع الصفحة الثابتة',
+    'failed_to_update_static_page' => 'فشل في تحديث الصفحة الثابتة',
+    'failed_to_delete_static_page' => 'فشل في حذف الصفحة الثابتة',
 
     // Flash sale messages
+    'flash_sales_retrieved_successfully' => 'تم استرجاع العروض السريعة بنجاح',
     'flash_sale_created' => 'تم إنشاء العرض السريع بنجاح',
+    'flash_sale_retrieved_successfully' => 'تم استرجاع العرض السريع بنجاح',
     'flash_sale_updated' => 'تم تحديث العرض السريع بنجاح',
     'flash_sale_deleted' => 'تم حذف العرض السريع بنجاح',
     'flash_sale_started' => 'تم بدء العرض السريع بنجاح',
     'flash_sale_ended' => 'تم إنهاء العرض السريع بنجاح',
 
     // Voucher messages
+    'vouchers_retrieved_successfully' => 'تم استرجاع القسائم بنجاح',
     'voucher_created' => 'تم إنشاء القسيمة بنجاح',
+    'voucher_retrieved_successfully' => 'تم استرجاع القسيمة بنجاح',
     'voucher_updated' => 'تم تحديث القسيمة بنجاح',
     'voucher_deleted' => 'تم حذف القسيمة بنجاح',
     'voucher_applied' => 'تم تطبيق القسيمة بنجاح',
@@ -191,14 +366,34 @@ return [
     'voucher_invalid' => 'رمز القسيمة غير صالح',
     'voucher_already_used' => 'تم استخدام القسيمة مسبقاً',
 
+    // Role messages
+    'roles_retrieved_successfully' => 'تم استرجاع الأدوار بنجاح',
+    'role_created' => 'تم إنشاء الدور بنجاح',
+    'role_retrieved_successfully' => 'تم استرجاع الدور بنجاح',
+    'role_updated' => 'تم تحديث الدور بنجاح',
+    'role_deleted' => 'تم حذف الدور بنجاح',
+    
+    // Permission messages
+    'permissions_retrieved_successfully' => 'تم استرجاع الصلاحيات بنجاح',
+    'permission_created' => 'تم إنشاء الصلاحية بنجاح',
+    'permission_retrieved_successfully' => 'تم استرجاع الصلاحية بنجاح',
+    'permission_updated' => 'تم تحديث الصلاحية بنجاح',
+    'permission_deleted' => 'تم حذف الصلاحية بنجاح',
+
     // Location messages
+    'countries_retrieved_successfully' => 'تم استرجاع الدول بنجاح',
     'country_created' => 'تم إنشاء الدولة بنجاح',
+    'country_retrieved_successfully' => 'تم استرجاع الدولة بنجاح',
     'country_updated' => 'تم تحديث الدولة بنجاح',
     'country_deleted' => 'تم حذف الدولة بنجاح',
+    'cities_retrieved_successfully' => 'تم استرجاع المدن بنجاح',
     'city_created' => 'تم إنشاء المدينة بنجاح',
+    'city_retrieved_successfully' => 'تم استرجاع المدينة بنجاح',
     'city_updated' => 'تم تحديث المدينة بنجاح',
     'city_deleted' => 'تم حذف المدينة بنجاح',
+    'districts_retrieved_successfully' => 'تم استرجاع الأحياء بنجاح',
     'district_created' => 'تم إنشاء الحي بنجاح',
+    'district_retrieved_successfully' => 'تم استرجاع الحي بنجاح',
     'district_updated' => 'تم تحديث الحي بنجاح',
     'district_deleted' => 'تم حذف الحي بنجاح',
 
@@ -209,4 +404,177 @@ return [
     'attribute_value_created' => 'تم إنشاء قيمة الخاصية بنجاح',
     'attribute_value_updated' => 'تم تحديث قيمة الخاصية بنجاح',
     'attribute_value_deleted' => 'تم حذف قيمة الخاصية بنجاح',
+    
+    // Wallet messages
+    'wallet_not_found' => 'المحفظة غير موجودة',
+    'wallet_already_exists' => 'المحفظة موجودة بالفعل',
+    'transaction_not_found' => 'المعاملة غير موجودة',
+    'failed_to_create_wallet' => 'فشل في إنشاء المحفظة',
+    'failed_to_charge_wallet' => 'فشل في شحن المحفظة',
+    'failed_to_retrieve_wallet_information' => 'فشل في استرجاع معلومات المحفظة',
+    'failed_to_retrieve_transaction_details' => 'فشل في استرجاع تفاصيل المعاملة',
+    
+    // Money transfer messages
+    'money_transfer_request_created' => 'تم إنشاء طلب التحويل المالي بنجاح',
+    'money_transfer_cancelled_successfully' => 'تم إلغاء التحويل المالي بنجاح',
+    'money_transfer_not_found' => 'التحويل المالي غير موجود',
+    'only_pending_transfers_can_be_cancelled' => 'يمكن إلغاء التحويلات المعلقة فقط',
+    'wallet_not_found_create_first' => 'المحفظة غير موجودة. يرجى إنشاء محفظة أولاً',
+    'insufficient_wallet_balance_available' => 'رصيد المحفظة غير كافي. الرصيد المتاح: :balance',
+    'transfer_status_updated' => 'تم تحديث حالة التحويل',
+    'status_is_required' => 'الحالة مطلوبة',
+    'only_pending_transfers_can_be_updated' => 'يمكن تحديث التحويلات المعلقة فقط',
+    'failed_to_list_money_transfers' => 'فشل في سرد التحويلات المالية',
+    'failed_to_get_money_transfer' => 'فشل في الحصول على التحويل المالي',
+    'failed_to_update_transfer_status' => 'فشل في تحديث حالة التحويل',
+    'failed_to_create_money_transfer_request' => 'فشل في إنشاء طلب التحويل المالي',
+    'failed_to_retrieve_money_transfers' => 'فشل في استرجاع التحويلات المالية',
+    'failed_to_retrieve_money_transfer_details' => 'فشل في استرجاع تفاصيل التحويل المالي',
+    'failed_to_cancel_money_transfer' => 'فشل في إلغاء التحويل المالي',
+    'invalid_status' => 'حالة غير صالحة',
+    'status_required' => 'الحالة مطلوبة',
+
+    // Role messages
+    'roles_retrieved_successfully' => 'تم استرجاع الأدوار بنجاح',
+    'role_created' => 'تم إنشاء الدور بنجاح',
+    'role_retrieved_successfully' => 'تم استرجاع الدور بنجاح',
+    'role_updated_successfully' => 'تم تحديث الدور بنجاح',
+    'role_deleted_successfully' => 'تم حذف الدور بنجاح',
+    'cannot_delete_super_admin_role' => 'لا يمكن حذف دور المدير الفائق',
+    'cannot_delete_role_assigned_to_users' => 'لا يمكن حذف الدور المخصص للمستخدمين',
+    'permission_assigned_successfully' => 'تم تعيين الصلاحية بنجاح',
+    'permission_removed_successfully' => 'تم إزالة الصلاحية بنجاح',
+    'failed_to_assign_permission' => 'فشل في تعيين الصلاحية',
+    'failed_to_remove_permission' => 'فشل في إزالة الصلاحية',
+
+    // Permission messages
+    'permissions_retrieved_successfully' => 'تم استرجاع الصلاحيات بنجاح',
+    'permission_created' => 'تم إنشاء الصلاحية بنجاح',
+    'permission_retrieved_successfully' => 'تم استرجاع الصلاحية بنجاح',
+    'permission_updated_successfully' => 'تم تحديث الصلاحية بنجاح',
+    'permission_deleted_successfully' => 'تم حذف الصلاحية بنجاح',
+    'cannot_delete_permission_assigned_to_roles' => 'لا يمكن حذف الصلاحية المخصصة للأدوار',
+    'cannot_delete_permission_assigned_to_users' => 'لا يمكن حذف الصلاحية المخصصة للمستخدمين',
+
+    // Brand messages
+    'brands_retrieved_successfully' => 'تم استرجاع العلامات التجارية بنجاح',
+    'brand_created' => 'تم إنشاء العلامة التجارية بنجاح',
+    'brand_retrieved_successfully' => 'تم استرجاع العلامة التجارية بنجاح',
+    'brand_updated_successfully' => 'تم تحديث العلامة التجارية بنجاح',
+    'brand_deleted_successfully' => 'تم حذف العلامة التجارية بنجاح',
+    'cannot_delete_brand_with_products' => 'لا يمكن حذف العلامة التجارية التي تحتوي على منتجات',
+
+    // Category messages
+    'categories_retrieved_successfully' => 'تم استرجاع الفئات بنجاح',
+    'category_created' => 'تم إنشاء الفئة بنجاح',
+    'category_retrieved_successfully' => 'تم استرجاع الفئة بنجاح',
+    'category_updated_successfully' => 'تم تحديث الفئة بنجاح',
+    'category_deleted_successfully' => 'تم حذف الفئة بنجاح',
+    'cannot_delete_category_with_subcategories' => 'لا يمكن حذف الفئة التي تحتوي على فئات فرعية',
+    'cannot_delete_category_with_products' => 'لا يمكن حذف الفئة التي تحتوي على منتجات',
+    'cannot_delete_category_with_attributes' => 'لا يمكن حذف الفئة التي تحتوي على سمات',
+
+    // Banner messages
+    'banners_retrieved_successfully' => 'تم استرجاع البانرات بنجاح',
+    'banner_created' => 'تم إنشاء البانر بنجاح',
+    'banner_retrieved_successfully' => 'تم استرجاع البانر بنجاح',
+    'banner_updated_successfully' => 'تم تحديث البانر بنجاح',
+    'banner_deleted_successfully' => 'تم حذف البانر بنجاح',
+
+    // Slider messages
+    'sliders_retrieved_successfully' => 'تم استرجاع السلايدرات بنجاح',
+    'slider_created' => 'تم إنشاء السلايدر بنجاح',
+    'slider_retrieved_successfully' => 'تم استرجاع السلايدر بنجاح',
+    'slider_updated_successfully' => 'تم تحديث السلايدر بنجاح',
+    'slider_deleted_successfully' => 'تم حذف السلايدر بنجاح',
+
+    // Country messages
+    'countries_retrieved_successfully' => 'تم استرجاع الدول بنجاح',
+    'country_created' => 'تم إنشاء الدولة بنجاح',
+    'country_retrieved_successfully' => 'تم استرجاع الدولة بنجاح',
+    'country_updated_successfully' => 'تم تحديث الدولة بنجاح',
+    'country_deleted_successfully' => 'تم حذف الدولة بنجاح',
+    'cannot_delete_country_with_cities' => 'لا يمكن حذف الدولة التي تحتوي على مدن',
+
+    // City messages
+    'cities_retrieved_successfully' => 'تم استرجاع المدن بنجاح',
+    'city_created' => 'تم إنشاء المدينة بنجاح',
+    'city_retrieved_successfully' => 'تم استرجاع المدينة بنجاح',
+    'city_updated_successfully' => 'تم تحديث المدينة بنجاح',
+    'city_deleted_successfully' => 'تم حذف المدينة بنجاح',
+    'cannot_delete_city_with_districts' => 'لا يمكن حذف المدينة التي تحتوي على أحياء',
+
+    // District messages
+    'districts_retrieved_successfully' => 'تم استرجاع الأحياء بنجاح',
+    'district_created' => 'تم إنشاء الحي بنجاح',
+    'district_retrieved_successfully' => 'تم استرجاع الحي بنجاح',
+    'district_updated_successfully' => 'تم تحديث الحي بنجاح',
+    'district_deleted_successfully' => 'تم حذف الحي بنجاح',
+
+    // Flash sale messages
+    'flash_sales_retrieved_successfully' => 'تم استرجاع العروض السريعة بنجاح',
+    'flash_sale_created' => 'تم إنشاء العرض السريع بنجاح',
+    'flash_sale_retrieved_successfully' => 'تم استرجاع العرض السريع بنجاح',
+    'flash_sale_updated_successfully' => 'تم تحديث العرض السريع بنجاح',
+    'flash_sale_deleted_successfully' => 'تم حذف العرض السريع بنجاح',
+
+    // Voucher messages
+    'vouchers_retrieved_successfully' => 'تم استرجاع القسائم بنجاح',
+    'voucher_created' => 'تم إنشاء القسيمة بنجاح',
+    'voucher_retrieved_successfully' => 'تم استرجاع القسيمة بنجاح',
+    'voucher_updated_successfully' => 'تم تحديث القسيمة بنجاح',
+    'voucher_deleted_successfully' => 'تم حذف القسيمة بنجاح',
+
+    // Static page messages
+    'static_pages_retrieved_successfully' => 'تم استرجاع الصفحات الثابتة بنجاح',
+    'static_page_created' => 'تم إنشاء الصفحة الثابتة بنجاح',
+    'static_page_retrieved_successfully' => 'تم استرجاع الصفحة الثابتة بنجاح',
+    'static_page_updated_successfully' => 'تم تحديث الصفحة الثابتة بنجاح',
+    'static_page_deleted_successfully' => 'تم حذف الصفحة الثابتة بنجاح',
+
+    // Attribute messages
+    'attributes_retrieved_successfully' => 'تم استرجاع السمات بنجاح',
+    'attribute_created' => 'تم إنشاء السمة بنجاح',
+    'attribute_retrieved_successfully' => 'تم استرجاع السمة بنجاح',
+    'attribute_updated_successfully' => 'تم تحديث السمة بنجاح',
+    'attribute_deleted_successfully' => 'تم حذف السمة بنجاح',
+    'cannot_delete_attribute_with_values' => 'لا يمكن حذف السمة التي تحتوي على قيم',
+    'attributes_with_values_retrieved_successfully' => 'تم استرجاع السمات مع القيم بنجاح',
+    'attribute_statistics_retrieved_successfully' => 'تم استرجاع إحصائيات السمات بنجاح',
+
+    // Attribute value messages
+    'attribute_values_retrieved_successfully' => 'تم استرجاع قيم السمات بنجاح',
+    'attribute_value_created' => 'تم إنشاء قيمة السمة بنجاح',
+    'attribute_value_retrieved_successfully' => 'تم استرجاع قيمة السمة بنجاح',
+    'attribute_value_updated_successfully' => 'تم تحديث قيمة السمة بنجاح',
+    'attribute_value_deleted_successfully' => 'تم حذف قيمة السمة بنجاح',
+    'cannot_delete_attribute_value_used_by_variants' => 'لا يمكن حذف قيمة السمة المستخدمة في المتغيرات',
+
+    // Product attribute messages
+    'product_attributes_retrieved_successfully' => 'تم استرجاع سمات المنتج بنجاح',
+    'product_attribute_created' => 'تم إنشاء سمة المنتج بنجاح',
+    'product_attribute_retrieved_successfully' => 'تم استرجاع سمة المنتج بنجاح',
+    'product_attribute_updated_successfully' => 'تم تحديث سمة المنتج بنجاح',
+    'product_attribute_deleted_successfully' => 'تم حذف سمة المنتج بنجاح',
+    'attribute_value_already_assigned' => 'هذه القيمة مخصصة بالفعل للمنتج',
+    'product_or_category_not_found' => 'المنتج أو الفئة غير موجودة',
+    'attribute_not_belong_to_category' => 'السمة لا تنتمي إلى فئة المنتج',
+    'attribute_value_not_belong_to_attribute' => 'قيمة السمة لا تنتمي إلى السمة المحددة',
+    'attributes_array_required' => 'مصفوفة السمات مطلوبة',
+    'attribute_must_have_ids' => 'يجب أن تحتوي كل سمة على attribute_id و attribute_value_id',
+    'product_attributes_assigned_successfully' => 'تم تعيين سمات المنتج بنجاح',
+    'all_product_attributes_removed' => 'تم إزالة جميع سمات المنتج بنجاح',
+    'available_attributes_retrieved_successfully' => 'تم استرجاع السمات المتاحة بنجاح',
+
+    // Product variant messages
+    'product_variants_retrieved_successfully' => 'تم استرجاع متغيرات المنتج بنجاح',
+    'product_variant_created' => 'تم إنشاء متغير المنتج بنجاح',
+    'product_variant_retrieved_successfully' => 'تم استرجاع متغير المنتج بنجاح',
+    'product_variant_updated_successfully' => 'تم تحديث متغير المنتج بنجاح',
+    'product_variant_deleted_successfully' => 'تم حذف متغير المنتج بنجاح',
+
+    // Product messages (Dashboard)
+    'product_created' => 'تم إنشاء المنتج بنجاح',
+    'product_updated_successfully' => 'تم تحديث المنتج بنجاح',
+    'product_deleted_successfully' => 'تم حذف المنتج بنجاح',
 ];

@@ -36,9 +36,9 @@ class AdminService
             $perPage = $request->integer('per_page', 15);
             $admins = $query->paginate($perPage);
 
-            return $this->successResponse($admins, 'Admins retrieved successfully');
+            return $this->successResponse($admins, __('messages.admins_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve admins', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -53,9 +53,9 @@ class AdminService
             $admin = Admin::create($data);
             $admin->load(['role', 'permissions']);
 
-            return $this->successResponse($admin, 'Admin created successfully', 201);
+            return $this->successResponse($admin, __('messages.admin_created'), 201);
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to create admin', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.creation_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -63,9 +63,9 @@ class AdminService
     {
         try {
             $admin->load(['role', 'permissions']);
-            return $this->successResponse($admin, 'Admin retrieved successfully');
+            return $this->successResponse($admin, __('messages.admin_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve admin', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -88,9 +88,9 @@ class AdminService
             $admin->update($data);
             $admin->load(['role', 'permissions']);
 
-            return $this->successResponse($admin, 'Admin updated successfully');
+            return $this->successResponse($admin, __('messages.admin_updated_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to update admin', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.update_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -133,13 +133,13 @@ class AdminService
             if ($admin->hasRole('super_admin') && Admin::whereHas('role', function ($q) {
                 $q->where('name', 'super_admin');
             })->count() <= 1) {
-                return $this->errorResponse('Cannot delete the last super admin', 422);
+                return $this->errorResponse(__('messages.cannot_delete_last_super_admin'), 422);
             }
 
             $admin->delete();
-            return $this->successResponse(null, 'Admin deleted successfully');
+            return $this->successResponse(null, __('messages.admin_deleted_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to delete admin', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.deletion_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -149,13 +149,13 @@ class AdminService
             $role = Role::findOrFail($roleId);
             $result = $admin->assignRole($role->name);
             if (!$result) {
-                return $this->errorResponse('Role not found', 404);
+                return $this->errorResponse(__('messages.not_found'), 404);
             }
             
             $admin->load(['role', 'permissions']);
-            return $this->successResponse($admin, 'Role assigned successfully');
+            return $this->successResponse($admin, __('messages.role_assigned'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to assign role', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.failed_to_assign_role'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -166,13 +166,13 @@ class AdminService
             $result = $admin->removeRole();
             
             if (!$result) {
-                return $this->errorResponse('User has no role assigned or role not found', 404);
+                return $this->errorResponse(__('messages.not_found'), 404);
             }
             
             $admin->load(['role', 'permissions']);
-            return $this->successResponse($admin, 'Role removed successfully');
+            return $this->successResponse($admin, __('messages.role_removed_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to remove role', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.failed_to_remove_role'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -202,9 +202,9 @@ class AdminService
 
             // Fallback: assume success
             $admin->load(['role', 'permissions']);
-            return $this->successResponse($admin, 'Permission granted successfully');
+            return $this->successResponse($admin, __('messages.permission_granted'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to grant permission', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.update_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -214,7 +214,7 @@ class AdminService
         try {
             // Check if admin has a role
             if (!$admin->role) {
-                return $this->errorResponse('Admin has no role assigned', 404);
+                return $this->errorResponse(__('messages.admin_has_no_role_assigned'), 404);
             }
 
             // Check if the role has this permission
@@ -222,18 +222,18 @@ class AdminService
             $hasPermission = $admin->role->permissions()->where('permission_id', $permissionId)->exists();
 
             if (!$hasPermission) {
-                return $this->errorResponse('Permission not found in admin\'s role', 404);
+                return $this->errorResponse(__('messages.permission_not_found_in_admin_role'), 404);
             }
 
             // Revoke the permission directly
             $admin->revokePermission($permission->name);
             $admin->load(['role', 'permissions']);
 
-            $message = 'Permission revoked successfully';
+            $message = __('messages.permission_revoked');
 
             return $this->successResponse($admin, $message);
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to revoke permission', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.failed_to_revoke_permission'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -244,9 +244,9 @@ class AdminService
             $admin->removeDirectPermission($permission->name);
             $admin->load(['role', 'permissions']);
 
-            return $this->successResponse($admin, 'Direct permission removed successfully');
+            return $this->successResponse($admin, __('messages.direct_permission_removed_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to remove direct permission', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.failed_to_remove_direct_permission'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -254,9 +254,9 @@ class AdminService
     {
         try {
             $roles = Role::all();
-            return $this->successResponse($roles, 'Available roles retrieved successfully');
+            return $this->successResponse($roles, __('messages.available_roles_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve roles', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -264,9 +264,9 @@ class AdminService
     {
         try {
             $permissions = Permission::all();
-            return $this->successResponse($permissions, 'Available permissions retrieved successfully');
+            return $this->successResponse($permissions, __('messages.available_permissions_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve permissions', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 }

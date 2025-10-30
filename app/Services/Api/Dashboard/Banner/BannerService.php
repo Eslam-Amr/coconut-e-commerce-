@@ -46,9 +46,9 @@ class BannerService
             $perPage = $request->get('per_page', 15);
             $banners = $query->paginate($perPage);
 
-            return $this->successResponse($banners, 'Banners retrieved successfully');
+            return $this->successResponse($banners, __('messages.banners_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve banners', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -60,9 +60,9 @@ class BannerService
         try {
             $banner = Banner::create($data);
             $banner->load(['translations']);
-            return $this->successResponse($banner, 'Banner created successfully', 201);
+            return $this->successResponse($banner, __('messages.banner_created'), 201);
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to create banner', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.creation_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -73,9 +73,9 @@ class BannerService
     {
         try {
             $banner->load(['translations']);
-            return $this->successResponse($banner, 'Banner retrieved successfully');
+            return $this->successResponse($banner, __('messages.banner_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve banner', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -88,9 +88,9 @@ class BannerService
         try {
             $banner->update($data);
             $banner->load(['translations','media']);
-            return $this->successResponse($banner, 'Banner updated successfully');
+            return $this->successResponse($banner, __('messages.banner_updated_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to update banner', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.update_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -101,9 +101,9 @@ class BannerService
     {
         try {
             $banner->delete();
-            return $this->successResponse(null, 'Banner deleted successfully');
+            return $this->successResponse(null, __('messages.banner_deleted_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to delete banner', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.deletion_failed'), ['error' => $e->getMessage()]);
         }
     }
 

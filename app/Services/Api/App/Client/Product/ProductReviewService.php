@@ -2,6 +2,7 @@
 
 namespace App\Services\Api\App\Client\Product;
 
+use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductReview;
@@ -265,7 +266,7 @@ class ProductReviewService
             if (!$user) {
                 return [
                     'success' => false,
-                    'message' => 'User not found'
+                    'message' => __('messages.user_not_found')
                 ];
             }
 
@@ -274,13 +275,14 @@ class ProductReviewService
             if (!$product) {
                 return [
                     'success' => false,
-                    'message' => 'Product not found'
+                    'message' => __('messages.product_not_found')
                 ];
             }
 
             // Check if user has completed an order containing this product
             $hasCompletedOrder = Order::where('user_id', $user->id)
-                ->where('status', 'completed')
+                ->where('status', OrderStatus::DELIVERED->value)
+
                 ->whereHas('items', function ($query) use ($productId) {
                     $query->where('product_id', $productId);
                 })
@@ -289,13 +291,13 @@ class ProductReviewService
             if (!$hasCompletedOrder) {
                 return [
                     'success' => false,
-                    'message' => 'You can only review products that you have purchased and received (completed orders)'
+                    'message' => __('messages.you_can_only_review_products_that_you_have_purchased_and_received_completed_orders')
                 ];
             }
 
             return [
                 'success' => true,
-                'message' => 'User can review this product'
+                'message' => __('messages.user_can_review_this_product')
             ];
 
         } catch (\Exception $e) {
@@ -306,7 +308,7 @@ class ProductReviewService
             ]);
             return [
                 'success' => false,
-                'message' => 'Error checking review eligibility: ' . $e->getMessage()
+                'message' => __('messages.error_checking_review_eligibility') . ': ' . $e->getMessage()
             ];
         }
     }

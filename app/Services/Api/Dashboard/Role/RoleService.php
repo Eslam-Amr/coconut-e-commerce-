@@ -25,9 +25,9 @@ class RoleService
             $perPage = $request->integer('per_page', 15);
             $roles = $query->paginate($perPage);
 
-            return $this->successResponse($roles, 'Roles retrieved successfully');
+            return $this->successResponse($roles, __('messages.roles_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve roles', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -38,9 +38,9 @@ class RoleService
             $role->permissions()->sync($data['permissions']);
             $role->load(['permissions']);
 
-            return $this->successResponse($role, 'Role created successfully', 201);
+            return $this->successResponse($role, __('messages.role_created'), 201);
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to create role', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.creation_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -48,9 +48,9 @@ class RoleService
     {
         try {
             $role->load(['permissions']);
-            return $this->successResponse($role, 'Role retrieved successfully');
+            return $this->successResponse($role, __('messages.role_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve role', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -61,9 +61,9 @@ class RoleService
             $role->permissions()->sync($data['permissions']);
             $role->load(['permissions']);
 
-            return $this->successResponse($role, 'Role updated successfully');
+            return $this->successResponse($role, __('messages.role_updated_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to update role', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.update_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -72,18 +72,18 @@ class RoleService
         try {
             // Prevent deleting super_admin role
             if ($role->name === 'super_admin') {
-                return $this->errorResponse('Cannot delete super admin role', 422);
+                return $this->errorResponse(__('messages.cannot_delete_super_admin_role'), 422);
             }
 
             // Check if role is assigned to any users
             if ($role->users()->count() > 0) {
-                return $this->errorResponse('Cannot delete role that is assigned to users', 422);
+                return $this->errorResponse(__('messages.cannot_delete_role_assigned_to_users'), 422);
             }
 
             $role->delete();
-            return $this->successResponse(null, 'Role deleted successfully');
+            return $this->successResponse(null, __('messages.role_deleted_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to delete role', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.deletion_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -94,9 +94,9 @@ class RoleService
             $role->givePermissionTo($permission->name);
             $role->load(['permissions']);
 
-            return $this->successResponse($role, 'Permission assigned successfully');
+            return $this->successResponse($role, __('messages.permission_assigned_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to assign permission', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.failed_to_assign_permission'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -107,9 +107,9 @@ class RoleService
             $role->revokePermissionTo($permission->name);
             $role->load(['permissions']);
 
-            return $this->successResponse($role, 'Permission removed successfully');
+            return $this->successResponse($role, __('messages.permission_removed_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to remove permission', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.failed_to_remove_permission'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -117,9 +117,9 @@ class RoleService
     {
         try {
             $permissions = Permission::all();
-            return $this->successResponse($permissions, 'Available permissions retrieved successfully');
+            return $this->successResponse($permissions, __('messages.available_permissions_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve permissions', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 }

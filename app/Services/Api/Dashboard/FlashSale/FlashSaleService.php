@@ -39,9 +39,9 @@ class FlashSaleService
            
             $perPage = $request->integer('per_page', 15);
             $items = $query->paginate($perPage);
-            return $this->successResponse($items, 'Flash sales retrieved successfully');
+            return $this->successResponse($items, __('messages.flash_sales_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve flash sales', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -49,18 +49,18 @@ class FlashSaleService
     {
         try {
             $flashSale = FlashSale::create($data);
-            return $this->successResponse($flashSale, 'Flash sale created successfully', 201);
+            return $this->successResponse($flashSale, __('messages.flash_sale_created'), 201);
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to create flash sale', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.creation_failed'), ['error' => $e->getMessage()]);
         }
     }
 
     public function show(FlashSale $flashSale)
     {
         try {
-            return $this->successResponse($flashSale, 'Flash sale retrieved successfully');
+            return $this->successResponse($flashSale, __('messages.flash_sale_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve flash sale', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -68,9 +68,9 @@ class FlashSaleService
     {
         try {
             $flashSale->update($data);
-            return $this->successResponse($flashSale, 'Flash sale updated successfully');
+            return $this->successResponse($flashSale, __('messages.flash_sale_updated_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to update flash sale', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.update_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -78,9 +78,9 @@ class FlashSaleService
     {
         try {
             $flashSale->delete();
-            return $this->successResponse(null, 'Flash sale deleted successfully');
+            return $this->successResponse(null, __('messages.flash_sale_deleted_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to delete flash sale', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.deletion_failed'), ['error' => $e->getMessage()]);
         }
     }
 }

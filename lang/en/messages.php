@@ -29,19 +29,48 @@ return [
     'retrieved_successfully' => 'Resource retrieved successfully',
     'list_retrieved_successfully' => 'Resources retrieved successfully',
 
-    // Authentication
+    // Authentication (nested structure)
+    'login' => [
+        'successful' => 'Login successful',
+        'failed' => 'Login failed',
+        'not_verified' => 'Account not verified',
+        'inactive_account' => 'Account is inactive',
+    ],
+
+    'auth' => [
+        'user_not_found' => 'User not found',
+        'unauthenticated' => 'Authentication required',
+        'logout' => [
+            'success' => 'Logout successful',
+            'failed' => 'Logout failed',
+        ],
+        'forgot_password' => [
+            'success' => 'Password reset link sent successfully',
+        ],
+        'password_reset' => [
+            'success' => 'Password reset successfully',
+        ],
+        'otp' => [
+            'verified' => 'OTP verified successfully',
+            'invalid' => 'Invalid or expired OTP',
+        ],
+    ],
+
+    // Legacy authentication keys (for backward compatibility)
     'login_successful' => 'Login successful',
     'logout_successful' => 'Logout successful',
     'registration_successful' => 'Registration successful',
     'password_reset_successful' => 'Password reset successful',
     'email_verification_sent' => 'Email verification sent',
     'phone_verification_sent' => 'Phone verification sent',
+    'otp_sent_to_sms' => 'OTP sent to SMS',
     'otp_verified' => 'OTP verified successfully',
     'otp_expired' => 'OTP has expired',
     'otp_invalid' => 'Invalid OTP',
     'account_verified' => 'Account verified successfully',
     'password_changed' => 'Password changed successfully',
     'profile_updated' => 'Profile updated successfully',
+    'success' => 'Success',
 
     // Validation messages
     'required' => 'This field is required',
@@ -68,12 +97,39 @@ return [
     'phone_or_email_required' => 'Either phone or email is required',
     'password_required' => 'Password is required',
     'phone_required' => 'Phone number is required',
+    'permission' => 'Permission',
+    'role' => 'Role',
+    'amount' => 'Amount',
+    'currency' => 'Currency',
+    'invalid_voucher' => 'Invalid voucher code',
+    
+    // Product review messages
+    'user_not_found' => 'User not found',
+    'product_not_found' => 'Product not found',
+    'you_can_only_review_products_that_you_have_purchased_and_received_completed_orders' => 'You can only review products you have purchased and received (delivered orders)',
+    'user_can_review_this_product' => 'User can review this product',
+    'error_checking_review_eligibility' => 'Error checking review eligibility',
     
     // Service-specific messages
     'cart_empty' => 'Cart is empty',
     'order_confirmation_failed' => 'Order confirmation failed',
     'order_processing_failed' => 'Order processing failed',
     'order_confirmed' => 'Order confirmed successfully',
+    'orders_retrieved_successfully' => 'Orders retrieved successfully',
+    'order_retrieved_successfully' => 'Order retrieved successfully',
+    'order_status_updated_successfully' => 'Order status updated successfully',
+    'order_statistics_retrieved_successfully' => 'Order statistics retrieved successfully',
+    'order_statuses_retrieved_successfully' => 'Order statuses retrieved successfully',
+    'failed_to_retrieve_orders' => 'Failed to retrieve orders',
+    'failed_to_retrieve_order' => 'Failed to retrieve order',
+    'failed_to_update_order_status' => 'Failed to update order status',
+    'failed_to_retrieve_order_statistics' => 'Failed to retrieve order statistics',
+    'failed_to_retrieve_order_statuses' => 'Failed to retrieve order statuses',
+    'cannot_cancel_completed_order' => 'Cannot cancel completed order',
+    'order_already_cancelled' => 'Order already cancelled',
+    'order_cancelled_successfully' => 'Order cancelled successfully',
+    'failed_to_cancel_order' => 'Failed to cancel order',
+    'insufficient_wallet_balance' => 'Insufficient wallet balance',
     'retrieval_failed' => 'Failed to retrieve data',
     'creation_failed' => 'Creation failed',
     'update_failed' => 'Update failed',
@@ -82,9 +138,20 @@ return [
     'no_cart_found' => 'No cart found',
     'variant_mismatch' => 'Variant does not belong to product',
     'insufficient_stock' => 'Insufficient stock available',
+    'insufficient_stock_available' => 'Insufficient stock available',
     'flash_sale_limit_exceeded' => 'Flash sale limit exceeded',
     'added_to_cart' => 'Item added to cart successfully',
     'cart_add_failed' => 'Failed to add to cart',
+    'cart_item_incremented' => 'Cart item incremented',
+    'cart_item_decremented' => 'Cart item decremented',
+    'cart_item_quantity_updated' => 'Cart item quantity updated',
+    'cart_item_removed' => 'Cart item removed',
+    'cart_total_calculated_successfully' => 'Cart total calculated successfully',
+    'failed_to_increment_item' => 'Failed to increment item',
+    'failed_to_decrement_item' => 'Failed to decrement item',
+    'failed_to_update_quantity' => 'Failed to update quantity',
+    'failed_to_remove_item' => 'Failed to remove item',
+    'failed_to_calculate_cart_total' => 'Failed to calculate cart total',
     'cannot_deactivate_self' => 'You cannot deactivate your own account',
     'phone_exists' => 'This phone number is not registered',
     'email_exists' => 'This email is not registered',
@@ -104,8 +171,15 @@ return [
     'order_cancelled' => 'Order cancelled successfully',
     'payment_successful' => 'Payment successful',
     'payment_failed' => 'Payment failed',
+    'payment_initiated_successfully' => 'Payment initiated successfully',
+    'payment_initiation_failed' => 'Payment initiation failed',
     'refund_processed' => 'Refund processed successfully',
+    'wishlist_retrieved_successfully' => 'Wishlist retrieved successfully',
     'wishlist_updated' => 'Wishlist updated successfully',
+    'wishlist_add_failed' => 'Failed to add to wishlist',
+    'wishlist_retrieval_failed' => 'Failed to retrieve wishlist',
+    'product_added_to_wishlist' => 'Product added to wishlist successfully',
+    'product_removed_from_wishlist' => 'Product removed from wishlist successfully',
     'review_submitted' => 'Review submitted successfully',
     'rating_submitted' => 'Rating submitted successfully',
 
@@ -116,53 +190,143 @@ return [
     'invalid_file_type' => 'Invalid file type',
     'upload_failed' => 'File upload failed',
 
-    // Notification messages
+    // Notification messages (nested structure)
+    'notifications' => [
+        'retrieved' => 'Notifications retrieved successfully',
+        'not_found' => 'Notification not found',
+        'already_read' => 'Notification already marked as read',
+        'marked_as_read' => 'Notification marked as read',
+        'all_marked_as_read' => 'All :count notifications marked as read',
+        'deleted' => 'Notification deleted successfully',
+    ],
+
+    // Legacy notification keys (for backward compatibility)
     'notification_sent' => 'Notification sent successfully',
     'notification_marked_read' => 'Notification marked as read',
     'notifications_cleared' => 'Notifications cleared successfully',
 
-    // Settings messages
+    // Settings messages (nested structure)
+    'settings' => [
+        'language_changed' => 'Language changed successfully',
+        'language_change_failed' => 'Failed to change language',
+        'notification_toggled' => 'Notification settings updated successfully',
+        'notification_toggle_failed' => 'Failed to update notification settings',
+        'dark_mode_toggled' => 'Dark mode settings updated successfully',
+        'dark_mode_toggle_failed' => 'Failed to update dark mode settings',
+        'incorrect_current_password' => 'Current password is incorrect',
+        'password_changed' => 'Password changed successfully',
+        'phone_change_requested' => 'Phone change OTP sent successfully',
+        'phone_changed' => 'Phone number changed successfully',
+        'incorrect_password_for_deletion' => 'Incorrect password for account deletion',
+        'account_deleted' => 'Account deleted successfully',
+        'profile_updated' => 'Profile updated successfully',
+        'profile_data_retrieved' => 'Profile data retrieved successfully',
+    ],
+
+    // Legacy settings keys (for backward compatibility)
     'settings_updated' => 'Settings updated successfully',
     'language_changed' => 'Language changed successfully',
     'theme_changed' => 'Theme changed successfully',
     'privacy_settings_updated' => 'Privacy settings updated successfully',
 
     // Admin messages
+    'admins_retrieved_successfully' => 'Admins retrieved successfully',
     'admin_created' => 'Admin created successfully',
+    'admin_retrieved_successfully' => 'Admin retrieved successfully',
     'admin_updated' => 'Admin updated successfully',
     'admin_deleted' => 'Admin deleted successfully',
+    'available_roles_retrieved_successfully' => 'Available roles retrieved successfully',
+    'available_permissions_retrieved_successfully' => 'Available permissions retrieved successfully',
     'role_assigned' => 'Role assigned successfully',
     'permission_granted' => 'Permission granted successfully',
     'permission_revoked' => 'Permission revoked successfully',
+    'role_removed_successfully' => 'Role removed successfully',
+    'direct_permission_removed_successfully' => 'Direct permission removed successfully',
+    'admins_retrieved_successfully' => 'Admins retrieved successfully',
+    'admin_retrieved_successfully' => 'Admin retrieved successfully',
+    'admin_updated_successfully' => 'Admin updated successfully',
+    'admin_deleted_successfully' => 'Admin deleted successfully',
+    'cannot_delete_last_super_admin' => 'Cannot delete the last super admin',
+    'admin_has_no_role_assigned' => 'Admin has no role assigned',
+    'permission_not_found_in_admin_role' => "Permission not found in admin's role",
+    'failed_to_assign_role' => 'Failed to assign role',
+    'failed_to_remove_role' => 'Failed to remove role',
+    'failed_to_revoke_permission' => 'Failed to revoke permission',
+    'failed_to_remove_direct_permission' => 'Failed to remove direct permission',
+    
+    // Search history messages
+    'search_history_retrieved_successfully' => 'Search history retrieved successfully',
+    'search_history_item_not_found' => 'Search history item not found',
+    'search_history_item_deleted_successfully' => 'Search history item deleted successfully',
+    'all_search_history_cleared_successfully' => 'All search history cleared successfully',
+    'failed_to_retrieve_search_history' => 'Failed to retrieve search history',
+    'failed_to_delete_search_history' => 'Failed to delete search history',
 
     // Product messages
+    'products_retrieved_successfully' => 'Products retrieved successfully',
     'product_created' => 'Product created successfully',
+    'product_retrieved_successfully' => 'Product retrieved successfully',
     'product_updated' => 'Product updated successfully',
     'product_deleted' => 'Product deleted successfully',
     'product_published' => 'Product published successfully',
     'product_unpublished' => 'Product unpublished successfully',
+    'recommendations_retrieved_successfully' => 'Recommendations retrieved successfully',
+    'trending_products_retrieved_successfully' => 'Trending products retrieved successfully',
+    'featured_products_retrieved_successfully' => 'Featured products retrieved successfully',
+    'most_ordered_products_retrieved_successfully' => 'Most ordered products retrieved successfully',
+    'top_rated_products_retrieved_successfully' => 'Top rated products retrieved successfully',
+    'related_products_retrieved_successfully' => 'Related products retrieved successfully',
+    'product_variants_retrieved_successfully' => 'Product variants retrieved successfully',
+    'product_variant_created_successfully' => 'Product variant created successfully',
+    'product_variant_retrieved_successfully' => 'Product variant retrieved successfully',
+    'product_variant_with_attributes_retrieved_successfully' => 'Product variant with attributes retrieved successfully',
+    'product_variant_updated_successfully' => 'Product variant updated successfully',
+    'product_variant_deleted_successfully' => 'Product variant deleted successfully',
     'variant_created' => 'Product variant created successfully',
     'variant_updated' => 'Product variant updated successfully',
     'variant_deleted' => 'Product variant deleted successfully',
+    'variants_created_successfully' => 'Variants created successfully',
+    'variant_summary_retrieved_successfully' => 'Variant summary retrieved successfully',
+    'product_attributes_retrieved_successfully' => 'Product attributes retrieved successfully',
+    'product_attribute_created_successfully' => 'Product attribute created successfully',
+    'product_attribute_retrieved_successfully' => 'Product attribute retrieved successfully',
+    'product_attribute_updated_successfully' => 'Product attribute updated successfully',
+    'product_attribute_deleted_successfully' => 'Product attribute deleted successfully',
+    'available_attributes_retrieved_successfully' => 'Available attributes retrieved successfully',
 
     // Category messages
+    'categories_retrieved_successfully' => 'Categories retrieved successfully',
     'category_created' => 'Category created successfully',
+    'category_retrieved_successfully' => 'Category retrieved successfully',
     'category_updated' => 'Category updated successfully',
     'category_deleted' => 'Category deleted successfully',
 
     // Brand messages
+    'brands_retrieved_successfully' => 'Brands retrieved successfully',
     'brand_created' => 'Brand created successfully',
+    'brand_retrieved_successfully' => 'Brand retrieved successfully',
     'brand_updated' => 'Brand updated successfully',
     'brand_deleted' => 'Brand deleted successfully',
 
     // Banner messages
+    'banners_retrieved_successfully' => 'Banners retrieved successfully',
     'banner_created' => 'Banner created successfully',
+    'banner_retrieved_successfully' => 'Banner retrieved successfully',
     'banner_updated' => 'Banner updated successfully',
     'banner_deleted' => 'Banner deleted successfully',
     'banner_activated' => 'Banner activated successfully',
     'banner_deactivated' => 'Banner deactivated successfully',
 
-    // Slider messages
+    // Slider messages (nested structure)
+    'sliders' => [
+        'created' => 'Slider created successfully',
+        'updated' => 'Slider updated successfully',
+        'deleted' => 'Slider deleted successfully',
+        'activated' => 'Slider activated successfully',
+        'deactivated' => 'Slider deactivated successfully',
+    ],
+
+    // Legacy slider keys (for backward compatibility)
     'slider_created' => 'Slider created successfully',
     'slider_updated' => 'Slider updated successfully',
     'slider_deleted' => 'Slider deleted successfully',
@@ -170,19 +334,30 @@ return [
     'slider_deactivated' => 'Slider deactivated successfully',
 
     // Static page messages
+    'static_pages_retrieved_successfully' => 'Static pages retrieved successfully',
     'static_page_created' => 'Static page created successfully',
+    'static_page_retrieved_successfully' => 'Static page retrieved successfully',
     'static_page_updated' => 'Static page updated successfully',
     'static_page_deleted' => 'Static page deleted successfully',
+    'failed_to_create_static_page' => 'Failed to create static page',
+    'failed_to_retrieve_static_pages' => 'Failed to retrieve static pages',
+    'failed_to_retrieve_static_page' => 'Failed to retrieve static page',
+    'failed_to_update_static_page' => 'Failed to update static page',
+    'failed_to_delete_static_page' => 'Failed to delete static page',
 
     // Flash sale messages
+    'flash_sales_retrieved_successfully' => 'Flash sales retrieved successfully',
     'flash_sale_created' => 'Flash sale created successfully',
+    'flash_sale_retrieved_successfully' => 'Flash sale retrieved successfully',
     'flash_sale_updated' => 'Flash sale updated successfully',
     'flash_sale_deleted' => 'Flash sale deleted successfully',
     'flash_sale_started' => 'Flash sale started successfully',
     'flash_sale_ended' => 'Flash sale ended successfully',
 
     // Voucher messages
+    'vouchers_retrieved_successfully' => 'Vouchers retrieved successfully',
     'voucher_created' => 'Voucher created successfully',
+    'voucher_retrieved_successfully' => 'Voucher retrieved successfully',
     'voucher_updated' => 'Voucher updated successfully',
     'voucher_deleted' => 'Voucher deleted successfully',
     'voucher_applied' => 'Voucher applied successfully',
@@ -191,14 +366,34 @@ return [
     'voucher_invalid' => 'Invalid voucher code',
     'voucher_already_used' => 'Voucher has already been used',
 
+    // Role messages
+    'roles_retrieved_successfully' => 'Roles retrieved successfully',
+    'role_created' => 'Role created successfully',
+    'role_retrieved_successfully' => 'Role retrieved successfully',
+    'role_updated' => 'Role updated successfully',
+    'role_deleted' => 'Role deleted successfully',
+    
+    // Permission messages
+    'permissions_retrieved_successfully' => 'Permissions retrieved successfully',
+    'permission_created' => 'Permission created successfully',
+    'permission_retrieved_successfully' => 'Permission retrieved successfully',
+    'permission_updated' => 'Permission updated successfully',
+    'permission_deleted' => 'Permission deleted successfully',
+
     // Location messages
+    'countries_retrieved_successfully' => 'Countries retrieved successfully',
     'country_created' => 'Country created successfully',
+    'country_retrieved_successfully' => 'Country retrieved successfully',
     'country_updated' => 'Country updated successfully',
     'country_deleted' => 'Country deleted successfully',
+    'cities_retrieved_successfully' => 'Cities retrieved successfully',
     'city_created' => 'City created successfully',
+    'city_retrieved_successfully' => 'City retrieved successfully',
     'city_updated' => 'City updated successfully',
     'city_deleted' => 'City deleted successfully',
+    'districts_retrieved_successfully' => 'Districts retrieved successfully',
     'district_created' => 'District created successfully',
+    'district_retrieved_successfully' => 'District retrieved successfully',
     'district_updated' => 'District updated successfully',
     'district_deleted' => 'District deleted successfully',
 
@@ -209,4 +404,177 @@ return [
     'attribute_value_created' => 'Attribute value created successfully',
     'attribute_value_updated' => 'Attribute value updated successfully',
     'attribute_value_deleted' => 'Attribute value deleted successfully',
+    
+    // Wallet messages
+    'wallet_not_found' => 'Wallet not found',
+    'wallet_already_exists' => 'Wallet already exists',
+    'transaction_not_found' => 'Transaction not found',
+    'failed_to_create_wallet' => 'Failed to create wallet',
+    'failed_to_charge_wallet' => 'Failed to charge wallet',
+    'failed_to_retrieve_wallet_information' => 'Failed to retrieve wallet information',
+    'failed_to_retrieve_transaction_details' => 'Failed to retrieve transaction details',
+    
+    // Money transfer messages
+    'money_transfer_request_created' => 'Money transfer request created successfully',
+    'money_transfer_cancelled_successfully' => 'Money transfer cancelled successfully',
+    'money_transfer_not_found' => 'Money transfer not found',
+    'only_pending_transfers_can_be_cancelled' => 'Only pending transfers can be cancelled',
+    'wallet_not_found_create_first' => 'Wallet not found. Please create a wallet first',
+    'insufficient_wallet_balance_available' => 'Insufficient wallet balance. Available balance: :balance',
+    'transfer_status_updated' => 'Transfer status updated',
+    'status_is_required' => 'Status is required',
+    'only_pending_transfers_can_be_updated' => 'Only pending transfers can be updated',
+    'failed_to_list_money_transfers' => 'Failed to list money transfers',
+    'failed_to_get_money_transfer' => 'Failed to get money transfer',
+    'failed_to_update_transfer_status' => 'Failed to update transfer status',
+    'failed_to_create_money_transfer_request' => 'Failed to create money transfer request',
+    'failed_to_retrieve_money_transfers' => 'Failed to retrieve money transfers',
+    'failed_to_retrieve_money_transfer_details' => 'Failed to retrieve money transfer details',
+    'failed_to_cancel_money_transfer' => 'Failed to cancel money transfer',
+    'invalid_status' => 'Invalid status',
+    'status_required' => 'Status is required',
+
+    // Role messages
+    'roles_retrieved_successfully' => 'Roles retrieved successfully',
+    'role_created' => 'Role created successfully',
+    'role_retrieved_successfully' => 'Role retrieved successfully',
+    'role_updated_successfully' => 'Role updated successfully',
+    'role_deleted_successfully' => 'Role deleted successfully',
+    'cannot_delete_super_admin_role' => 'Cannot delete super admin role',
+    'cannot_delete_role_assigned_to_users' => 'Cannot delete role that is assigned to users',
+    'permission_assigned_successfully' => 'Permission assigned successfully',
+    'permission_removed_successfully' => 'Permission removed successfully',
+    'failed_to_assign_permission' => 'Failed to assign permission',
+    'failed_to_remove_permission' => 'Failed to remove permission',
+
+    // Permission messages
+    'permissions_retrieved_successfully' => 'Permissions retrieved successfully',
+    'permission_created' => 'Permission created successfully',
+    'permission_retrieved_successfully' => 'Permission retrieved successfully',
+    'permission_updated_successfully' => 'Permission updated successfully',
+    'permission_deleted_successfully' => 'Permission deleted successfully',
+    'cannot_delete_permission_assigned_to_roles' => 'Cannot delete permission that is assigned to roles',
+    'cannot_delete_permission_assigned_to_users' => 'Cannot delete permission that is assigned to users',
+
+    // Brand messages
+    'brands_retrieved_successfully' => 'Brands retrieved successfully',
+    'brand_created' => 'Brand created successfully',
+    'brand_retrieved_successfully' => 'Brand retrieved successfully',
+    'brand_updated_successfully' => 'Brand updated successfully',
+    'brand_deleted_successfully' => 'Brand deleted successfully',
+    'cannot_delete_brand_with_products' => 'Cannot delete brand with products',
+
+    // Category messages
+    'categories_retrieved_successfully' => 'Categories retrieved successfully',
+    'category_created' => 'Category created successfully',
+    'category_retrieved_successfully' => 'Category retrieved successfully',
+    'category_updated_successfully' => 'Category updated successfully',
+    'category_deleted_successfully' => 'Category deleted successfully',
+    'cannot_delete_category_with_subcategories' => 'Cannot delete category with subcategories',
+    'cannot_delete_category_with_products' => 'Cannot delete category with products',
+    'cannot_delete_category_with_attributes' => 'Cannot delete category with attributes',
+
+    // Banner messages
+    'banners_retrieved_successfully' => 'Banners retrieved successfully',
+    'banner_created' => 'Banner created successfully',
+    'banner_retrieved_successfully' => 'Banner retrieved successfully',
+    'banner_updated_successfully' => 'Banner updated successfully',
+    'banner_deleted_successfully' => 'Banner deleted successfully',
+
+    // Slider messages
+    'sliders_retrieved_successfully' => 'Sliders retrieved successfully',
+    'slider_created' => 'Slider created successfully',
+    'slider_retrieved_successfully' => 'Slider retrieved successfully',
+    'slider_updated_successfully' => 'Slider updated successfully',
+    'slider_deleted_successfully' => 'Slider deleted successfully',
+
+    // Country messages
+    'countries_retrieved_successfully' => 'Countries retrieved successfully',
+    'country_created' => 'Country created successfully',
+    'country_retrieved_successfully' => 'Country retrieved successfully',
+    'country_updated_successfully' => 'Country updated successfully',
+    'country_deleted_successfully' => 'Country deleted successfully',
+    'cannot_delete_country_with_cities' => 'Cannot delete country with cities',
+
+    // City messages
+    'cities_retrieved_successfully' => 'Cities retrieved successfully',
+    'city_created' => 'City created successfully',
+    'city_retrieved_successfully' => 'City retrieved successfully',
+    'city_updated_successfully' => 'City updated successfully',
+    'city_deleted_successfully' => 'City deleted successfully',
+    'cannot_delete_city_with_districts' => 'Cannot delete city with districts',
+
+    // District messages
+    'districts_retrieved_successfully' => 'Districts retrieved successfully',
+    'district_created' => 'District created successfully',
+    'district_retrieved_successfully' => 'District retrieved successfully',
+    'district_updated_successfully' => 'District updated successfully',
+    'district_deleted_successfully' => 'District deleted successfully',
+
+    // Flash sale messages
+    'flash_sales_retrieved_successfully' => 'Flash sales retrieved successfully',
+    'flash_sale_created' => 'Flash sale created successfully',
+    'flash_sale_retrieved_successfully' => 'Flash sale retrieved successfully',
+    'flash_sale_updated_successfully' => 'Flash sale updated successfully',
+    'flash_sale_deleted_successfully' => 'Flash sale deleted successfully',
+
+    // Voucher messages
+    'vouchers_retrieved_successfully' => 'Vouchers retrieved successfully',
+    'voucher_created' => 'Voucher created successfully',
+    'voucher_retrieved_successfully' => 'Voucher retrieved successfully',
+    'voucher_updated_successfully' => 'Voucher updated successfully',
+    'voucher_deleted_successfully' => 'Voucher deleted successfully',
+
+    // Static page messages
+    'static_pages_retrieved_successfully' => 'Static pages retrieved successfully',
+    'static_page_created' => 'Static page created successfully',
+    'static_page_retrieved_successfully' => 'Static page retrieved successfully',
+    'static_page_updated_successfully' => 'Static page updated successfully',
+    'static_page_deleted_successfully' => 'Static page deleted successfully',
+
+    // Attribute messages
+    'attributes_retrieved_successfully' => 'Attributes retrieved successfully',
+    'attribute_created' => 'Attribute created successfully',
+    'attribute_retrieved_successfully' => 'Attribute retrieved successfully',
+    'attribute_updated_successfully' => 'Attribute updated successfully',
+    'attribute_deleted_successfully' => 'Attribute deleted successfully',
+    'cannot_delete_attribute_with_values' => 'Cannot delete attribute with existing values',
+    'attributes_with_values_retrieved_successfully' => 'Attributes with values retrieved successfully',
+    'attribute_statistics_retrieved_successfully' => 'Attribute statistics retrieved successfully',
+
+    // Attribute value messages
+    'attribute_values_retrieved_successfully' => 'Attribute values retrieved successfully',
+    'attribute_value_created' => 'Attribute value created successfully',
+    'attribute_value_retrieved_successfully' => 'Attribute value retrieved successfully',
+    'attribute_value_updated_successfully' => 'Attribute value updated successfully',
+    'attribute_value_deleted_successfully' => 'Attribute value deleted successfully',
+    'cannot_delete_attribute_value_used_by_variants' => 'Cannot delete attribute value that is being used by product variants',
+
+    // Product attribute messages
+    'product_attributes_retrieved_successfully' => 'Product attributes retrieved successfully',
+    'product_attribute_created' => 'Product attribute created successfully',
+    'product_attribute_retrieved_successfully' => 'Product attribute retrieved successfully',
+    'product_attribute_updated_successfully' => 'Product attribute updated successfully',
+    'product_attribute_deleted_successfully' => 'Product attribute deleted successfully',
+    'attribute_value_already_assigned' => 'This attribute value is already assigned to the product',
+    'product_or_category_not_found' => 'Product or category not found',
+    'attribute_not_belong_to_category' => 'Attribute does not belong to the product category',
+    'attribute_value_not_belong_to_attribute' => 'Attribute value does not belong to the specified attribute',
+    'attributes_array_required' => 'Attributes array is required',
+    'attribute_must_have_ids' => 'Each attribute must have attribute_id and attribute_value_id',
+    'product_attributes_assigned_successfully' => 'Product attributes assigned successfully',
+    'all_product_attributes_removed' => 'All product attributes removed successfully',
+    'available_attributes_retrieved_successfully' => 'Available attributes retrieved successfully',
+
+    // Product variant messages
+    'product_variants_retrieved_successfully' => 'Product variants retrieved successfully',
+    'product_variant_created' => 'Product variant created successfully',
+    'product_variant_retrieved_successfully' => 'Product variant retrieved successfully',
+    'product_variant_updated_successfully' => 'Product variant updated successfully',
+    'product_variant_deleted_successfully' => 'Product variant deleted successfully',
+
+    // Product messages (Dashboard)
+    'product_created' => 'Product created successfully',
+    'product_updated_successfully' => 'Product updated successfully',
+    'product_deleted_successfully' => 'Product deleted successfully',
 ];

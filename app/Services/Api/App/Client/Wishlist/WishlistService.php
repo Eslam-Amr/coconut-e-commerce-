@@ -23,9 +23,9 @@ class WishlistService
                 ->with(['product.translations', 'product.brand.translations', 'product.category.translations'])
                 ->paginate($perPage);
 
-            return $this->successResponse($wishlists, 'Wishlist retrieved successfully');
+            return $this->successResponse($wishlists, __('messages.wishlist_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve wishlist', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.wishlist_retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
     public function toggleWishlist($productId)
@@ -40,7 +40,7 @@ class WishlistService
 
             return $this->addToWishlist($userId, $productId);
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to add to wishlist', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.wishlist_add_failed'), ['error' => $e->getMessage()]);
         }
     }
     /**
@@ -51,7 +51,7 @@ class WishlistService
         $wishlist->delete();
 
         return $this->successResponse([
-            'message' => 'Product removed from wishlist successfully.',
+            'message' => __('messages.product_removed_from_wishlist'),
             'in_wishlist' => false
         ]);
     }
@@ -67,7 +67,7 @@ class WishlistService
         ]);
 
         return $this->successResponse([
-            'message' => 'Product added to wishlist successfully.',
+            'message' => __('messages.product_added_to_wishlist'),
             'in_wishlist' => true
         ]);
     }

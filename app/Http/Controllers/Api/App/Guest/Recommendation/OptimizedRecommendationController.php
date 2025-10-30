@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\App\Guest\Recommendation;
 
 use App\Http\Controllers\Controller;
-use App\Services\Api\App\Client\Recommendation\OptimizedRecommendationService;
+use App\Services\Api\App\Guest\Recommendation\OptimizedRecommendationService;
 use Illuminate\Http\Request;
 
 class OptimizedRecommendationController extends Controller

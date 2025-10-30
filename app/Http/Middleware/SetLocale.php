@@ -18,6 +18,7 @@ class SetLocale
     
     public function handle(Request $request, Closure $next): Response
     {
+        // dd($request->header('Accept-Language'));
         $locale = $this->resolveLocale($request);
         app()->setLocale($locale);
     // dd($locale);
@@ -27,8 +28,9 @@ class SetLocale
     protected function resolveLocale(Request $request): string
     {
         $user = auth()->user() ?? auth('admin')->user();
-        if ($user && $user->locale) {
-            return $this->validateLocale($user->locale);
+        // dd($user);
+        if ($user && $user->language) {
+            return $this->validateLocale($user->language);
         }
     
         $locale = $request->header('Accept-Language')
@@ -36,7 +38,7 @@ class SetLocale
             ?? $request->query('lang')
             ?? app()->getLocale()
             ?? $this->defaultLocale;
-    
+        // dd($locale);
         return $this->validateLocale($locale);
     }
     

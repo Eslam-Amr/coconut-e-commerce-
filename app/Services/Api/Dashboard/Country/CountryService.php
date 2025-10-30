@@ -26,9 +26,9 @@ class CountryService
             $perPage = $request->integer('per_page', 15);
             $countries = $query->paginate($perPage);
 
-            return $this->successResponse($countries, 'Countries retrieved successfully');
+            return $this->successResponse($countries, __('messages.countries_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve countries', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -36,9 +36,9 @@ class CountryService
     {
         try {
             $country = Country::create($data);
-            return $this->successResponse($country, 'Country created successfully', 201);
+            return $this->successResponse($country, __('messages.country_created'), 201);
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to create country', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.creation_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -46,9 +46,9 @@ class CountryService
     {
         try {
             $country->load('cities.translations','translations');
-            return $this->successResponse($country, 'Country retrieved successfully');
+            return $this->successResponse($country, __('messages.country_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve country', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -56,9 +56,9 @@ class CountryService
     {
         try {
             $country->update($data);
-            return $this->successResponse($country, 'Country updated successfully');
+            return $this->successResponse($country, __('messages.country_updated_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to update country', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.update_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -67,13 +67,13 @@ class CountryService
         try {
             // Check if country has cities
             if ($country->cities()->count() > 0) {
-                return $this->errorResponse('Cannot delete country with cities', 422);
+                return $this->errorResponse(__('messages.cannot_delete_country_with_cities'), 422);
             }
 
             $country->delete();
-            return $this->successResponse(null, 'Country deleted successfully');
+            return $this->successResponse(null, __('messages.country_deleted_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to delete country', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.deletion_failed'), ['error' => $e->getMessage()]);
         }
     }
 }

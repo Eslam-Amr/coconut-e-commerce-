@@ -59,9 +59,9 @@ class ProductVariantService
             $perPage = $request->integer('per_page', 15);
             $variants = $query->paginate($perPage);
 
-            return $this->successResponse($variants, 'Product variants retrieved successfully');
+            return $this->successResponse($variants, __('messages.product_variants_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve product variants', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -85,10 +85,10 @@ class ProductVariantService
             ]);
 
             DB::commit();
-            return $this->successResponse($variant, 'Product variant created successfully', 201);
+            return $this->successResponse($variant, __('messages.product_variant_created'), 201);
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->serverErrorResponse('Failed to create product variant', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.creation_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -104,9 +104,9 @@ class ProductVariantService
                 // 'inventories'
             ]);
 
-            return $this->successResponse($productVariant, 'Product variant retrieved successfully');
+            return $this->successResponse($productVariant, __('messages.product_variant_retrieved_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to retrieve product variant', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.retrieval_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -144,10 +144,10 @@ class ProductVariantService
             ]);
 
             DB::commit();
-            return $this->successResponse($productVariant, 'Product variant updated successfully');
+            return $this->successResponse($productVariant, __('messages.product_variant_updated_successfully'));
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->serverErrorResponse('Failed to update product variant', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.update_failed'), ['error' => $e->getMessage()]);
         }
     }
 
@@ -165,9 +165,9 @@ class ProductVariantService
             }
 
             $productVariant->delete();
-            return $this->successResponse(null, 'Product variant deleted successfully');
+            return $this->successResponse(null, __('messages.product_variant_deleted_successfully'));
         } catch (\Exception $e) {
-            return $this->serverErrorResponse('Failed to delete product variant', ['error' => $e->getMessage()]);
+            return $this->serverErrorResponse(__('messages.deletion_failed'), ['error' => $e->getMessage()]);
         }
     }
 
