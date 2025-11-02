@@ -249,16 +249,26 @@ class OrderService
     }
 
     /**
-     * Update flash sale counts
+     * Update flash sale counts (Optimized with bulk updates)
      */
     private function updateFlashSaleCounts(Cart $cart)
     {
+        // Optimized: Group quantities by flash sale ID to minimize queries
+        $flashSaleCounts = [];
+        
         foreach ($cart->items as $item) {
             if ($item->flash_sale_id) {
-                // Update the count directly in the flash_sales table
-                FlashSale::where('id', $item->flash_sale_id)
-                    ->increment('count', $item->quantity);
+                if (!isset($flashSaleCounts[$item->flash_sale_id])) {
+                    $flashSaleCounts[$item->flash_sale_id] = 0;
+                }
+                $flashSaleCounts[$item->flash_sale_id] += $item->quantity;
             }
+        }
+        
+        // Bulk update flash sale counts
+        foreach ($flashSaleCounts as $flashSaleId => $totalQuantity) {
+            FlashSale::where('id', $flashSaleId)
+                ->increment('count', $totalQuantity);
         }
     }
 
@@ -572,7 +582,7 @@ class OrderService
             $addressId = $request->address_id ?? $user->default_address_id;
             $address = Address::find($addressId);
             $settings = Settings::current();
-            $shippingPrice = $this->calculateShippingCost($address->latitude ?? null, $address->longitude ?? null);
+            $shippingPrice = $this->calculateShippingCost($address->latitude ?? null, $address->longitude ?? null, $settings);
 
             // Calculate paid amount once at the beginning
             $paidAmount = $this->calculatePaidAmount($lockedCart, $voucherValidation['discount'] ?? 0, null, $settings, $shippingPrice);
@@ -623,9 +633,27 @@ class OrderService
             }
 
             if ($paymentResult['success']) {
+                // Optimized: Eager load all necessary relationships with translations
+                $order->load([
+                    'user:id,name,email,phone,active,language',
+                    'items.product.translations' => function ($query) {
+                        $query->where('locale', app()->getLocale());
+                    },
+                    'items.product' => function ($query) {
+                        $query->select('id', 'category_id', 'brand_id', 'total_quantity', 'base_price', 'active', 'created_at', 'updated_at');
+                    },
+                    'items.productVariant:id,product_id,sku,price,stock,active,created_at,updated_at',
+                    'items.flashSale.translations' => function ($query) {
+                        $query->where('locale', app()->getLocale());
+                    },
+                    'items.flashSale' => function ($query) {
+                        $query->select('id', 'flashable_type', 'flashable_id', 'discount', 'max_limit', 'count', 'start_date', 'end_date', 'active', 'created_at', 'updated_at');
+                    }
+                ]);
+
                 return $this->successResponse( [
                     'payment_url' => $paymentResult['url'],
-                    'order' => $order->load(['items.product', 'items.productVariant', 'items.flashSale']),
+                    'order' => $order,
                     'order_number' => $order->order_number,
                     'order_id' => $order->id
                 ],__('messages.payment_initiated_successfully'));
@@ -655,7 +683,10 @@ class OrderService
     public function handleOrderFailure($orderId, $reason = 'Order failed')
     {
         try {
-            $order = Order::find($orderId);
+            // Optimized: Eager load all relationships needed
+            $order = Order::with(['items.product', 'items.productVariant', 'items.flashSale'])
+                ->find($orderId);
+            
             if (!$order) {
                 return false;
             }
@@ -666,23 +697,19 @@ class OrderService
                 // Restore stock for all order items
                 foreach ($order->items as $orderItem) {
                     if ($orderItem->product_variant_id) {
-                        // Restore variant stock
-                        $variant = ProductVariant::find($orderItem->product_variant_id);
+                        // Use already loaded relationship instead of finding again
+                        $variant = $orderItem->productVariant;
                         if ($variant) {
                             $variant->increment('stock', $orderItem->quantity);
 
-                            Log::info('Variant stock restored due to order failure', [
-                                'variant_id' => $variant->id,
-                                'product_id' => $orderItem->product_id,
-                                'quantity_restored' => $orderItem->quantity,
-                                'new_stock' => $variant->fresh()->stock,
-                                'order_id' => $orderId,
-                                'reason' => $reason
-                            ]);
+                        }
+                        $product = $orderItem->product;
+                        if ($product) {
+                            $product->increment('total_quantity', $orderItem->quantity);
                         }
                     } else {
-                        // Restore regular product stock
-                        $product = Product::find($orderItem->product_id);
+                        // Use already loaded relationship instead of finding again
+                        $product = $orderItem->product;
                         if ($product) {
                             $product->increment('total_quantity', $orderItem->quantity);
                         }
@@ -690,29 +717,26 @@ class OrderService
 
                     // Restore flash sale counts if applicable
                     if ($orderItem->flash_sale_id) {
-                        $flashSale = FlashSale::find($orderItem->flash_sale_id);
-
+                        // Use already loaded relationship instead of finding again
+                        $flashSale = $orderItem->flashSale;
                         if ($flashSale) {
                             $flashSale->decrement('count', $orderItem->quantity);
                         }
                     }
                 }
 
-                // Restore voucher usage if applicable
-                $voucherUsages = VoucherUsage::where('order_id', $orderId)->get();
+                // Optimized: Eager load voucher relationships
+                $voucherUsages = VoucherUsage::with('voucher')
+                    ->where('order_id', $orderId)
+                    ->get();
+                    
                 foreach ($voucherUsages as $voucherUsage) {
-                    // Decrement voucher used count
-                    $voucher = Voucher::find($voucherUsage->voucher_id);
+                    // Use already loaded relationship instead of finding again
+                    $voucher = $voucherUsage->voucher;
                     if ($voucher) {
                         $voucher->decrement('used_count');
 
-                        Log::info('Voucher usage restored due to order failure', [
-                            'voucher_id' => $voucher->id,
-                            'voucher_code' => $voucher->code,
-                            'order_id' => $orderId,
-                            'new_used_count' => $voucher->fresh()->used_count,
-                            'reason' => $reason
-                        ]);
+                        
                     }
 
                     // Delete voucher usage record
@@ -873,18 +897,34 @@ class OrderService
      */
     private function getCartWithLockedProducts($userId)
     {
-        return Cart::where('user_id', $userId)
-            ->with(['items' => function ($query) {
-                $query->with(['product' => function ($q) {
-                    $q->lockForUpdate(); // Lock product rows
-                }, 'productVariant' => function ($q) {
-                    $q->lockForUpdate(); // Lock variant rows
-                }, 'flashSale' => function ($q) {
-                    $q->lockForUpdate(); // Lock flash sale rows
-                }]);
-            }])
-            ->lockForUpdate() // Lock cart row
+        // Optimized: Lock only necessary rows in a single query with eager loading
+        $cart = Cart::where('user_id', $userId)
+            ->lockForUpdate()
             ->first();
+        
+        if (!$cart) {
+            return null;
+        }
+
+        // Load and lock all related records in a single optimized query
+        $cart->load(['items' => function ($query) {
+            $query->with([
+                'product' => function ($q) {
+                    $q->select('id', 'category_id', 'brand_id', 'total_quantity', 'base_price', 'active')
+                      ->lockForUpdate();
+                },
+                'productVariant' => function ($q) {
+                    $q->select('id', 'product_id', 'sku', 'price', 'stock', 'active')
+                      ->lockForUpdate();
+                },
+                'flashSale' => function ($q) {
+                    $q->select('id', 'flashable_type', 'flashable_id', 'discount', 'max_limit', 'count', 'start_date', 'end_date', 'active')
+                      ->lockForUpdate();
+                }
+            ]);
+        }]);
+
+        return $cart;
     }
 
 //     private function getCartWithLockedProducts($userId)

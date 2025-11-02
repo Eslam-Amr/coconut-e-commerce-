@@ -27,11 +27,22 @@ class Settings extends Model
     ];
 
     /**
-     * Get the current settings (singleton pattern)
+     * Request-level cache for settings instance
+     */
+    private static ?self $instance = null;
+
+    /**
+     * Get the current settings (singleton pattern with request-level caching)
      */
     public static function current(): self
     {
-        return static::first() ?? static::create([
+        // Return cached instance if exists
+        if (static::$instance !== null) {
+            return static::$instance;
+        }
+
+        // Query and cache for this request
+        static::$instance = static::first() ?? static::create([
             'company_name' => 'E-Commerce Store',
             'longitude' => 31.2001,
             'latitude' => 29.9187,
@@ -39,6 +50,16 @@ class Settings extends Model
             'tax_rate' => 0.00,
             'kilo_shipping_price' => 2.50,
         ]);
+
+        return static::$instance;
+    }
+
+    /**
+     * Clear the request-level cache (useful for testing or after updates)
+     */
+    public static function clearCache(): void
+    {
+        static::$instance = null;
     }
 
     /**

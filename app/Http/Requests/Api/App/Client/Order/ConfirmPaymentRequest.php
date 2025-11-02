@@ -19,6 +19,10 @@ use Illuminate\Validation\ValidationException;
 
 class ConfirmPaymentRequest extends MasterRequest
 {
+    /**
+     * Cache cart instance to avoid duplicate queries
+     */
+    private $cart = null;
 
     /**
      * Get the validation rules that apply to the request.
@@ -51,6 +55,17 @@ class ConfirmPaymentRequest extends MasterRequest
     }
 
     /**
+     * Get cart once and cache it
+     */
+    private function getCart()
+    {
+        if ($this->cart === null) {
+            $this->cart = Cart::where('user_id', $this->user()->id)->withCount('items')->first();
+        }
+        return $this->cart;
+    }
+
+    /**
      * Validate cart items for order confirmation
      */
     // private function validateCartExistsAndHasItems($validator)
@@ -74,8 +89,8 @@ class ConfirmPaymentRequest extends MasterRequest
             return;
         }
 
-        $user = $this->user();
-        $cart = Cart::where('user_id', $user->id)->withCount('items')->first();
+        // Use cached cart
+        $cart = $this->getCart();
 
         $voucher = Voucher::where('code', $voucherCode)
             ->where('active', true)
@@ -95,8 +110,9 @@ class ConfirmPaymentRequest extends MasterRequest
     private function validatePaymentMethodBasic($validator)
     {
         $paymentMethod = $this->input('payment_method');
-        $user = $this->user();
-        $cart = Cart::where('user_id', $user->id)->withCount('items')->first();
+        
+        // Use cached cart
+        $cart = $this->getCart();
 
         if (!$cart || $cart->items_count === 0) {
             $validator->errors()->add('cart', 'Cart is empty');

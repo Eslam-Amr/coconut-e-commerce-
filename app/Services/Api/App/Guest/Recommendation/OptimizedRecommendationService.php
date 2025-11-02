@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Api\App\Client\Recommendation;
+namespace App\Services\Api\App\Guest\Recommendation;
 
 use App\Services\Utilities\OptimizedRecommendationService as BaseRecommendationService;
 use App\Traits\ApiResponseTrait;
